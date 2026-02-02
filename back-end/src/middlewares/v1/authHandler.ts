@@ -25,13 +25,12 @@ export const checkToken = (req: AuthRequest, res: Response, next: NextFunction) 
 
     if (!token) {
         return res.status(401).json({
-            message: 'Unauthorized. No token provided.'
+            message: 'Unauthorized. No (valid) token provided.'
         });
     }
 
     try {
         req.user = jwt.verify(token, Config.secret);
-
         next();
     } catch (error) {
         return res.status(403).json({
