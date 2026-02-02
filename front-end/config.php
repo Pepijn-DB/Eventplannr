@@ -11,14 +11,7 @@ foreach($lines as $line){
 
 function env(string $key, $default = null) {
     if (!empty(getenv($key))) {
-        $value = getenv($key);
-        if ((str_starts_with($value, '"') && str_ends_with($value, '"'))
-            || (str_starts_with($value, "'") && str_ends_with($value, "'"))
-            || (str_starts_with($value, "`") && str_ends_with($value, "`"))) {
-            return substr($value, 1, -1);
-        } else if (is_numeric($value)) {
-            return (float) $value;
-        }
+        return getenv($key);
     }
 
     return $default;
