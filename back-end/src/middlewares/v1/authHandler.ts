@@ -1,4 +1,5 @@
 import type {NextFunction, Request, Response} from 'express';
+import type {AuthRequest} from "../../app.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
@@ -7,7 +8,7 @@ const noAuthRequired: {[key: string]: string} = {
     "/api/v1/auth": "GET"
 }
 
-export const checkToken = (req: Request, res: Response, next: NextFunction) => {
+export const checkToken = (req: AuthRequest, res: Response, next: NextFunction) => {
     //Skip checking token for routes that don't require authentication
     if ((req.path in noAuthRequired) && req.method === noAuthRequired[req.path]) {
         return next();
@@ -29,7 +30,7 @@ export const checkToken = (req: Request, res: Response, next: NextFunction) => {
     }
 
     try {
-        req.body.user = jwt.verify(token, Config.secret);
+        req.user = jwt.verify(token, Config.secret);
 
         next();
     } catch (error) {

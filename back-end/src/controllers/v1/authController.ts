@@ -1,8 +1,9 @@
 import type {Request, Response, NextFunction} from 'express';
+import type {AuthRequest} from "../../app.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
-export const getToken = (req: Request, res: Response, next: NextFunction) => {
+export const getToken = (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         if (Config.secret === 'null') {
             next(new Error("Server not configured"));

@@ -1,4 +1,5 @@
 import type {NextFunction, Request, Response} from 'express';
+import type {AuthRequest} from "../app.js";
 
 export class AppError extends Error {
     status?: number;
@@ -8,7 +9,7 @@ let listErrors:Error[] = [];
 
 export const errorHandler = (
     err: AppError,
-    req: Request,
+    req: AuthRequest,
     res: Response,
     next: NextFunction
 ) => {
