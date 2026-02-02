@@ -1,5 +1,6 @@
 import type {Request, Response, NextFunction} from 'express';
 import type {AuthRequest} from "../../app.js";
+import type {User} from "../../config/models.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
@@ -27,8 +28,8 @@ export const getToken = (req: AuthRequest, res: Response, next: NextFunction) =>
         const userId = 1;
         const username = "test";
 
-        const payload = {
-            userId: userId,
+        const payload: User = {
+            id: userId,
             username: username,
             email: email,
         }
