@@ -1,3 +1,11 @@
 front-end/.env
+front-end/.idea/
+front-end/.vscode/
+
+back-end/.env
+back-end/.idea/
+back-end/.vscode/
+
+.env
 .idea/
 .vscode/
