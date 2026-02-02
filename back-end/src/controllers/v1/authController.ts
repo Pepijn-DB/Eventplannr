@@ -18,16 +18,19 @@ export const getToken = (req: AuthRequest, res: Response, next: NextFunction) =>
         if (email === undefined || password === undefined || email === null || password === null) return res.status(400).json(
             {message: "Missing email or password"}
         );
-        else if ((email.split("@").length === 2) || (email.split(".").length > 2)) return res.status(400).json({message: "Invalid email"});
+        else if (!((email.split("@").length === 2) || (email.split(".").length >= 2))) {
+            return res.status(400).json({message: "Invalid email"});
+        }
 
         if (!email || !password) return res.status(400).json({message: "Missing email or password"});
         //TODO Authenticate user
         const userId = 1;
-        const role = "admin";
+        const username = "test";
 
         const payload = {
             userId: userId,
-            role: role
+            username: username,
+            email: email,
         }
 
         const token = jwt.sign(payload, Config.secret, {
