@@ -5,6 +5,6 @@ import {
 
 const router = Router();
 
-router.get('/', getToken);
+router.get('/token', getToken);
 
 export default router;

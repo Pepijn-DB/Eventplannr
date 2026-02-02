@@ -1,11 +1,11 @@
-import type {NextFunction, Request, Response} from 'express';
+import type {NextFunction, Response} from 'express';
 import type {AuthRequest} from "../../app.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
 
 const noAuthRequired: {[key: string]: string} = {
-    "/api/v1/auth": "GET"
+    "/api/v1/auth/token": "GET"
 }
 
 export const checkToken = (req: AuthRequest, res: Response, next: NextFunction) => {
