@@ -1,7 +1,7 @@
 import type {Request, Response, NextFunction} from 'express';
 import type {AuthRequest} from "../../app.js";
 
-import database from "../../handlers/databaseHandler.js";
+import database from "../../services/databaseService.js";
 
 export const getUsers = (req: AuthRequest, res: Response, next: NextFunction) => {
 

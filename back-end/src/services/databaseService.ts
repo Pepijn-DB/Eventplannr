@@ -1,6 +1,6 @@
 import { dbConfig } from '../config/config.js';
-import postgres from './postgresHandler.js';
-import mysql from './mysqlHandler.js';
+import postgres from './postgresService.js';
+import mysql from './mysqlService.js';
 
 
 export function connect():boolean {
