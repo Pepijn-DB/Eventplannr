@@ -1,5 +1,7 @@
 import { dbConfig } from '../config/config.js';
-import { Pool } from "pg";
+//dbConfig from the .env file
+
+import {Pool, type QueryResultRow} from "pg";
 
 const pool = new Pool({
     user: dbConfig.username,
