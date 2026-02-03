@@ -1,4 +1,4 @@
-import type {Request, Response, NextFunction} from 'express';
+import type {Response, NextFunction} from 'express';
 import type {AuthRequest} from "../../app.js";
 import type {User} from "../../models/user.js";
 
@@ -14,6 +14,10 @@ export const getToken = (req: AuthRequest, res: Response, next: NextFunction) =>
         if (req.body === undefined) return res.status(400).json(
             {message: "Missing body"}
         )
+    } catch (error) {
+        next(error);
+    }
+    try {
         const { email, password } = req.body;
 
         if (email === undefined || password === undefined || email === null || password === null) return res.status(400).json(
