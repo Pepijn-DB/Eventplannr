@@ -1,5 +1,6 @@
 import {dbConfig} from "../config/config.js";
 import mysql from 'mysql2';
+import type {Query} from "mysql2";
 
 const db = mysql.createConnection({
     host: dbConfig.host,
@@ -35,18 +36,18 @@ export function connect(): boolean {
         db.ping((err: any) => {
             dbConnected = !err;
         });
-    } catch (err) {
+    } catch (_err) {
         dbConnected = false;
     }
 
     return dbConnected;
 }
 
-export function query(query: string, params: any[] = []): any {
+export function query(query: string, params: any[] = []): Query | null {
     try {
         return db.execute(query, params);
-    } catch (err) {
-        throw err;
+    } catch (_err) {
+        return null;
     }
 }
 
