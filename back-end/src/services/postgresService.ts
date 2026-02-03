@@ -27,7 +27,7 @@ export function connect():boolean {
     } catch (ignored) {return false}
 }
 
-export async function query(query: string, params: any[] = []): Promise<any> {
+export async function query(query: string, params: any[] = []): Promise<QueryResultRow> {
     return await pool.query(query, params);
 }
 
