@@ -1,6 +1,6 @@
 import type {Request, Response, NextFunction} from 'express';
 import type {AuthRequest} from "../../app.js";
-import type {User} from "../../config/models.js";
+import type {User} from "../../models/user.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
