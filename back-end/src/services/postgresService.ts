@@ -1,7 +1,7 @@
 import { dbConfig } from '../config/config.js';
 //dbConfig from the .env file
 
-import {Pool, type QueryResultRow} from "pg";
+import {Pool, type QueryResult} from "pg";
 
 const pool = new Pool({
     user: dbConfig.username,
@@ -30,7 +30,7 @@ export async function connect(): Promise<boolean> {
     } catch (_err) {return false}
 }
 
-export async function query(query: string, params: any[] = []): Promise<QueryResultRow> {
+export async function query(query: string, params: any[] = []): Promise<QueryResult> {
     return await pool.query(query, params);
 }
 
