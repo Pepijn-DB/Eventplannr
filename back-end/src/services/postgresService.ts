@@ -14,19 +14,20 @@ const pool = new Pool({
 
 let connected:boolean = false;
 
-export function connect():boolean {
+export async function connect(): Promise<boolean> {
     try {
         if (connected) return true;
 
         if (!pool) return false;
 
-        pool.query('SELECT NOW()')
-            .then(r => r.rows.length > 0 ? connected = true : connected = false)
-            .catch(() => connected = false);
+        try {
+            const query = await pool.query('SELECT NOW()');
+            connected = (query.rows.length > 0);
+        } catch (_err) { connected = false; }
 
 
         return connected;
-    } catch (ignored) {return false}
+    } catch (_err) {return false}
 }
 
 export async function query(query: string, params: any[] = []): Promise<QueryResultRow> {
