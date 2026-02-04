@@ -1,6 +1,6 @@
 import {dbConfig} from "../config/config.js";
 import mysql from 'mysql2';
-import type {Query} from "mysql2";
+import type {Query, QueryError} from "mysql2";
 
 import type {StrNum} from "../models/strnum.js";
 
@@ -12,9 +12,9 @@ const db = mysql.createConnection({
     database: dbConfig.database,
 });
 
-let dbConnected: boolean = false;
+let dbConnected:boolean = false
 
-db.on('error', (err: any) => {
+db.on('error', (err: QueryError | null) => {
     dbConnected = false;
 });
 
@@ -24,7 +24,7 @@ export function connect(): boolean {
 
     try {
         if (db.state === 'disconnected') {
-            db.connect((err: any) => {
+            db.connect((err: QueryError | null) => {
                 if (err) {
                     dbConnected = false;
                     return;
@@ -35,7 +35,7 @@ export function connect(): boolean {
             dbConnected = (db.state === 'connected');
         }
 
-        db.ping((err: any) => {
+        db.ping((err: QueryError | null) => {
             dbConnected = !err;
         });
     } catch (_err) {
