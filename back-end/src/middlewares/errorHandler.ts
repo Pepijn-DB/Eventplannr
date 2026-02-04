@@ -1,4 +1,4 @@
-import type {NextFunction, Request, Response} from 'express';
+import type {Response} from 'express';
 import type {AuthRequest} from "../app.js";
 
 export class AppError extends Error{
@@ -10,16 +10,22 @@ export class AppError extends Error{
     status: number;
 }
 
-let listErrors:Error[] = [];
+interface error {
+    err: AppError,
+    req: AuthRequest
+}
+
+const listErrors:error[] = [];
 
 export const errorHandler = (
     err: AppError,
     req: AuthRequest,
-    res: Response,
-    next: NextFunction
+    res: Response
 ) => {
-    listErrors.push(err);
+    listErrors.push({ err, req });
     res.status(err.status || 500).json({
         message: err.message || 'Internal Server Error',
     });
 };
+
+export const getErrors = ():error[] => listErrors;
