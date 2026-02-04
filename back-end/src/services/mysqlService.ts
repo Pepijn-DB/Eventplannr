@@ -2,6 +2,8 @@ import {dbConfig} from "../config/config.js";
 import mysql from 'mysql2';
 import type {Query} from "mysql2";
 
+import type {StrNum} from "../models/strnum.js";
+
 const db = mysql.createConnection({
     host: dbConfig.host,
     port: dbConfig.port,
@@ -43,7 +45,7 @@ export function connect(): boolean {
     return dbConnected;
 }
 
-export function query(query: string, params: any[] = []): Query | null {
+export function query(query: string, params: StrNum[] = []): Query | null {
     try {
         return db.execute(query, params);
     } catch (_err) {

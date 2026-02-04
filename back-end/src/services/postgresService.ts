@@ -3,6 +3,8 @@ import { dbConfig } from '../config/config.js';
 
 import {Pool, type QueryResult} from "pg";
 
+import type {StrNum} from "../models/strnum.js";
+
 const pool = new Pool({
     user: dbConfig.username,
     host: dbConfig.host,
@@ -30,7 +32,7 @@ export async function connect(): Promise<boolean> {
     } catch (_err) {return false}
 }
 
-export async function query(query: string, params: any[] = []): Promise<QueryResult> {
+export async function query(query: string, params: StrNum[] = []): Promise<QueryResult> {
     return await pool.query(query, params);
 }
 
