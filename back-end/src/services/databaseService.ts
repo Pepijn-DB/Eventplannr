@@ -6,6 +6,7 @@ import type {QueryResult} from "pg";
 import type {Query} from "mysql2";
 
 import type {MaybePromise} from "../models/maybepromise.js";
+import type {StrNum} from "../models/strnum.js";
 
 export function connect():MaybePromise<boolean> {
     switch (dbConfig.type) {
@@ -19,7 +20,7 @@ export function connect():MaybePromise<boolean> {
     }
 }
 
-export function query(query: string, params: any[] = []):MaybePromise<QueryResult> | Query | null {
+export  function query(query: string, params: StrNum[] = []):MaybePromise<QueryResult> | Query | null {
     switch (dbConfig.type) {
         case 'mysql': {
             if (!mysql.connect()) {return null;}
