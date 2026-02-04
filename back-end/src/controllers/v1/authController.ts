@@ -2,6 +2,8 @@ import type {Response, NextFunction} from 'express';
 import type {AuthRequest} from "../../app.js";
 import type {User} from "../../models/user.js";
 
+import {AppError} from "../../middlewares/errorHandler.js";
+
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
 import {emailValidator} from "../../validators/emailValidator.js";
@@ -10,7 +12,7 @@ import {arrayValidator, variableValidator} from "../../validators/variableValida
 export const getToken = (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         if (Config.secret === 'null') {
-            next(new Error("Server not configured"));
+            next(new AppError("Server not configured", 500));
             return;
         }
 

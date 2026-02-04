@@ -1,8 +1,13 @@
 import type {NextFunction, Request, Response} from 'express';
 import type {AuthRequest} from "../app.js";
 
-export class AppError extends Error {
-    status?: number;
+export class AppError extends Error{
+    constructor(message: string, status?: number, ErrorOptions?: ErrorOptions) {
+        super(message, ErrorOptions);
+        this.status = status || 500;
+    }
+
+    status: number;
 }
 
 let listErrors:Error[] = [];
