@@ -48,7 +48,7 @@ CREATE TABLE `invitation` (
     `event_id` int NOT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_log` int,
-    `role` ENUM ('GUEST', 'DATE_PICKER', 'LOCATION_PICKER', 'ORGANISER') NOT NULL DEFAULT 'GUEST'
+    `role` ENUM ('GUEST', 'DATE_PICKER', 'LOCATION_PICKER', 'ORGANIZER') NOT NULL DEFAULT 'GUEST'
 );
 
 CREATE TABLE `locations` (
