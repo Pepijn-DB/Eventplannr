@@ -5,6 +5,7 @@ import type {QueryResult} from "pg";
 import type {ResultSetHeader} from "mysql2";
 
 import type {StrNum} from "../models/strnum.js";
+import {AppError} from "../middlewares/errorHandler.js";
 
 export function connect():Promise<boolean> {
     switch (dbConfig.type) {
@@ -14,7 +15,7 @@ export function connect():Promise<boolean> {
         case 'postgres': {
             return postgres.connect();
         }
-        default: return false;
+        default: throw new AppError("Unknown database connection", 500);
     }
 }
 
@@ -24,13 +25,26 @@ export async function query(query: string, params: StrNum[] = [], executioner: n
         //     if (!mysql.connect()) {return null;}
         //     return mysql.query(query, params, executioner);
         // }
-        }
         case 'postgres': {
             if (!postgres.connect()) {return null;}
-            return postgres.query(query, params, executioner);
+            return await postgres.query(query, params, executioner);
         }
+        default: throw new AppError("Unknown database connection", 500);
     }
-    return null;
+}
+
+export async function queryWithoutExecutioner(query: string, params: StrNum[] = []):Promise<QueryResult | null> {
+    switch (dbConfig.type) {
+        // case 'mysql': {
+        //     if (!mysql.connect()) {return null;}
+        //     return mysql.query(query, params, null);
+        // }
+        case 'postgres': {
+            if (!postgres.connect()) {return null;}
+            return await postgres.query(query, params, null);
+        }
+        default: throw new AppError("Unknown database connection", 500);
+    }
 }
 
 /**
