@@ -33,7 +33,7 @@ export async function connect(): Promise<boolean> {
     } catch (_err) {return false}
 }
 
-export async function query(query: string, params: StrNum[] = [], executioner: number): Promise<QueryResult> {
+export async function query(query: string, params: StrNum[] = [], executioner: number | null): Promise<QueryResult> {
     const result:QueryResult = await pool.query(query, params);
 
     const logNumber:number | null = await addLog(query, executioner);
@@ -44,9 +44,9 @@ export async function query(query: string, params: StrNum[] = [], executioner: n
 }
 
 
-async function addLog(query: string, executioner: number): Promise<number | null> {
-    if (!(await connect()) || !pool || !query || !executioner) return null;
-    if (executioner < 0) return null
+async function addLog(query: string, executioner: number | null): Promise<number | null> {
+    if (!(await connect()) || !pool || !query) return null;
+    if (executioner !== null && executioner < 0) return null
 
     const { action, table: tableName, where: whereClause } = parseQuery(query);
 
