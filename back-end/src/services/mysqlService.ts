@@ -4,6 +4,8 @@ import type {Query, QueryError} from "mysql2";
 
 import type {StrNum} from "../models/strnum.js";
 
+import {parseQuery} from "./databaseService.js";
+
 const db = mysql.createConnection({
     host: dbConfig.host,
     port: dbConfig.port,

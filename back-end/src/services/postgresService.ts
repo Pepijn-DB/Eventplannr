@@ -4,6 +4,7 @@ import { dbConfig } from '../config/config.js';
 import {Pool, type QueryResult} from "pg";
 
 import type {StrNum} from "../models/strnum.js";
+import {parseQuery} from "./databaseService.js";
 
 const pool = new Pool({
     user: dbConfig.username,
