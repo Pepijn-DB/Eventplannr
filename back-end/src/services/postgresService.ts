@@ -33,8 +33,14 @@ export async function connect(): Promise<boolean> {
     } catch (_err) {return false}
 }
 
-export async function query(query: string, params: StrNum[] = []): Promise<QueryResult> {
-    return await pool.query(query, params);
+export async function query(query: string, params: StrNum[] = [], executioner: number): Promise<QueryResult> {
+    const result:QueryResult = await pool.query(query, params);
+
+    const logNumber:number | null = await addLog(query, executioner);
+
+    await pool.query("UPDATE table SET updated_log = ? WHERE id IN ?;", [logNumber, result.rows.map(row => row.id)]);
+
+    return result;
 }
 
 
