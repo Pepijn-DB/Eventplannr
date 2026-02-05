@@ -1,8 +1,9 @@
 import {dbConfig} from "../config/config.js";
+import type {QueryError, ResultSetHeader} from "mysql2";
 import mysql from 'mysql2';
-import type {Query, QueryError} from "mysql2";
 
 import type {StrNum} from "../models/strnum.js";
+import {AppError} from "../middlewares/errorHandler.js";
 
 import {parseQuery} from "./databaseService.js";
 
@@ -47,9 +48,21 @@ export function connect(): boolean {
     return dbConnected;
 }
 
-export function query(query: string, params: StrNum[] = []): Query | null {
+export function query(query: string, params: StrNum[] = [], executioner: number): ResultSetHeader | null {
     try {
-        return db.execute(query, params);
+        db.execute(query, params, (err, result: ResultSetHeader) => {
+            if (err) throw new AppError(err.message);
+
+            const id:number = result.insertId
+
+            const queryWithParams = query.replace(/\?/g, () => `'${params.shift()}'`);
+
+            const log = addLog(queryWithParams, executioner);
+            if (!log && log !== null && log > 0) db.execute("UPDATE table SET updated_log = ? WHERE id = ?;", [log, id]);
+
+            return result;
+        });
+        return null;
     } catch (_err) {
         return null;
     }
