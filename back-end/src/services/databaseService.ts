@@ -3,7 +3,7 @@ import postgres from './postgresService.js';
 import mysql from './mysqlService.js';
 
 import type {QueryResult} from "pg";
-import type {Query} from "mysql2";
+import type {ResultSetHeader} from "mysql2";
 
 import type {MaybePromise} from "../models/maybepromise.js";
 import type {StrNum} from "../models/strnum.js";
@@ -20,15 +20,15 @@ export function connect():MaybePromise<boolean> {
     }
 }
 
-export  function query(query: string, params: StrNum[] = []):MaybePromise<QueryResult> | Query | null {
+export  function query(query: string, params: StrNum[] = [], executioner: number):MaybePromise<QueryResult> | ResultSetHeader | null {
     switch (dbConfig.type) {
         case 'mysql': {
             if (!mysql.connect()) {return null;}
-            return mysql.query(query, params);
+            return mysql.query(query, params, executioner);
         }
         case 'postgres': {
             if (!postgres.connect()) {return null;}
-            return postgres.query(query, params);
+            return postgres.query(query, params, executioner);
         }
     }
     return null;
