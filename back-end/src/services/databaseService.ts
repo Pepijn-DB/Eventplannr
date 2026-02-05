@@ -1,18 +1,16 @@
 import { dbConfig } from '../config/config.js';
 import postgres from './postgresService.js';
-import mysql from './mysqlService.js';
 
 import type {QueryResult} from "pg";
 import type {ResultSetHeader} from "mysql2";
 
-import type {MaybePromise} from "../models/maybepromise.js";
 import type {StrNum} from "../models/strnum.js";
 
-export function connect():MaybePromise<boolean> {
+export function connect():Promise<boolean> {
     switch (dbConfig.type) {
-        case 'mysql': {
-            return mysql.connect();
-        }
+        // case 'mysql': {
+        //     return mysql.connect();
+        // }
         case 'postgres': {
             return postgres.connect();
         }
@@ -20,11 +18,12 @@ export function connect():MaybePromise<boolean> {
     }
 }
 
-export  function query(query: string, params: StrNum[] = [], executioner: number):MaybePromise<QueryResult> | ResultSetHeader | null {
+export async function query(query: string, params: StrNum[] = [], executioner: number):Promise<QueryResult | null> {
     switch (dbConfig.type) {
-        case 'mysql': {
-            if (!mysql.connect()) {return null;}
-            return mysql.query(query, params, executioner);
+        // case 'mysql': {
+        //     if (!mysql.connect()) {return null;}
+        //     return mysql.query(query, params, executioner);
+        // }
         }
         case 'postgres': {
             if (!postgres.connect()) {return null;}
