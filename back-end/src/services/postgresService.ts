@@ -37,4 +37,20 @@ export async function query(query: string, params: StrNum[] = []): Promise<Query
     return await pool.query(query, params);
 }
 
+
+async function addLog(query: string, executioner: number): Promise<number | null> {
+    if (!(await connect()) || !pool || !query || !executioner) return null;
+    if (executioner < 0) return null
+
+    const { action, table: tableName, where: whereClause } = parseQuery(query);
+
+
+    await pool.query("INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?);", [ query, executioner, tableName, whereClause, action])
+        .then(r => {
+            return r.rows[0].id;
+        });
+
+    return null;
+}
+
 export default { connect, query };

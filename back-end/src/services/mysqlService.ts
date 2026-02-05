@@ -55,4 +55,19 @@ export function query(query: string, params: StrNum[] = []): Query | null {
     }
 }
 
+function addLog(query: string, executioner: number): number | null {
+    if (!connect() || !db || !query || !executioner) return null;
+    if (executioner < 0) return null
+
+    const { action, table: tableName, where: whereClause } = parseQuery(query);
+
+
+    db.execute("INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?);", [query, executioner, tableName, whereClause, action], (err, result: ResultSetHeader) => {
+        if (err) return null;
+        return result.insertId;
+    });
+
+    return null;
+}
+
 export default { connect, query };
