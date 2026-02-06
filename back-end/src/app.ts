@@ -11,7 +11,7 @@ import type {JwtPayload} from "jsonwebtoken";
 import type {Request} from "express";
 
 export interface AuthRequest extends Request {
-    user?: JwtPayload | User | string
+    user?: User
 }
 
 const app = express();

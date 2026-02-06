@@ -1,5 +1,6 @@
 import type {NextFunction, Response} from 'express';
 import type {AuthRequest} from "../../app.js";
+import type {User} from "../../models/user.js";
 
 import jwt from 'jsonwebtoken';
 import Config from "../../config/config.js";
@@ -30,7 +31,7 @@ export const checkToken = (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     try {
-        req.user = jwt.verify(token, Config.secret);
+        req.user = jwt.verify(token, Config.secret) as User;
         next();
     } catch (error) {
         return res.status(403).json({
