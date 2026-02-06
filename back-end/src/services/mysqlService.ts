@@ -1,89 +1,125 @@
-//TODO
+import { dbConfig } from '../config/config.js';
+import mysql from 'mysql2/promise';
 
-// import {dbConfig} from "../config/config.js";
-// import type {QueryError, ResultSetHeader} from "mysql2";
-// import mysql from 'mysql2';
-//
-// import type {StrNum} from "../models/strnum.js";
-// import {AppError} from "../middlewares/errorHandler.js";
-//
-// import {parseQuery} from "./databaseService.js";
-// import type {result} from "../models/sqlTables.js";
-//
-// const db = mysql.createConnection({
-//     host: dbConfig.host,
-//     port: dbConfig.port,
-//     user: dbConfig.username,
-//     password: dbConfig.password,
-//     database: dbConfig.database,
-// });
-//
-// let dbConnected:boolean = false
-//
-// db.on('error', (err: QueryError | null) => {
-//     dbConnected = false;
-// });
-//
-// export function connect(): boolean {
-//     if (dbConnected) return true;
-//     if (!db) return false;
-//
-//     try {
-//         if (db.state === 'disconnected') {
-//             db.connect((err: QueryError | null) => {
-//                 if (err) {
-//                     dbConnected = false;
-//                     return;
-//                 }
-//                 dbConnected = true;
-//             });
-//         } else {
-//             dbConnected = (db.state === 'connected');
-//         }
-//
-//         db.ping((err: QueryError | null) => {
-//             dbConnected = !err;
-//         });
-//     } catch (_err) {
-//         dbConnected = false;
-//     }
-//
-//     return dbConnected;
-// }
-//
-// export function query(query: string, params: StrNum[] = [], executioner: number): result[] | null {
-//     try {
-//         db.execute(query, params, (err, result) => {
-//             if (err) throw new AppError(err.message);
-//
-//             const id:number = result.insertId || (result as any[])[0]?.id;
-//
-//             const queryWithParams = query.replace(/\?/g, () => `'${params.shift()}'`);
-//
-//             const log = addLog(queryWithParams, executioner);
-//             if (!log && log !== null && log > 0) db.execute("UPDATE table SET updated_log = ? WHERE id = ?;", [log, id]);
-//
-//             return result;
-//         });
-//         return null;
-//     } catch (_err) {
-//         return null;
-//     }
-// }
-//
-// function addLog(query: string, executioner: number): number | null {
-//     if (!connect() || !db || !query || !executioner) return null;
-//     if (executioner < 0) return null
-//
-//     const { action, table: tableName, where: whereClause } = parseQuery(query);
-//
-//
-//     db.execute("INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?);", [query, executioner, tableName, whereClause, action], (err, result: ResultSetHeader) => {
-//         if (err) return null;
-//         return result.insertId;
-//     });
-//
-//     return null;
-// }
-//
-// export default { connect, query };
+import type { StrNum } from "../models/strnum.js";
+import { AppError } from "../middlewares/errorHandler.js";
+import { parseQuery, prepareQueryAndParams } from "./databaseService.js";
+
+const pool = mysql.createPool({
+    host: dbConfig.host,
+    port: dbConfig.port,
+    user: dbConfig.username,
+    password: dbConfig.password,
+    database: dbConfig.database,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
+
+let connected: boolean = false;
+
+export async function connect(): Promise<boolean> {
+    if (connected) return true;
+    if (!pool) return false;
+
+    try {
+        try {
+            await pool.getConnection().then(async conn => {
+                await conn.ping();
+                conn.release();
+                connected = true;
+            });
+        } catch (_err) {
+            connected = false;
+        }
+
+        return connected;
+    } catch (_err) {
+        connected = false;
+        return false;
+    }
+}
+
+function safeForLog(val: any): string {
+    if (val === null || val === undefined) return 'NULL';
+    if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+    if (val instanceof Date) return `'${val.toISOString()}'`;
+    let s = String(val);
+    if (/password/i.test(s) || /pwd/i.test(s)) return "'****'";
+    s = s.replace(/'/g, "\\'");
+    if (s.length > 200) s = `${s.slice(0, 200)}...<truncated>`;
+    return `'${s}'`;
+}
+
+function buildQueryForLog(sql: string, params: StrNum[] = []): string {
+    if (!params || params.length === 0) return sql;
+
+    const parts: string[] = sql.split('?');
+    const out: string[] = [];
+    for (let i = 0; i < parts.length - 1; i++) {
+        out.push(parts[i] ?? '');
+        const p: StrNum | undefined = params[i];
+        if (Array.isArray(p)) {
+            if (p.length === 0) out.push('(NULL)');
+            else out.push(`(${p.map(v => safeForLog(v)).join(', ')})`);
+        } else {
+            out.push(safeForLog(p));
+        }
+    }
+    out.push(parts[parts.length - 1] ?? '');
+    return out.join('');
+}
+
+export async function query(query: string, params: StrNum[] = [], executioner: number | null): Promise<{ rows: any[] } | null> {
+    try {
+        if (!(await connect())) return null;
+
+        const prepared = prepareQueryAndParams(query, params);
+
+        const [rows] = await pool.execute(prepared.sql, prepared.params as any[]);
+
+        const queryForLog = buildQueryForLog(query, params);
+
+        const logNumber = await addLog(queryForLog, executioner);
+
+        try {
+            const resultRows = Array.isArray(rows) ? rows as any[] : [];
+            const ids = resultRows.map(r => r?.id).filter((v: any) => v !== undefined && v !== null);
+            if (ids.length > 0 && logNumber !== null) {
+                const placeholders = ids.map(() => '?').join(',');
+                const tableName = parseQuery(query).table || 'table';
+                await pool.execute(`UPDATE ${tableName} SET updated_log = ? WHERE id IN (${placeholders});`, [logNumber, ...ids]);
+            }
+        } catch (_err) {
+        }
+
+        return { rows: Array.isArray(rows) ? rows as any[] : [] };
+    } catch (err: any) {
+        throw new AppError(err?.message || 'Database query error', 500);
+    }
+}
+
+async function addLog(queryForLog: string, executioner: number | null): Promise<number | null> {
+    if (!(await connect()) || !pool || !queryForLog) return null;
+    if (executioner !== null && executioner < 0) return null;
+
+    const { action, table: tableName, where: whereClause } = parseQuery(queryForLog);
+
+    try {
+        const [res] = await pool.execute('INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?, ?);', [queryForLog, executioner, tableName, whereClause, action]);
+        const insertId = (res as any)?.insertId;
+        return insertId ?? null;
+    } catch (_err) {
+        return null;
+    }
+}
+
+export async function close(): Promise<void> {
+    try {
+        await pool.end();
+        connected = false;
+    } catch (_err) {
+    }
+}
+
+export default { connect, query, close };
