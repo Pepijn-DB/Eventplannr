@@ -17,11 +17,11 @@ export async function connect(): Promise<boolean> {
 	}
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 export async function query(
 	query: string,
 	params: StrNum[] = [],
 	executioner: number,
+	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): Promise<{ rows: any[] }> {
 	switch (dbConfig.type) {
 		case "mysql": {
@@ -44,11 +44,11 @@ export async function query(
 	}
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 export async function queryWithoutExecutioner(
 	query: string,
 	params: StrNum[] = [],
-): Promise<{ rows: any[] }> {
+	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+	): Promise<{ rows: any[] }> {
 	switch (dbConfig.type) {
 		case "mysql": {
 			if (!(await mysql.connect())) {
@@ -91,11 +91,11 @@ export async function close(): Promise<void> {
  * @return An object containing the prepared SQL query string with substitutions and the corresponding
  *         flattened parameter array ready for execution.
  */
-// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 export function prepareQueryAndParams(
 	sql: string,
 	params: StrNum[] = [],
-): { sql: string; params: any[] } {
+	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+	): { sql: string; params: any[] } {
 	if (!params || params.length === 0) return { sql, params: [] };
 
 	const parts = sql.split("?");

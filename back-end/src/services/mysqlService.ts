@@ -91,9 +91,9 @@ export async function query(
 		try {
 			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 			const resultRows = Array.isArray(rows) ? (rows as any[]) : [];
-			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 			const ids = resultRows
 				.map((r) => r?.id)
+				// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 				.filter((v: any) => v !== undefined && v !== null);
 			if (ids.length > 0 && logNumber !== null) {
 				const placeholders = ids.map(() => "?").join(",");
