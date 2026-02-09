@@ -1,31 +1,31 @@
-import type {Response} from 'express';
-import type {AuthRequest} from "../app.js";
+import type { Response } from "express";
+import type { AuthRequest } from "../app.js";
 
-export class AppError extends Error{
-    constructor(message: string, status?: number, ErrorOptions?: ErrorOptions) {
-        super(message, ErrorOptions);
-        this.status = status || 500;
-    }
+export class AppError extends Error {
+	constructor(message: string, status?: number, ErrorOptions?: ErrorOptions) {
+		super(message, ErrorOptions);
+		this.status = status || 500;
+	}
 
-    status: number;
+	status: number;
 }
 
 interface error {
-    err: AppError,
-    req: AuthRequest
+	err: AppError;
+	req: AuthRequest;
 }
 
-const listErrors:error[] = [];
+const listErrors: error[] = [];
 
 export const errorHandler = (
-    err: AppError,
-    req: AuthRequest,
-    res: Response
+	err: AppError,
+	req: AuthRequest,
+	res: Response,
 ) => {
-    listErrors.push({ err, req });
-    res.status(err.status || 500).json({
-        message: err.message || 'Internal Server Error',
-    });
+	listErrors.push({ err, req });
+	res.status(err.status || 500).json({
+		message: err.message || "Internal Server Error",
+	});
 };
 
-export const getErrors = ():error[] => listErrors;
+export const getErrors = (): error[] => listErrors;

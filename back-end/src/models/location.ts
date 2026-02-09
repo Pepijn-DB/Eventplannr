@@ -1,5 +1,5 @@
 export interface Location {
-    id: number,
-    name: string,
-    creator_user: number
+	id: number;
+	name: string;
+	creator_user: number;
 }

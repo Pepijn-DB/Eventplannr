@@ -1,23 +1,22 @@
-import { Router } from 'express';
+import { Router } from "express";
+import { getUserInvitations } from "../../controllers/v1/invitationController.js";
 import {
-    createUser,
-    deleteUser,
-    getUser,
-    updateUser,
-
-    getUsers
-} from '../../controllers/v1/userController.js';
-import {getUserInvitations} from '../../controllers/v1/invitationController.js';
+	createUser,
+	deleteUser,
+	getUser,
+	getUsers,
+	updateUser,
+} from "../../controllers/v1/userController.js";
 
 const router = Router();
 
-router.get('/', getUsers);
+router.get("/", getUsers);
 
-router.put('/', createUser);
-router.delete('/:id', deleteUser);
-router.get('/:id', getUser);
-router.post('/:id', updateUser);
+router.put("/", createUser);
+router.delete("/:id", deleteUser);
+router.get("/:id", getUser);
+router.post("/:id", updateUser);
 
-router.get('/:id/invitations', getUserInvitations);
+router.get("/:id/invitations", getUserInvitations);
 
 export default router;

@@ -1,38 +1,56 @@
-import type { Response, NextFunction} from 'express';
-import type {AuthRequest} from "../../app.js";
+import type { NextFunction, Response } from "express";
+import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
+import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
-import {AppError} from "../../middlewares/errorHandler.js";
-import {eventValidator, userValidator} from "../../validators/requestValidator.js";
-import type {StrNum} from "../../models/strnum.js"
+import {
+	eventValidator,
+	userValidator,
+} from "../../validators/requestValidator.js";
 
-async function isEventOrganizer(eventId: number, userId: number): Promise<boolean> {
-    const sql = `
+async function isEventOrganizer(
+	eventId: number,
+	userId: number,
+): Promise<boolean> {
+	const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
             WHERE e.id = ?
         `;
 
-    const resultEvent = await database.query(sql, [userId, eventId], userId);
-    if (!resultEvent) throw new AppError("Internal server error", 500);
+	const resultEvent = await database.query(sql, [userId, eventId], userId);
+	if (!resultEvent) throw new AppError("Internal server error", 500);
 
-    if (resultEvent.rows.length === 0) throw new AppError("Event not found", 400);
+	if (resultEvent.rows.length === 0) throw new AppError("Event not found", 400);
 
-    const sqlInvitations = `
+	const sqlInvitations = `
             SELECT i.user_id, i.event_id, i.role
             FROM invitation i
             WHERE i.event_id = ? AND i.user_id = ? AND i.role = 'ORGANIZER'
             LIMIT 1
         `;
-    const resultInvitations = await database.query(sqlInvitations, [eventId, userId], userId);
+	const resultInvitations = await database.query(
+		sqlInvitations,
+		[eventId, userId],
+		userId,
+	);
 
-    return ((resultEvent.rows.length > 0 && !(resultEvent.rows[0].creator_user === userId)) && resultInvitations.rows.length > 0);
+	return (
+		resultEvent.rows.length > 0 &&
+		!(resultEvent.rows[0].creator_user === userId) &&
+		resultInvitations.rows.length > 0
+	);
 }
 
-export const getEvents = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-        const userId = userValidator(req);
+export const getEvents = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
 
-        const sql = `
+		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
             INNER JOIN invitation i ON i.event_id = e.id
@@ -40,107 +58,135 @@ export const getEvents = async (req: AuthRequest, res: Response, next: NextFunct
             ORDER BY e.event_date DESC
         `;
 
-        const result = await database.query(sql, [userId, userId], userId);
-        if (!result) throw new AppError("Internal server error");
+		const result = await database.query(sql, [userId, userId], userId);
+		if (!result) throw new AppError("Internal server error");
 
-        return res.status(200).json(result.rows);
-    } catch (err) {
-        next(err);
-    }
-}
+		return res.status(200).json(result.rows);
+	} catch (err) {
+		next(err);
+	}
+};
 
-export const getEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-        const userId = userValidator(req);
-        const eventId = eventValidator(req);
+export const getEvent = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
 
-        const sql = `
+		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
             INNER JOIN invitation i ON i.event_id = e.id
             WHERE i.user_id = ? AND e.id = ?
         `;
 
-        const result = await database.query(sql, [userId, eventId], userId);
-        if (!result) throw new AppError("Internal server error");
+		const result = await database.query(sql, [userId, eventId], userId);
+		if (!result) throw new AppError("Internal server error");
 
-        if (result.rows.length === 0) throw new AppError("Event not found", 400);
+		if (result.rows.length === 0) throw new AppError("Event not found", 400);
 
-        return res.status(200).json(result.rows);
-    } catch (err) {
-        next(err);
-    }
-}
+		return res.status(200).json(result.rows);
+	} catch (err) {
+		next(err);
+	}
+};
 
-export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const {title, description} = req.body;
-    if (!title) return res.status(400).json({message: "Missing title"});
-    try {
-        const userId = userValidator(req);
+export const createEvent = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	const { title, description } = req.body;
+	if (!title) return res.status(400).json({ message: "Missing title" });
+	try {
+		const userId = userValidator(req);
 
-        const sql = `
+		const sql = `
             INSERT INTO events (creator_user, title, description, status)
             VALUES (?, ?, ?, OPEN)
         `;
 
-        const result = await database.query(sql, [userId, title, description], userId);
-        if (!result) throw new AppError("Internal server error");
+		const result = await database.query(
+			sql,
+			[userId, title, description],
+			userId,
+		);
+		if (!result) throw new AppError("Internal server error");
 
-        return res.status(201).json({message: "Event created"});
-    } catch (err) {
-        next(err);
-    }
-}
+		return res.status(201).json({ message: "Event created" });
+	} catch (err) {
+		next(err);
+	}
+};
 
-export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    let sql = `UPDATE events SET`
-    const params: StrNum[] = [];
+export const updateEvent = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	let sql = `UPDATE events SET`;
+	const params: StrNum[] = [];
 
-    try{
-        const userId = userValidator(req);
-        const eventId = eventValidator(req);
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
 
-        if (!(await isEventOrganizer(eventId, userId))) return res.status(403).json({message: "Forbidden"});
+		if (!(await isEventOrganizer(eventId, userId)))
+			return res.status(403).json({ message: "Forbidden" });
 
-        if (req.body.title) {
-            sql += ` title = ?,`;
-            params.push(req.body.title);
-        }
-        if (req.body.description) {
-            sql += ` description = ?,`;
-            params.push(req.body.description);
-        }
-        if (req.body.status) {
-            sql += ` status = ?,`;
-            if (req.body.status !== "CLOSED" || req.body.status !== "OPEN" || req.body.status !== "CANCELLED" || req.body.status !== "DRAFT") {
-                return res.status(400).json({message: "Invalid status"});
-            }
-            params.push(req.body.status);
-        }
-        if (!req.body.title && !req.body.description && !req.body.status) return res.status(400).json({message: "Nothing to update"});
+		if (req.body.title) {
+			sql += ` title = ?,`;
+			params.push(req.body.title);
+		}
+		if (req.body.description) {
+			sql += ` description = ?,`;
+			params.push(req.body.description);
+		}
+		if (req.body.status) {
+			sql += ` status = ?,`;
+			if (
+				req.body.status !== "CLOSED" ||
+				req.body.status !== "OPEN" ||
+				req.body.status !== "CANCELLED" ||
+				req.body.status !== "DRAFT"
+			) {
+				return res.status(400).json({ message: "Invalid status" });
+			}
+			params.push(req.body.status);
+		}
+		if (!req.body.title && !req.body.description && !req.body.status)
+			return res.status(400).json({ message: "Nothing to update" });
 
-        sql = `${sql.slice(0, -1)} WHERE id = ?`;
-        params.push(eventId);
+		sql = `${sql.slice(0, -1)} WHERE id = ?`;
+		params.push(eventId);
 
-        await database.query(sql, params, userId);
-    } catch (err) {
-        next(err);
-    }
+		await database.query(sql, params, userId);
+	} catch (err) {
+		next(err);
+	}
 
-    return res.status(200).json({message: "Event updated"});
-}
+	return res.status(200).json({ message: "Event updated" });
+};
 
-export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-        const userId = userValidator(req);
-        const eventId = eventValidator(req);
+export const deleteEvent = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
 
-        if (!(await isEventOrganizer(eventId, userId))) return res.status(403).json({message: "Forbidden"});
+		if (!(await isEventOrganizer(eventId, userId)))
+			return res.status(403).json({ message: "Forbidden" });
 
-        const sqlDelete = `DELETE FROM events WHERE id = ?`;
-        await database.query(sqlDelete, [eventId], userId);
-        return res.status(200).json({message: "Event deleted"});
-    } catch (err) {
-        next(err);
-    }
-}
+		const sqlDelete = `DELETE FROM events WHERE id = ?`;
+		await database.query(sqlDelete, [eventId], userId);
+		return res.status(200).json({ message: "Event deleted" });
+	} catch (err) {
+		next(err);
+	}
+};
