@@ -1,38 +1,40 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 
+// TODO Remove all underscores
+
 export const getUsers = (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
+	_req: AuthRequest,
+	_res: Response,
+	_next: NextFunction,
 ) => {};
 
 export const getUser = (
 	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
+	_res: Response,
+	_next: NextFunction,
 ) => {
-	const userId = req.params.id;
+	const _userId = req.params.id;
 };
 
 export const createUser = (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
+	_req: AuthRequest,
+	_res: Response,
+	_next: NextFunction,
 ) => {};
 
 export const updateUser = (
 	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
+	_res: Response,
+	_next: NextFunction,
 ) => {
-	const userId = req.params.id;
+	const _userId = req.params.id;
 };
 
 export const deleteUser = (
 	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
+	_res: Response,
+	_next: NextFunction,
 ) => {
-	const userId = req.params.id;
+	const _userId = req.params.id;
 };
