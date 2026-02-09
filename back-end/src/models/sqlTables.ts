@@ -1,6 +1,6 @@
 import type { RowDataPacket } from "mysql2";
 
-export type result =
+export type _result =
 	| users
 	| user_permissions
 	| events
@@ -93,17 +93,17 @@ export interface log extends RowDataPacket {
 }
 
 export enum Permissions {
-	USER,
-	GLOBAL_ADMIN,
-	USER_ADMIN,
-	EVENT_ADMIN,
+	_USER,
+	_GLOBAL_ADMIN,
+	_USER_ADMIN,
+	_EVENT_ADMIN,
 }
 
 export enum State {
-	YES,
-	NO,
-	MAYBE,
-	QUESTION,
+	_YES,
+	_NO,
+	_MAYBE,
+	_QUESTION,
 }
 
 export enum Status {
@@ -115,7 +115,7 @@ export enum Status {
 
 export enum Role {
 	GUEST,
-	DATE_PICKER,
-	LOCATION_PICKER,
-	ORGANIZER,
+	_DATE_PICKER,
+	_LOCATION_PICKER,
+	_ORGANIZER,
 }

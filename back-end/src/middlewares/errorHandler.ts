@@ -28,4 +28,5 @@ export const errorHandler = (
 	});
 };
 
-export const getErrors = (): error[] => listErrors;
+//To be implemented
+export const _getErrors = (): error[] => listErrors;

@@ -20,5 +20,3 @@ export function invitationValidator(req: AuthRequest): number {
 		throw new AppError("Invalid invitation id", 400);
 	return Number(req.params.invitationId);
 }
-
-export default { userValidator, eventValidator, invitationValidator };

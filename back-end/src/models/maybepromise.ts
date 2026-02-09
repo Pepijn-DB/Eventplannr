@@ -1,1 +1,1 @@
-export type MaybePromise<T> = T | Promise<T>;
+export type _MaybePromise<T> = T | Promise<T>;
