@@ -48,7 +48,7 @@ export async function queryWithoutExecutioner(
 	query: string,
 	params: StrNum[] = [],
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-	): Promise<{ rows: any[] }> {
+): Promise<{ rows: any[] }> {
 	switch (dbConfig.type) {
 		case "mysql": {
 			if (!(await mysql.connect())) {
@@ -95,7 +95,7 @@ export function prepareQueryAndParams(
 	sql: string,
 	params: StrNum[] = [],
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-	): { sql: string; params: any[] } {
+): { sql: string; params: any[] } {
 	if (!params || params.length === 0) return { sql, params: [] };
 
 	const parts = sql.split("?");
@@ -203,4 +203,4 @@ export function convertQuestionMarksToDollarParams(sql: string): {
 	return { sql: out, paramCount: idx };
 }
 
-export default { connect, query, };
+export default { connect, query };

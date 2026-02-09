@@ -70,11 +70,11 @@ function buildQueryForLog(sql: string, params: StrNum[] = []): string {
 	return out.join("");
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 export async function query(
 	query: string,
 	params: StrNum[] = [],
 	executioner: number | null,
+	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): Promise<{ rows: any[] } | null> {
 	try {
 		if (!(await connect())) return null;
