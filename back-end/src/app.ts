@@ -1,14 +1,18 @@
+// Express imports
 import express from 'express';
-import authRoutes from './routes/v1/authRoutes.js';
-import userRoutes from './routes/v1/userRoutes.js';
-import eventRoutes from './routes/v1/eventRoutes.js';
-import type {User} from "./models/user.js";
+import type { Request, Response } from 'express';
 
-import { checkToken } from "./middlewares/v1/authHandler.js";
+// Routes
+import authRoutes from './routes/v1/authRoutes.js';
+import eventRoutes from './routes/v1/eventRoutes.js';
+import userRoutes from './routes/v1/userRoutes.js';
+
+// Middlewares for checking user token and error handling
+import { checkToken } from './middlewares/v1/authHandler.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
-import type {JwtPayload} from "jsonwebtoken";
-import type {Request} from "express";
+// comment
+import type { User } from './models/user.js';
 
 export interface AuthRequest extends Request {
     user?: User
@@ -27,7 +31,7 @@ app.use('/api/v1/event', eventRoutes)
 
 app.use(errorHandler);
 
-app.use((req: AuthRequest,res)=> {
+app.use((res: Response)=> {
     res.status(404).json({
         'message': 'Route not found'
     });

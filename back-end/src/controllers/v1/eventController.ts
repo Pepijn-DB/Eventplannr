@@ -3,6 +3,7 @@ import type {AuthRequest} from "../../app.js";
 import database from "../../services/databaseService.js";
 import {AppError} from "../../middlewares/errorHandler.js";
 import {eventValidator, userValidator} from "../../validators/requestValidator.js";
+import type {StrNum} from "../../models/strnum.js"
 
 async function isEventOrganizer(eventId: number, userId: number): Promise<boolean> {
     const sql = `
@@ -91,7 +92,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
 
 export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
     let sql = `UPDATE events SET`
-    const params: any[] = [];
+    const params: StrNum[] = [];
 
     try{
         const userId = userValidator(req);

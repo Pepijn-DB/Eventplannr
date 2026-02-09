@@ -40,6 +40,7 @@ export async function connect(): Promise<boolean> {
     }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 function safeForLog(val: any): string {
     if (val === null || val === undefined) return 'NULL';
     if (typeof val === 'number' || typeof val === 'boolean') return String(val);
@@ -70,12 +71,14 @@ function buildQueryForLog(sql: string, params: StrNum[] = []): string {
     return out.join('');
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 export async function query(query: string, params: StrNum[] = [], executioner: number | null): Promise<{ rows: any[] } | null> {
     try {
         if (!(await connect())) return null;
 
         const prepared = prepareQueryAndParams(query, params);
 
+        // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
         const [rows] = await pool.execute(prepared.sql, prepared.params as any[]);
 
         const queryForLog = buildQueryForLog(query, params);
@@ -83,7 +86,9 @@ export async function query(query: string, params: StrNum[] = [], executioner: n
         const logNumber = await addLog(queryForLog, executioner);
 
         try {
+            // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
             const resultRows = Array.isArray(rows) ? rows as any[] : [];
+            // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
             const ids = resultRows.map(r => r?.id).filter((v: any) => v !== undefined && v !== null);
             if (ids.length > 0 && logNumber !== null) {
                 const placeholders = ids.map(() => '?').join(',');
@@ -93,7 +98,9 @@ export async function query(query: string, params: StrNum[] = [], executioner: n
         } catch (_err) {
         }
 
+        // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
         return { rows: Array.isArray(rows) ? rows as any[] : [] };
+    // biome-ignore lint/suspicious/noExplicitAny: <Catch clause must be any or undefined (TS)>
     } catch (err: any) {
         throw new AppError(err?.message || 'Database query error', 500);
     }
@@ -107,6 +114,7 @@ async function addLog(queryForLog: string, executioner: number | null): Promise<
 
     try {
         const [res] = await pool.execute('INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?, ?);', [queryForLog, executioner, tableName, whereClause, action]);
+        // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
         const insertId = (res as any)?.insertId;
         return insertId ?? null;
     } catch (_err) {
@@ -114,9 +122,9 @@ async function addLog(queryForLog: string, executioner: number | null): Promise<
     }
 }
 
-export async function close(): Promise<void> {
+export function close(): void {
     try {
-        await pool.end();
+        pool.end();
         connected = false;
     } catch (_err) {
     }
