@@ -8,9 +8,15 @@ export function userValidator(req: AuthRequest): number {
 }
 
 export function eventValidator(req: AuthRequest): number {
-    if (!req.params.id) throw new AppError("Missing event id", 400);
-    if (Number.isNaN(Number(req.params.id))) throw new AppError("Invalid event id", 400);
-    return Number(req.params.id);
+    if (!req.params.eventId) throw new AppError("Missing event id", 400);
+    if (Number.isNaN(Number(req.params.eventId))) throw new AppError("Invalid event id", 400);
+    return Number(req.params.eventId);
 }
 
-export default {userValidator, eventValidator};
+export function invitationValidator(req: AuthRequest): number {
+    if (!req.params.invitationId) throw new AppError("Missing invitation id", 400);
+    if (Number.isNaN(Number(req.params.invitationId))) throw new AppError("Invalid invitation id", 400);
+    return Number(req.params.invitationId);
+}
+
+export default {userValidator, eventValidator, invitationValidator};
