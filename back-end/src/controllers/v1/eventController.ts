@@ -7,9 +7,9 @@ import type {StrNum} from "../../models/strnum.js"
 
 async function isEventOrganizer(eventId: number, userId: number): Promise<boolean> {
     const sql = `
-            SELECT e.*
+            SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
-            WHERE e.event_id = ?
+            WHERE e.id = ?
         `;
 
     const resultEvent = await database.query(sql, [userId, eventId], userId);
@@ -18,7 +18,7 @@ async function isEventOrganizer(eventId: number, userId: number): Promise<boolea
     if (resultEvent.rows.length === 0) throw new AppError("Event not found", 400);
 
     const sqlInvitations = `
-            SELECT i.*
+            SELECT i.user_id, i.event_id, i.role
             FROM invitation i
             WHERE i.event_id = ? AND i.user_id = ? AND i.role = 'ORGANIZER'
             LIMIT 1
@@ -33,14 +33,14 @@ export const getEvents = async (req: AuthRequest, res: Response, next: NextFunct
         const userId = userValidator(req);
 
         const sql = `
-            SELECT e.*
+            SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
-            INNER JOIN invitation i ON i.event_id = e.event_id
-            WHERE i.user_id = ?
+            INNER JOIN invitation i ON i.event_id = e.id
+            WHERE i.user_id = ? OR e.creator_user = ?
             ORDER BY e.event_date DESC
         `;
 
-        const result = await database.query(sql, [userId], userId);
+        const result = await database.query(sql, [userId, userId], userId);
         if (!result) throw new AppError("Internal server error");
 
         return res.status(200).json(result.rows);
@@ -55,14 +55,16 @@ export const getEvent = async (req: AuthRequest, res: Response, next: NextFuncti
         const eventId = eventValidator(req);
 
         const sql = `
-            SELECT e.*
+            SELECT e.id, e.title, e.description, e.creator_user, e.status
             FROM events e
-            INNER JOIN invitation i ON i.event_id = e.event_id
-            WHERE i.user_id = ? AND e.event_id = ?
+            INNER JOIN invitation i ON i.event_id = e.id
+            WHERE i.user_id = ? AND e.id = ?
         `;
 
         const result = await database.query(sql, [userId, eventId], userId);
         if (!result) throw new AppError("Internal server error");
+
+        if (result.rows.length === 0) throw new AppError("Event not found", 400);
 
         return res.status(200).json(result.rows);
     } catch (err) {
@@ -117,7 +119,7 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
         }
         if (!req.body.title && !req.body.description && !req.body.status) return res.status(400).json({message: "Nothing to update"});
 
-        sql = `${sql.slice(0, -1)} WHERE event_id = ?`;
+        sql = `${sql.slice(0, -1)} WHERE id = ?`;
         params.push(eventId);
 
         await database.query(sql, params, userId);
@@ -135,7 +137,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFun
 
         if (!(await isEventOrganizer(eventId, userId))) return res.status(403).json({message: "Forbidden"});
 
-        const sqlDelete = `DELETE FROM events WHERE event_id = ?`;
+        const sqlDelete = `DELETE FROM events WHERE id = ?`;
         await database.query(sqlDelete, [eventId], userId);
         return res.status(200).json({message: "Event deleted"});
     } catch (err) {
