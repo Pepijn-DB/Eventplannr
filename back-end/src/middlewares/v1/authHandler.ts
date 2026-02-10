@@ -6,6 +6,7 @@ import type { User } from "../../models/user.js";
 
 const noAuthRequired: { [key: string]: string } = {
 	"/api/v1/auth/token": "GET",
+	"/api/v1/user": "PUT",
 };
 
 export const checkToken = (
