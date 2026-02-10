@@ -21,20 +21,15 @@ async function hasEventViewPermission(
        WHERE i.id = ? AND i.user_id = ?
      `;
 
-	const sqlEvent = `
-        SELECT e.id, e.title, e.description, e.creator_user, e.status
-        FROM events e
-        WHERE e.id = ? AND e.creator_user = ?
-    `;
-
 	const resultInvitation = await databaseService.query(
 		sqlInvitations,
 		[eventId],
 		userId,
 	);
-	const resultEvent = await databaseService.query(sqlEvent, [eventId], userId);
 
-	return resultInvitation.rows.length > 0 || resultEvent.rows.length > 0;
+	return (
+		resultInvitation.rows.length > 0 || hasEventEditPermission(eventId, userId)
+	);
 }
 
 async function hasEventEditPermission(
@@ -53,6 +48,14 @@ async function hasEventEditPermission(
         WHERE e.id = ? AND e.creator_user = ?
     `;
 
+	const sqlAdmin = `
+			SELECT up.user_id, up.permission
+			FROM user_permission up
+			WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'EVENT_ADMIN')
+			LIMIT 1
+	`;
+	const resultAdmin = await database.query(sqlAdmin, [userId], userId);
+
 	const resultInvitation = await databaseService.query(
 		sqlInvitations,
 		[eventId],
@@ -60,7 +63,11 @@ async function hasEventEditPermission(
 	);
 	const resultEvent = await databaseService.query(sqlEvent, [eventId], userId);
 
-	return resultInvitation.rows.length > 0 || resultEvent.rows.length > 0;
+	return (
+		resultInvitation.rows.length > 0 ||
+		resultEvent.rows.length > 0 ||
+		resultAdmin.rows.length > 0
+	);
 }
 
 export const getInvitations = async (
