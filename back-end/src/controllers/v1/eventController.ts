@@ -68,7 +68,9 @@ export const getEvents = async (
         `;
 
 		const result = await database.query(sql, [userId, userId], userId);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
 		return res.status(200).json(result.rows);
 	} catch (err) {
@@ -93,9 +95,13 @@ export const getEvent = async (
         `;
 
 		const result = await database.query(sql, [userId, eventId], userId);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
-		if (result.rows.length === 0) throw new AppError("Event not found", 400);
+		if (result.rows.length === 0) {
+			return res.status(400).json({ message: "Event not found" });
+		}
 
 		return res.status(200).json(result.rows);
 	} catch (err) {
@@ -123,7 +129,9 @@ export const createEvent = async (
 			[userId, title, description],
 			userId,
 		);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
 		return res.status(201).json({ message: "Event created" });
 	} catch (err) {

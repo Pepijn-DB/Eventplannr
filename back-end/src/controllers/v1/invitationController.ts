@@ -88,7 +88,9 @@ export const getInvitations = async (
             WHERE i.event_id = ?
         `;
 		const result = await databaseService.query(sql, [eventId], userId);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -114,7 +116,9 @@ export const getUserInvitations = async (
 			[userId],
 			userValidator(req),
 		);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -144,7 +148,9 @@ export const deleteInvitation = async (
             WHERE invitation_id = ?
         `;
 		const result = await databaseService.query(sql, [invitationId], userId);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -178,7 +184,9 @@ export const createInvitation = async (
 			[eventId, invitedUserId, role],
 			userId,
 		);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -236,7 +244,9 @@ export const getInvitation = async (
         WHERE i.event_id = ? AND i.invitation_id = ?
     `;
 		const result = await databaseService.query(sql, [eventId], userId);
-		if (!result) throw new AppError("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);

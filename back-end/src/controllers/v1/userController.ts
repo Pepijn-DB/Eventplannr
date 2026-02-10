@@ -35,7 +35,9 @@ export const getUsers = async (
 		FROM users u
 	`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) throw new Error("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -61,7 +63,9 @@ export const getUser = async (
 		WHERE u.id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) throw new Error("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -96,7 +100,9 @@ export const createUser = async (
 			password_hash,
 			email,
 		]);
-		if (!result) throw new Error("Internal server error");
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);

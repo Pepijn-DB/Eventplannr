@@ -41,7 +41,9 @@ export const getToken = async (
 			"SELECT * FROM users WHERE email = ? AND password = ?",
 			[email, password],
 		);
-		if (queryResult === null) throw new AppError("Unauthorized", 401);
+		if (queryResult === null) {
+			return res.status(401).json({ message: "Unauthorized" });
+		}
 		const user = queryResult.rows[0];
 
 		const payload: User = {
