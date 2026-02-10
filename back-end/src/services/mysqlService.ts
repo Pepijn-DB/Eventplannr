@@ -2,7 +2,7 @@ import mysql from "mysql2/promise";
 import { dbConfig } from "../config/config.js";
 import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
-import { parseQuery, prepareQueryAndParams } from "./databaseService.js";
+import {parseQuery, prepareQueryAndParams, queryWithoutExecutioner} from "./databaseService.js";
 
 const pool = mysql.createPool({
 	host: dbConfig.host,
@@ -23,11 +23,10 @@ export async function connect(): Promise<boolean> {
 
 	try {
 		try {
-			await pool.getConnection().then(async (conn) => {
-				await conn.ping();
-				conn.release();
-				connected = true;
-			});
+			pool.connect();
+
+			const query = await queryWithoutExecutioner("SELECT NOW()");
+			connected = query.rows.length > 0;
 		} catch (_err) {
 			connected = false;
 		}
