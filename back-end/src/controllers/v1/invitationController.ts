@@ -1,6 +1,5 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
-import { AppError } from "../../middlewares/errorHandler.js";
 import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";

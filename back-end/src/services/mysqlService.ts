@@ -2,7 +2,11 @@ import mysql from "mysql2/promise";
 import { dbConfig } from "../config/config.js";
 import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
-import {parseQuery, prepareQueryAndParams, queryWithoutExecutioner} from "./databaseService.js";
+import {
+	parseQuery,
+	prepareQueryAndParams,
+	queryWithoutExecutioner,
+} from "./databaseService.js";
 
 const pool = mysql.createPool({
 	host: dbConfig.host,
