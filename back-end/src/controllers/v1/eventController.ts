@@ -8,7 +8,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 
-async function isEventOrganizer(
+async function hasEventEditPermission(
 	eventId: number,
 	userId: number,
 ): Promise<boolean> {
@@ -35,10 +35,19 @@ async function isEventOrganizer(
 		userId,
 	);
 
+	const sqlAdmin = `
+		SELECT up.user_id, up.permission
+		FROM user_permission up
+		WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'EVENT_ADMIN')
+			LIMIT 1
+	`;
+	const resultAdmin = await database.query(sqlAdmin, [userId], userId);
+
 	return (
-		resultEvent.rows.length > 0 &&
-		!(resultEvent.rows[0].creator_user === userId) &&
-		resultInvitations.rows.length > 0
+		(resultEvent.rows.length > 0 &&
+			!(resultEvent.rows[0].creator_user === userId)) ||
+		resultInvitations.rows.length > 0 ||
+		resultAdmin.rows.length > 0
 	);
 }
 
@@ -134,7 +143,7 @@ export const updateEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await isEventOrganizer(eventId, userId)))
+		if (!(await hasEventEditPermission(eventId, userId)))
 			return res.status(403).json({ message: "Forbidden" });
 
 		if (req.body.title) {
@@ -180,7 +189,7 @@ export const deleteEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await isEventOrganizer(eventId, userId)))
+		if (!(await hasEventEditPermission(eventId, userId)))
 			return res.status(403).json({ message: "Forbidden" });
 
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
