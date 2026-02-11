@@ -22,37 +22,31 @@ export async function hasEventPermission(
 		}
 		case Event.EDIT_LOCATION: {
 			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND (i.role = ORGANIZER OR i.role = LOCATION_PICKER)`;
-			const sqlEvent = `SELECT e.id, e.creator_id FROM events e WHERE e.creator_id = ?`;
 			const resultInv = await database.query(sqlInv, [user], user);
-			const resultEvent = await database.query(sqlEvent, [user], user);
 			return (
-				resultEvent.rows.length > 0 ||
 				resultInv.rows.length > 0 ||
-				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS))
+				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS)) ||
+				(await hasEventPermission(user, Event.EDIT_ALL))
 			);
 		}
 		case Event.EDIT_INVITATION: {
 			{
 				const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.role = ORGANIZER`;
-				const sqlEvent = `SELECT e.id, e.creator_id FROM events e WHERE e.creator_id = ?`;
 				const resultInv = await database.query(sqlInv, [user], user);
-				const resultEvent = await database.query(sqlEvent, [user], user);
 				return (
-					resultEvent.rows.length > 0 ||
 					resultInv.rows.length > 0 ||
-					(await hasGlobalPermission(user, Global.EDIT_ALL_INVITATIONS))
+					(await hasGlobalPermission(user, Global.EDIT_ALL_INVITATIONS)) ||
+					(await hasEventPermission(user, Event.EDIT_ALL))
 				);
 			}
 		}
 		case Event.EDIT_DATE: {
-			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND (i.role = DATE_PICKER or i.role = ORGANIZER)`;
-			const sqlEvent = `SELECT e.id, e.creator_id FROM events e WHERE e.creator_id = ?`;
-			const resultInv = await database.query(sqlInv, [user], user);
-			const resultEvent = await database.query(sqlEvent, [user], user);
+			const sql = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND (i.role = DATE_PICKER or i.role = ORGANIZER)`;
+			const result = await database.query(sql, [user], user);
 			return (
-				resultEvent.rows.length > 0 ||
-				resultInv.rows.length > 0 ||
-				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS))
+				result.rows.length > 0 ||
+				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS)) ||
+				(await hasEventPermission(user, Event.EDIT_ALL))
 			);
 		}
 		case Event.EDIT_ALL: {
