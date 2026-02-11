@@ -20,15 +20,15 @@ const router = Router();
 router.get("/", getEvents); // Get all events (created and invited)
 
 router.put("/", createEvent); // Create a new event
-router.get("/:id", getEvent); // Get event by id
-router.delete("/:id", deleteEvent); // Delete event by id
-router.post("/:id", updateEvent); // Update event by id
+router.get("/:event_id", getEvent); // Get event by id
+router.delete("/:event_id", deleteEvent); // Delete event by id
+router.post("/:event_id", updateEvent); // Update event by id
 
-router.get("/:id/invitation", getInvitations); // Get invitations for event
-router.put("/:id/invitation", createInvitation); // Invite user to an event
+router.get("/:event_id/invitation", getInvitations); // Get invitations for event
+router.put("/:event_id/invitation", createInvitation); // Invite user to an event
 
-router.get("/:id/invitation/:invitationId", getInvitation); // Get invitation by id
-router.delete("/:id/invitation/:invitationId", deleteInvitation); // Delete invitation by id
-router.post("/:id/invitation/:invitationId", updateInvitation); // Update invitation by id
+router.get("/:event_id/invitation/:invitation_id", getInvitation); // Get invitation by id
+router.delete("/:event_id/invitation/:invitation_id", deleteInvitation); // Delete invitation by id
+router.post("/:event_id/invitation/:invitation_id", updateInvitation); // Update invitation by id
 
 export default router;

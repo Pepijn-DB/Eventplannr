@@ -7,16 +7,16 @@ export function userValidator(req: AuthRequest): number {
 }
 
 export function eventValidator(req: AuthRequest): number {
-	if (!req.params.eventId) throw new AppError("Missing event id", 400);
-	if (Number.isNaN(Number(req.params.eventId)))
+	if (!req.params.event_id) throw new AppError("Missing event id", 400);
+	if (Number.isNaN(Number(req.params.event_id)))
 		throw new AppError("Invalid event id", 400);
-	return Number(req.params.eventId);
+	return Number(req.params.event_id);
 }
 
 export function invitationValidator(req: AuthRequest): number {
-	if (!req.params.invitationId)
+	if (!req.params.invitation_id)
 		throw new AppError("Missing invitation id", 400);
-	if (Number.isNaN(Number(req.params.invitationId)))
+	if (Number.isNaN(Number(req.params.invitation_id)))
 		throw new AppError("Invalid invitation id", 400);
-	return Number(req.params.invitationId);
+	return Number(req.params.invitation_id);
 }
