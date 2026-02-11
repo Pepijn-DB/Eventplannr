@@ -81,13 +81,11 @@ export const createUser = async (
 		const username = (
 			variableValidator(req.body.username) ? req.body.username : null
 		) as StrNum;
-		const password_hash = createHash("sha256")
-			.update(
-				(variableValidator(req.body.password)
-					? req.body.password
-					: null) as string,
-			)
-			.digest("hex");
+		const password_hash = variableValidator(req.body.password)
+			? createHash("sha256")
+					.update(req.body.password as string)
+					.digest("hex")
+			: null;
 		const email = (
 			variableValidator(req.body.email) ? req.body.email : null
 		) as string;
@@ -95,6 +93,10 @@ export const createUser = async (
 		const sql = `
 			INSERT INTO users (username, password_hash, email)
 		`;
+
+		if (username === null || password_hash === null || email === null)
+			return res.status(400).json({ message: "Missing required fields" });
+
 		const result = await database.queryWithoutExecutioner(sql, [
 			username,
 			password_hash,
