@@ -1,8 +1,8 @@
+import { createHash } from "node:crypto";
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../../app.js";
 import Config from "../../config/config.js";
-
 import { AppError } from "../../middlewares/errorHandler.js";
 import type { User } from "../../models/user.js";
 import { queryWithoutExecutioner } from "../../services/databaseService.js";
@@ -37,9 +37,15 @@ export const getToken = async (
 			return res.status(400).json({ message: "Invalid email" });
 		}
 
+		const password_hash = variableValidator(req.body.password)
+			? createHash("sha256")
+					.update(req.body.password as string)
+					.digest("hex")
+			: null;
+
 		const queryResult = await queryWithoutExecutioner(
 			"SELECT * FROM users WHERE email = ? AND password = ?",
-			[email, password],
+			[email, password_hash],
 		);
 		if (queryResult === null) {
 			return res.status(401).json({ message: "Unauthorized" });
