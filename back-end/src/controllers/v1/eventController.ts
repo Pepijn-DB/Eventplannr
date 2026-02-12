@@ -1,55 +1,13 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
-import { AppError } from "../../middlewares/errorHandler.js";
+import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
+import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
-
-async function hasEventEditPermission(
-	eventId: number,
-	userId: number,
-): Promise<boolean> {
-	const sql = `
-            SELECT e.id, e.title, e.description, e.creator_user, e.status
-            FROM events e
-            WHERE e.id = ?
-        `;
-
-	const resultEvent = await database.query(sql, [userId, eventId], userId);
-	if (!resultEvent) throw new AppError("Internal server error", 500);
-
-	if (resultEvent.rows.length === 0) throw new AppError("Event not found", 400);
-
-	const sqlInvitations = `
-            SELECT i.user_id, i.event_id, i.role
-            FROM invitation i
-            WHERE i.event_id = ? AND i.user_id = ? AND i.role = 'ORGANIZER'
-            LIMIT 1
-        `;
-	const resultInvitations = await database.query(
-		sqlInvitations,
-		[eventId, userId],
-		userId,
-	);
-
-	const sqlAdmin = `
-		SELECT up.user_id, up.permission
-		FROM user_permission up
-		WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'EVENT_ADMIN')
-			LIMIT 1
-	`;
-	const resultAdmin = await database.query(sqlAdmin, [userId], userId);
-
-	return (
-		(resultEvent.rows.length > 0 &&
-			!(resultEvent.rows[0].creator_user === userId)) ||
-		resultInvitations.rows.length > 0 ||
-		resultAdmin.rows.length > 0
-	);
-}
 
 export const getEvents = async (
 	req: AuthRequest,
@@ -151,8 +109,9 @@ export const updateEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await hasEventEditPermission(eventId, userId)))
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
+		}
 
 		if (req.body.title) {
 			sql += ` title = ?,`;
@@ -197,8 +156,9 @@ export const deleteEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await hasEventEditPermission(eventId, userId)))
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
+		}
 
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
 		await database.query(sqlDelete, [eventId], userId);
