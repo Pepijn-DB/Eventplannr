@@ -1,73 +1,16 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
+import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
 	invitationValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-
-async function hasEventViewPermission(
-	eventId: number,
-	userId: number,
-): Promise<boolean> {
-	const sqlInvitations = `
-       SELECT i.user_id, i.event_id, i.role
-       FROM invitation i
-       WHERE i.id = ? AND i.user_id = ?
-     `;
-
-	const resultInvitation = await databaseService.query(
-		sqlInvitations,
-		[eventId],
-		userId,
-	);
-
-	return (
-		resultInvitation.rows.length > 0 || hasEventEditPermission(eventId, userId)
-	);
-}
-
-async function hasEventEditPermission(
-	eventId: number,
-	userId: number,
-): Promise<boolean> {
-	const sqlInvitations = `
-       SELECT i.user_id, i.event_id, i.role
-       FROM invitation i
-       WHERE i.event_id = ? AND i.user_id = ? AND i.role = 'ORGANIZER'
-     `;
-
-	const sqlEvent = `
-        SELECT e.id, e.title, e.description, e.creator_user, e.status
-        FROM events e
-        WHERE e.id = ? AND e.creator_user = ?
-    `;
-
-	const sqlAdmin = `
-			SELECT up.user_id, up.permission
-			FROM user_permission up
-			WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'EVENT_ADMIN')
-			LIMIT 1
-	`;
-	const resultAdmin = await database.query(sqlAdmin, [userId], userId);
-
-	const resultInvitation = await databaseService.query(
-		sqlInvitations,
-		[eventId],
-		userId,
-	);
-	const resultEvent = await databaseService.query(sqlEvent, [eventId], userId);
-
-	return (
-		resultInvitation.rows.length > 0 ||
-		resultEvent.rows.length > 0 ||
-		resultAdmin.rows.length > 0
-	);
-}
 
 export const getInvitations = async (
 	req: AuthRequest,
@@ -78,7 +21,7 @@ export const getInvitations = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await hasEventViewPermission(eventId, userId))) {
+		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `
@@ -139,7 +82,13 @@ export const deleteInvitation = async (
 			[invitationId],
 			userId,
 		);
-		if (!(await hasEventEditPermission(resultEvent.rows[0].id, userId))) {
+		if (
+			!(await hasEventPermission(
+				userId,
+				resultEvent.rows[0].id,
+				Event.EDIT_INVITATION,
+			))
+		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `
@@ -165,7 +114,7 @@ export const createInvitation = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await hasEventEditPermission(eventId, userId))) {
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
@@ -202,7 +151,7 @@ export const updateInvitation = async (
 		const eventId = eventValidator(req);
 		const invitationId = invitationValidator(req);
 
-		if (!(await hasEventEditPermission(eventId, userId))) {
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
@@ -234,7 +183,7 @@ export const getInvitation = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		if (!(await hasEventViewPermission(eventId, userId))) {
+		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `
