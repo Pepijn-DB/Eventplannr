@@ -11,6 +11,7 @@ import authRoutes from "./routes/v1/authRoutes.js";
 import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
+import responseRoutes from "./routes/v1/responseRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
@@ -27,6 +28,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/event", eventRoutes);
 app.use("/api/v1/location", locationRoutes);
+app.use("/api/v1/response", responseRoutes);
 
 app.use(errorHandler);
 
