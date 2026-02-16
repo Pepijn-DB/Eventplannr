@@ -15,6 +15,14 @@ import {
 	updateInvitation,
 } from "../../controllers/v1/invitationController.js";
 
+import {
+	createEventLocation,
+	deleteEventLocation,
+	getEventLocation,
+	getEventLocations,
+	updateEventLocation,
+} from "../../controllers/v1/locationController.js";
+
 const router = Router();
 
 router.get("/", getEvents); // Get all events (created and invited)
@@ -30,5 +38,12 @@ router.put("/:event_id/invitation", createInvitation); // Invite user to an even
 router.get("/:event_id/invitation/:invitation_id", getInvitation); // Get invitation by id
 router.delete("/:event_id/invitation/:invitation_id", deleteInvitation); // Delete invitation by id
 router.post("/:event_id/invitation/:invitation_id", updateInvitation); // Update invitation by id
+
+router.get("/:event_id/location", getEventLocations);
+router.put("/:event_id/location", createEventLocation);
+
+router.get("/:event_id/location/:location_id", getEventLocation);
+router.delete("/:event_id/location/:location_id", deleteEventLocation);
+router.post("/:event_id/location/:location_id", updateEventLocation);
 
 export default router;
