@@ -33,7 +33,7 @@ export const getLocation = async (
 ) => {
 	try {
 		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.id)
+		const locationId = variableValidator(req.params.location_id)
 			? Number(req.params.id)
 			: null;
 		if (!locationId)
@@ -60,7 +60,7 @@ export const deleteLocation = async (
 ) => {
 	try {
 		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.id)
+		const locationId = variableValidator(req.params.location_id)
 			? Number(req.params.id)
 			: null;
 		if (!locationId)
@@ -102,7 +102,7 @@ export const updateLocation = async (
 ) => {
 	try {
 		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.id)
+		const locationId = variableValidator(req.params.location_id)
 			? Number(req.params.id)
 			: null;
 		if (!locationId)
