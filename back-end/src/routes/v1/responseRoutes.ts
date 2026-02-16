@@ -1,14 +1,14 @@
 import { Router } from "express";
 
 import {
-    createDateResponse,
-    createLocationResponse,
-    deleteDateResponse,
-    deleteLocationResponse,
-    getDateResponse,
-    getLocationResponse,
-    updateDateResponse,
-    updateLocationResponse
+	createDateResponse,
+	createLocationResponse,
+	deleteDateResponse,
+	deleteLocationResponse,
+	getDateResponse,
+	getLocationResponse,
+	updateDateResponse,
+	updateLocationResponse,
 } from "../../controllers/v1/responseController.js";
 
 const router = Router();
@@ -23,4 +23,4 @@ router.get("/:event_id/location/:location_id", getLocationResponse);
 router.delete("/:event_id/location/:location_id", deleteLocationResponse);
 router.post("/:event_id/location/:location_id", updateLocationResponse);
 
-export default router
+export default router;

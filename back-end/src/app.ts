@@ -10,8 +10,8 @@ import type { User } from "./models/user.js";
 import authRoutes from "./routes/v1/authRoutes.js";
 import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
-import userRoutes from "./routes/v1/userRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
+import userRoutes from "./routes/v1/userRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
