@@ -1,4 +1,4 @@
-import { Event, Global } from "../models/permissions.js";
+import { Event, Global, Location } from "../models/permissions.js";
 import database from "../services/databaseService.js";
 
 export async function hasEventPermission(
@@ -134,6 +134,33 @@ export async function hasGlobalPermission(
 			const sql = `SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], user);
 			return result.rows.length > 0;
+		}
+		default:
+			return false;
+	}
+}
+
+export async function hasLocationPermission(
+	user: number,
+	location: number,
+	permission: Location,
+): Promise<boolean> {
+	switch (permission) {
+		case Location.VIEW: {
+			const sql = `SELECT event_id FROM invitations i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`;
+			const result = await database.query(sql, [user, location], user);
+			return (
+				result.rows.length > 0 ||
+				hasLocationPermission(user, location, Location.EDIT_ALL)
+			);
+		}
+		case Location.EDIT_ALL: {
+			const sql = `SELECT l.id, l.creator_user FROM locations l WHERE l.creator_id = ? AND l.id = ?`;
+			const result = await database.query(sql, [user, location], user);
+			return (
+				result.rows.length > 0 ||
+				(await hasGlobalPermission(user, Global.ADMIN_LOCATION))
+			);
 		}
 		default:
 			return false;

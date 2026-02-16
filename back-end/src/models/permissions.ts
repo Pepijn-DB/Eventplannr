@@ -28,4 +28,9 @@ export enum Event {
 	EDIT_ALL,
 }
 
+export enum Location {
+	VIEW,
+	EDIT_ALL,
+}
+
 export default { Global, Event };
