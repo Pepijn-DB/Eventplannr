@@ -46,7 +46,10 @@ export const getToken = async (
 		}
 		const user = queryResult.rows[0];
 
-		const passwordMatch = await bcrypt.compare(password as string, user.password_hash);
+		const passwordMatch = await bcrypt.compare(
+			password as string,
+			user.password_hash,
+		);
 		if (!passwordMatch) {
 			return res.status(401).json({ message: "Unauthorized" });
 		}

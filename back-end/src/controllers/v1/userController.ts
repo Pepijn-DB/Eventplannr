@@ -137,7 +137,10 @@ export const updateUser = async (
 		}
 		if (req.body.password) {
 			sql += ` password_hash = ?,`;
-			const newHash = await bcrypt.hash(req.body.password as string, SALT_ROUNDS);
+			const newHash = await bcrypt.hash(
+				req.body.password as string,
+				SALT_ROUNDS,
+			);
 			params.push(newHash);
 		}
 		if (!req.body.username && !req.body.email && !req.body.password)
