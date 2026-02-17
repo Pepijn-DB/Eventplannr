@@ -243,7 +243,7 @@ export const deleteEventLocation = async (
 			await database.query(sql, [eventId, locationId], userId);
 			return res
 				.status(201)
-				.json({ message: "Event location created successfully" });
+				.json({ message: "Event location deleted successfully" });
 		} catch (err) {
 			next(err);
 		}
