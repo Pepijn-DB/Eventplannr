@@ -8,7 +8,7 @@ export async function hasEventPermission(
 ): Promise<boolean> {
 	switch (permission) {
 		case Event.VIEW: {
-			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.event_id = ?`;
+			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ?`;
 			const resultInv = await database.query(sqlInv, [user, event], user);
 			return (
 				resultInv.rows.length > 0 ||
@@ -20,7 +20,7 @@ export async function hasEventPermission(
 			return hasEventPermission(user, event, Event.EDIT_ALL);
 		}
 		case Event.EDIT_LOCATION: {
-			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.event_id = ? AND (i.role = ORGANIZER OR i.role = LOCATION_PICKER)`;
+			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND (i.role = ORGANIZER OR i.role = LOCATION_PICKER)`;
 			const resultInv = await database.query(sqlInv, [user, event], user);
 			return (
 				resultInv.rows.length > 0 ||
@@ -30,7 +30,7 @@ export async function hasEventPermission(
 		}
 		case Event.EDIT_INVITATION: {
 			{
-				const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
+				const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
 				const resultInv = await database.query(sqlInv, [user, event], user);
 				return (
 					resultInv.rows.length > 0 ||
@@ -40,7 +40,7 @@ export async function hasEventPermission(
 			}
 		}
 		case Event.EDIT_DATE: {
-			const sql = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.event_id = ? AND (i.role = DATE_PICKER or i.role = ORGANIZER)`;
+			const sql = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND (i.role = DATE_PICKER or i.role = ORGANIZER)`;
 			const result = await database.query(sql, [user, event], user);
 			return (
 				result.rows.length > 0 ||
@@ -49,7 +49,7 @@ export async function hasEventPermission(
 			);
 		}
 		case Event.EDIT_ALL: {
-			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitations i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
+			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
 			const sqlEvent = `SELECT e.id, e.creator_id FROM events e WHERE e.creator_id = ? AND e.id = ?`;
 			const resultInv = await database.query(sqlInv, [user, event], user);
 			const resultEvent = await database.query(sqlEvent, [user, event], user);
@@ -147,7 +147,7 @@ export async function hasLocationPermission(
 ): Promise<boolean> {
 	switch (permission) {
 		case Location.VIEW: {
-			const sql = `SELECT event_id FROM invitations i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`;
+			const sql = `SELECT event_id FROM invitation i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`;
 			const result = await database.query(sql, [user, location], user);
 			return (
 				result.rows.length > 0 ||
