@@ -91,7 +91,7 @@ export const createUser = async (
 		) as string;
 
 		const sql = `
-			INSERT INTO users (username, password_hash, email)
+			INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)
 		`;
 
 		if (username === null || password_hash === null || email === null)
