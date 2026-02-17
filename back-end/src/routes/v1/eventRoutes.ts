@@ -1,12 +1,18 @@
 import { Router } from "express";
 import {
+	createEventDate,
+	deleteEventDate,
+	getEventDate,
+	getEventDates,
+	updateEventDate,
+} from "../../controllers/v1/dateController.js";
+import {
 	createEvent,
 	deleteEvent,
 	getEvent,
 	getEvents,
 	updateEvent,
 } from "../../controllers/v1/eventController.js";
-
 import {
 	createInvitation,
 	deleteInvitation,
@@ -14,7 +20,6 @@ import {
 	getInvitations,
 	updateInvitation,
 } from "../../controllers/v1/invitationController.js";
-
 import {
 	createEventLocation,
 	deleteEventLocation,
@@ -45,5 +50,12 @@ router.put("/:event_id/location", createEventLocation);
 router.get("/:event_id/location/:location_id", getEventLocation);
 router.delete("/:event_id/location/:location_id", deleteEventLocation);
 router.post("/:event_id/location/:location_id", updateEventLocation);
+
+router.get("/:event_id/date", getEventDates);
+router.put("/:event_id/date", createEventDate);
+
+router.get("/:event_id/date/:date_id", getEventDate);
+router.delete("/:event_id/date/:date_id", deleteEventDate);
+router.post("/:event_id/date/:date_id", updateEventDate);
 
 export default router;
