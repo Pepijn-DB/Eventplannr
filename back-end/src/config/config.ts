@@ -18,7 +18,7 @@ interface DbConfig {
 
 const config: Config = {
 	port: Number(process.env.PORT) || 3000,
-	secret: process.env.SECRET || "null",
+	secret: process.env.SECRET || "SECRET STRING SHOULD BE SET IN ENV",
 };
 
 export const dbConfig: DbConfig = {
