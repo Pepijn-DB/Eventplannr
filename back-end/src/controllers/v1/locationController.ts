@@ -37,7 +37,7 @@ export const getLocation = async (
 	try {
 		const userId = userValidator(req);
 		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.id)
+			? Number(req.params.location_id)
 			: null;
 		if (!locationId)
 			return res.status(400).json({ message: "Missing location id" });
@@ -64,7 +64,7 @@ export const deleteLocation = async (
 	try {
 		const userId = userValidator(req);
 		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.id)
+			? Number(req.params.location_id)
 			: null;
 		if (!locationId)
 			return res.status(400).json({ message: "Missing location id" });
@@ -106,7 +106,7 @@ export const updateLocation = async (
 	try {
 		const userId = userValidator(req);
 		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.id)
+			? Number(req.params.location_id)
 			: null;
 		if (!locationId)
 			return res.status(400).json({ message: "Missing location id" });
@@ -133,7 +133,7 @@ export const getEventLocations = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = variableValidator(req.params.event_id)
-			? Number(req.params.id)
+			? Number(req.params.event_id)
 			: null;
 		if (eventId === null) {
 			return res.status(400).json({ message: "Missing event id" });
@@ -163,7 +163,7 @@ export const getEventLocation = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = variableValidator(req.params.event_id)
-			? Number(req.params.id)
+			? Number(req.params.event_id)
 			: null;
 		const locationId = variableValidator(req.params.location_id)
 			? Number(req.params.location_id)
@@ -196,7 +196,7 @@ export const createEventLocation = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = variableValidator(req.params.event_id)
-			? Number(req.params.id)
+			? Number(req.params.event_id)
 			: null;
 		const locationId = variableValidator(req.body.location_id)
 			? Number(req.body.location_id)
@@ -226,7 +226,7 @@ export const deleteEventLocation = async (
 		try {
 			const userId = userValidator(req);
 			const eventId = variableValidator(req.params.event_id)
-				? Number(req.params.id)
+				? Number(req.params.event_id)
 				: null;
 			const locationId = variableValidator(req.params.location_id)
 				? Number(req.params.location_id)
@@ -261,7 +261,7 @@ export const updateEventLocation = async (
 		try {
 			const userId = userValidator(req);
 			const eventId = variableValidator(req.params.event_id)
-				? Number(req.params.id)
+				? Number(req.params.event_id)
 				: null;
 			const locationId = variableValidator(req.params.location_id)
 				? Number(req.params.location_id)
