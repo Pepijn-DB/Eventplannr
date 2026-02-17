@@ -12,10 +12,10 @@ const router = Router();
 
 router.get("/", getUsers);
 
-router.put("/", createUser);
+router.post("/", createUser);
 router.delete("/:id", deleteUser);
 router.get("/:id", getUser);
-router.post("/:id", updateUser);
+router.patch("/:id", updateUser);
 
 router.get("/:id/invitations", getUserInvitations);
 
