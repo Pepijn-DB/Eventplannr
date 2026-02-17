@@ -22,7 +22,7 @@ export const getEvents = async (
             FROM events e
             INNER JOIN invitation i ON i.event_id = e.id
             WHERE i.user_id = ? OR e.creator_user = ?
-            ORDER BY e.event_date DESC
+            ORDER BY e.created_at DESC
         `;
 
 		const result = await database.query(sql, [userId, userId], userId);
