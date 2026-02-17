@@ -1,5 +1,5 @@
 // Express imports
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import express from "express";
 
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -32,7 +32,7 @@ app.use("/api/v1/response", responseRoutes);
 
 app.use(errorHandler);
 
-app.use((res: Response) => {
+app.use((_req: AuthRequest, res: Response, _next: NextFunction) => {
 	res.status(404).json({
 		message: "Route not found",
 	});
