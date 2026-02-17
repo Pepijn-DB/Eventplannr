@@ -76,7 +76,7 @@ export const getDateResponse = async (
 			return res.status(400).json({ message: "Missing event or date id" });
 		}
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_ud = u.id WHERE dr.date_id = ?`;
+			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ?`;
 			const result = await database.query(sql, [dateId], userId);
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
@@ -256,7 +256,7 @@ export const getLocationResponse = async (
 			return res.status(400).json({ message: "Missing event or location id" });
 		}
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_ud = u.id WHERE lr.location_id = ?`;
+			const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ?`;
 			const result = await database.query(sql, [locationId], userId);
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
