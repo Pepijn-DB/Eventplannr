@@ -38,13 +38,13 @@ export const getToken = async (
 		}
 
 		const password_hash = variableValidator(req.body.password)
-			? createHash("sha256")
+			? createHash("bcrypt")
 					.update(req.body.password as string)
 					.digest("hex")
 			: null;
 
 		const queryResult = await queryWithoutExecutioner(
-			"SELECT * FROM users WHERE email = ? AND password = ?",
+			"SELECT * FROM users WHERE email = ? AND password_hash = ?",
 			[email, password_hash],
 		);
 		if (queryResult === null) {
