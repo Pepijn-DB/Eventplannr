@@ -1,5 +1,0 @@
-- [ ] Create a separate service for auth
-  - [ ] Use Enums for types of permissions
-  - [ ] Create a .ts in services
-  - [ ] Implement the service in the controllers
-  - [ ] Use req.user to get the user information in the controllers
