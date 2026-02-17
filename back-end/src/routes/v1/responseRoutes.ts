@@ -5,6 +5,8 @@ import {
 	createLocationResponse,
 	deleteDateResponse,
 	deleteLocationResponse,
+	getAllDateResponses,
+	getAllLocationResponses,
 	getDateResponse,
 	getLocationResponse,
 	updateDateResponse,
@@ -12,6 +14,9 @@ import {
 } from "../../controllers/v1/responseController.js";
 
 const router = Router();
+
+router.get("/:event_id/date", getAllDateResponses);
+router.get("/:event_id/location", getAllLocationResponses);
 
 router.put("/:event_id/date/:date_id", createDateResponse);
 router.get("/:event_id/date/:date_id", getDateResponse);
