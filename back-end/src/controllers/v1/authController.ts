@@ -25,8 +25,8 @@ export const getToken = async (
 
 		if (variableValidator(req.body))
 			return res.status(400).json({ message: "Missing body" });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 	try {
 		const { email, password } = req.body;
@@ -63,7 +63,7 @@ export const getToken = async (
 		});
 
 		res.status(200).json({ token: token });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };

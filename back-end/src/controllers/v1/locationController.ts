@@ -51,8 +51,8 @@ export const getLocation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		return res.status(200).json(result.rows);
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -73,8 +73,8 @@ export const deleteLocation = async (
 		const sql = `DELETE FROM locations WHERE id = ?`;
 		await database.query(sql, [locationId], userId);
 		return res.status(200).json({ message: "Location deleted successfully" });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -93,8 +93,8 @@ export const createLocation = async (
 		const sql = `INSERT INTO locations (creator_user, name) VALUES (?, ?)`;
 		await database.query(sql, [userId, locationName], userId);
 		return res.status(201).json({ message: "Location created successfully" });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -120,8 +120,8 @@ export const updateLocation = async (
 			return res.status(400).json({ message: "Missing location name" });
 		await database.query(sql, [locationName, locationId], userId);
 		return res.status(200).json({ message: "Location updated successfully" });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -150,8 +150,8 @@ export const getEventLocations = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		return res.status(200).json(result.rows);
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -183,8 +183,8 @@ export const getEventLocation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		return res.status(200).json(result.rows);
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -212,8 +212,8 @@ export const createEventLocation = async (
 		return res
 			.status(201)
 			.json({ message: "Event location created successfully" });
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -244,11 +244,11 @@ export const deleteEventLocation = async (
 			return res
 				.status(201)
 				.json({ message: "Event location created successfully" });
-		} catch (error) {
-			next(error);
+		} catch (err) {
+			next(err);
 		}
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
 
@@ -278,10 +278,10 @@ export const updateEventLocation = async (
 			// await database.query(sql, [eventId, locationId], userId);
 			// return res.status(201).json({ message: "Event location created successfully" });
 			return res.status(405).json({ message: "Method not implemented." });
-		} catch (error) {
-			next(error);
+		} catch (err) {
+			next(err);
 		}
-	} catch (error) {
-		next(error);
+	} catch (err) {
+		next(err);
 	}
 };
