@@ -274,9 +274,6 @@ export const updateEventLocation = async (
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
 			}
-			// const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
-			// await database.query(sql, [eventId, locationId], userId);
-			// return res.status(201).json({ message: "Event location created successfully" });
 			return res.status(405).json({ message: "Method not implemented." });
 		} catch (err) {
 			next(err);
