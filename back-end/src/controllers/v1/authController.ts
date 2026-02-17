@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import bcrypt from "bcrypt";
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../../app.js";
@@ -37,20 +37,19 @@ export const getToken = async (
 			return res.status(400).json({ message: "Invalid email" });
 		}
 
-		const password_hash = variableValidator(req.body.password)
-			? createHash("bcrypt")
-					.update(req.body.password as string)
-					.digest("hex")
-			: null;
-
 		const queryResult = await queryWithoutExecutioner(
-			"SELECT * FROM users WHERE email = ? AND password_hash = ?",
-			[email, password_hash],
+			"SELECT * FROM users WHERE email = ?",
+			[email],
 		);
-		if (queryResult === null) {
+		if (!queryResult || queryResult.rows.length === 0) {
 			return res.status(401).json({ message: "Unauthorized" });
 		}
 		const user = queryResult.rows[0];
+
+		const passwordMatch = await bcrypt.compare(password as string, user.password_hash);
+		if (!passwordMatch) {
+			return res.status(401).json({ message: "Unauthorized" });
+		}
 
 		const payload: User = {
 			id: user.id,

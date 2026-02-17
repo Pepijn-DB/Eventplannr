@@ -1,10 +1,12 @@
-import { createHash } from "node:crypto";
+import bcrypt from "bcrypt";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { userValidator } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+
+const SALT_ROUNDS = 10;
 
 async function hasUserEditPermission(userId: number): Promise<boolean> {
 	const sqlAdmin = `
@@ -82,9 +84,7 @@ export const createUser = async (
 			variableValidator(req.body.username) ? req.body.username : null
 		) as StrNum;
 		const password_hash = variableValidator(req.body.password)
-			? createHash("sha256")
-					.update(req.body.password as string)
-					.digest("hex")
+			? await bcrypt.hash(req.body.password as string, SALT_ROUNDS)
 			: null;
 		const email = (
 			variableValidator(req.body.email) ? req.body.email : null
@@ -137,7 +137,8 @@ export const updateUser = async (
 		}
 		if (req.body.password) {
 			sql += ` password_hash = ?,`;
-			params.push(createHash("sha256").update(req.body.password).digest("hex"));
+			const newHash = await bcrypt.hash(req.body.password as string, SALT_ROUNDS);
+			params.push(newHash);
 		}
 		if (!req.body.username && !req.body.email && !req.body.password)
 			return res.status(400).json({ message: "Nothing to update" });
