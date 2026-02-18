@@ -21,9 +21,9 @@ export interface AuthRequest extends Request {
 
 const app = express();
 
-app.use(express.json());
-
 app.use(rateLimiter);
+
+app.use(express.json());
 
 app.use(checkToken);
 
