@@ -405,7 +405,7 @@ export const getAllLocationResponses = async (
 			return res.status(400).json({ message: "Missing event id" });
 		}
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN locations l ON l.id = dr.location_id WHERE i.event_id = ?`;
+			const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN locations l ON l.id = lr.location_id WHERE i.event_id = ?`;
 			const result = await database.query(sql, [eventId], userId);
 			return res.status(200).json(result.rows);
 		}
