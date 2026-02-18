@@ -4,6 +4,7 @@ import express from "express";
 
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
+import { rateLimiter } from "./middlewares/v1/rateLimitHandler.js";
 
 import type { User } from "./models/user.js";
 
@@ -15,11 +16,14 @@ import userRoutes from "./routes/v1/userRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
+	rateLimit?: { resetTime: number };
 }
 
 const app = express();
 
 app.use(express.json());
+
+app.use(rateLimiter);
 
 app.use(checkToken);
 
