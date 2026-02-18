@@ -104,6 +104,7 @@ export enum State {
 	_NO,
 	_MAYBE,
 	_QUESTION,
+	_NO_RESPONSE,
 }
 
 export enum Status {
