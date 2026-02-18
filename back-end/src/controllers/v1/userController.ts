@@ -11,7 +11,7 @@ const SALT_ROUNDS = 10;
 async function hasUserEditPermission(userId: number): Promise<boolean> {
 	const sqlAdmin = `
 			SELECT up.user_id, up.permission
-			FROM user_permission up
+			FROM user_permissions up
 			WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'USER_ADMIN')
 			LIMIT 1
 	`;
