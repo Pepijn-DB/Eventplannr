@@ -7,7 +7,7 @@ import { checkToken } from "./middlewares/v1/authHandler.js";
 import { rateLimiter } from "./middlewares/v1/rateLimitHandler.js";
 
 import type { User } from "./models/user.js";
-
+import adminRoutes from "./routes/v1/adminRoutes.js";
 import authRoutes from "./routes/v1/authRoutes.js";
 import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
@@ -33,6 +33,7 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/event", eventRoutes);
 app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/response", responseRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 app.use(errorHandler);
 

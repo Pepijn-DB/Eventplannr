@@ -15,7 +15,7 @@ interface error {
 	req: AuthRequest;
 }
 
-const listErrors: error[] = [];
+export const listErrors: error[] = [];
 
 export const errorHandler = (
 	err: AppError,
