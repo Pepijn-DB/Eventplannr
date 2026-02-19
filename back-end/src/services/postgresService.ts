@@ -79,6 +79,8 @@ async function addLog(
 	if (executioner !== null && executioner < 0) return null;
 
 	const { action, table: tableName, where: whereClause } = parseQuery(query);
+	if (!action || !tableName) return null;
+	if (action === "SELECT") return null;
 
 	try {
 		const insertSql = `INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES ($1, $2, $3, $4, $5) RETURNING id;`;

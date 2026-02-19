@@ -129,6 +129,9 @@ async function addLog(
 		where: whereClause,
 	} = parseQuery(queryForLog);
 
+	if (!action || !tableName) return null;
+	if (action === "SELECT") return null;
+
 	try {
 		const [res] = await pool.execute(
 			"INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (?, ?, ?, ?, ?);",
