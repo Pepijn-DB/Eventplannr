@@ -6,6 +6,7 @@ import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
+	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 
@@ -140,6 +141,48 @@ export const updateEvent = async (
 		params.push(eventId);
 
 		await database.query(sql, params, userId);
+	} catch (err) {
+		next(err);
+	}
+
+	return res.status(200).json({ message: "Event updated" });
+};
+
+export const updateFullEvent = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+
+		const prevEventSql = `SELECT * FROM events WHERE id = ?`;
+
+		await ifMatchValidator(req, prevEventSql, [eventId]);
+
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+		if (!req.body.title || !req.body.description || !req.body.status) {
+			return res.status(400).json({ message: "Request is not complete" });
+		}
+
+		const sql = `UPDATE events SET title = ?, description = ?, status = ? WHERE id = ?`;
+		if (
+			req.body.status !== "CLOSED" ||
+			req.body.status !== "OPEN" ||
+			req.body.status !== "CANCELLED" ||
+			req.body.status !== "DRAFT"
+		) {
+			return res.status(400).json({ message: "Invalid status" });
+		}
+
+		await database.query(
+			sql,
+			[req.body.title, req.body.description, req.body.status, eventId],
+			userId,
+		);
 	} catch (err) {
 		next(err);
 	}
