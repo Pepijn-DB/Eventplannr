@@ -117,6 +117,28 @@ export const updateEventDate = async (
 	}
 };
 
+export const updateFullEventDate = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const _dateId = variableValidator(req.params.date_id)
+			? Number(req.params.date_id)
+			: null;
+
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		return res.status(405).json({ message: "Method not implemented." });
+	} catch (err) {
+		next(err);
+	}
+};
+
 export const getEventDate = async (
 	req: AuthRequest,
 	res: Response,
