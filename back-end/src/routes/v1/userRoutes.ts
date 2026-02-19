@@ -8,6 +8,8 @@ import {
 	getUser,
 	getUserPermissions,
 	getUsers,
+	updateFullUser,
+	updateFullUserPermission,
 	updateUser,
 	updateUserPermission,
 } from "../../controllers/v1/userController.js";
@@ -20,6 +22,7 @@ router.post("/", createUser);
 router.delete("/:id", deleteUser);
 router.get("/:id", getUser);
 router.patch("/:id", updateUser);
+router.put("/:id", updateFullUser);
 
 router.get("/:id/invitations", getUserInvitations);
 
@@ -27,5 +30,6 @@ router.get("/:id/permissions", getUserPermissions);
 router.post("/:id/permissions", createUserPermission);
 router.delete("/:id/permissions/:permission_id", deleteUserPermission);
 router.patch("/:id/permissions/:permission_id", updateUserPermission);
+router.put("/:id/permissions/:permission_id", updateFullUserPermission);
 
 export default router;
