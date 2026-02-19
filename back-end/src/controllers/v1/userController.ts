@@ -1,24 +1,14 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
+import { hasGlobalPermission } from "../../services/permissionService.js";
 import { userValidator } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
 const SALT_ROUNDS = 10;
-
-async function hasUserEditPermission(userId: number): Promise<boolean> {
-	const sqlAdmin = `
-			SELECT up.user_id, up.permission
-			FROM user_permissions up
-			WHERE up.user_id = ? AND (up.permission = 'GLOBAL_ADMIN' or up.permission = 'USER_ADMIN')
-			LIMIT 1
-	`;
-	const resultAdmin = await database.query(sqlAdmin, [userId], userId);
-
-	return resultAdmin.rows.length > 0;
-}
 
 export const getUsers = async (
 	req: AuthRequest,
@@ -28,7 +18,7 @@ export const getUsers = async (
 	try {
 		const userId = userValidator(req);
 
-		if (!(await hasUserEditPermission(userId))) {
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
@@ -52,10 +42,17 @@ export const getUser = async (
 	next: NextFunction,
 ) => {
 	try {
-		const requestedUser = Number(variableValidator(req.params.id));
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: null;
 		const userId = userValidator(req);
 
-		if (!(await hasUserEditPermission(userId))) {
+		if (requestedUser === null) return res.status(400).json("Missing user id");
+
+		if (
+			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
+			userId !== requestedUser
+		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
@@ -116,16 +113,23 @@ export const updateUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = Number(variableValidator(req.params.id));
+	const requestedUser = variableValidator(req.params.id)
+		? Number(req.params.id)
+		: null;
 	const userId = userValidator(req);
 
 	let sql = `UPDATE users SET`;
 	const params: StrNum[] = [];
 
 	try {
-		if (!(await hasUserEditPermission(userId))) {
+		if (
+			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
+			userId !== requestedUser
+		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+
+		if (requestedUser === null) return res.status(400).json("Missing user id");
 
 		if (req.body.username) {
 			sql += ` username = ?,`;
@@ -159,11 +163,18 @@ export const deleteUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = Number(variableValidator(req.params.id));
+	const requestedUser = variableValidator(req.params.id)
+		? Number(req.params.id)
+		: null;
 	const userId = userValidator(req);
 
+	if (requestedUser === null) return res.status(400).json("Missing user id");
+
 	try {
-		if (!(await hasUserEditPermission(userId))) {
+		if (
+			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
+			userId !== requestedUser
+		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
