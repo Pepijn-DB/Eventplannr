@@ -175,3 +175,120 @@ export const deleteUser = async (
 		next(err);
 	}
 };
+
+export const getUserPermissions = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	const requestedUser = variableValidator(req.params.id)
+		? Number(req.params.id)
+		: null;
+	const userId = userValidator(req);
+
+	if (!userId) return res.status(401).json({ message: "Unauthorized" });
+	if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+		return res.status(403).json({message: "Forbidden"});
+	}
+	if (requestedUser === null) return res.status(400).json("Missing user id");
+
+	try {
+		const sql = `
+		SELECT up.user_id, up.permission
+		FROM user_permissions up
+		WHERE up.user_id = ?
+	`;
+		const result = await database.query(sql, [requestedUser], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		return res.status(200).json(result.rows);
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateUserPermission = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({message: "Forbidden"});
+		}
+
+		return res.status(405).json({ message: "Method not implemented." });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const deleteUserPermission = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: null;
+		const permissionId = variableValidator(req.params.permission_id)
+			? Number(req.params.permission_id)
+			: null;
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({message: "Forbidden"});
+		}
+
+		if (requestedUser === null || permissionId === null)
+			return res.status(400).json("Missing user id or permission id");
+
+		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
+		await database.query(sql, [requestedUser, permissionId], userId);
+
+		return res
+			.status(200)
+			.json({ message: "User permission deleted successfully" });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const createUserPermission = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: null;
+		const permissionId = variableValidator(req.body.permission_id)
+			? Number(req.body.permission_id)
+			: null;
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({message: "Forbidden"});
+		}
+
+		if (requestedUser === null || permissionId === null)
+			return res.status(400).json("Missing user id or permission id");
+
+		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
+		await database.query(sql, [requestedUser, permissionId], userId);
+
+		return res
+			.status(200)
+			.json({ message: "User permission created successfully" });
+	} catch (err) {
+		next(err);
+	}
+};
