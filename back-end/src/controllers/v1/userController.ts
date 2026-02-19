@@ -199,7 +199,7 @@ export const getUserPermissions = async (
 
 	if (!userId) return res.status(401).json({ message: "Unauthorized" });
 	if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-		return res.status(403).json({message: "Forbidden"});
+		return res.status(403).json({ message: "Forbidden" });
 	}
 	if (requestedUser === null) return res.status(400).json("Missing user id");
 
@@ -229,7 +229,7 @@ export const updateUserPermission = async (
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({message: "Forbidden"});
+			return res.status(403).json({ message: "Forbidden" });
 		}
 
 		return res.status(405).json({ message: "Method not implemented." });
@@ -254,7 +254,7 @@ export const deleteUserPermission = async (
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({message: "Forbidden"});
+			return res.status(403).json({ message: "Forbidden" });
 		}
 
 		if (requestedUser === null || permissionId === null)
@@ -287,7 +287,7 @@ export const createUserPermission = async (
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({message: "Forbidden"});
+			return res.status(403).json({ message: "Forbidden" });
 		}
 
 		if (requestedUser === null || permissionId === null)
