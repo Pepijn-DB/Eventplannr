@@ -157,9 +157,8 @@ export const updateFullEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-		const prevEventSql = `SELECT * FROM events WHERE id = ?`;
 
-		await ifMatchValidator(req, prevEventSql, [eventId]);
+		await ifMatchValidator(req, `SELECT * FROM events WHERE id = ?`, [eventId]);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
