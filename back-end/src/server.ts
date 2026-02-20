@@ -4,7 +4,7 @@ import config from "./config/config.js";
 import database from "./services/databaseService.js";
 
 if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
-	console.error("\x1b[31m", "[ERROR] Secret not set in env");
+	console.error("\x1b[31m[ERROR] Secret not set in env");
 	process.exit(1);
 }
 
