@@ -282,3 +282,34 @@ export const updateEventLocation = async (
 		next(err);
 	}
 };
+
+export const updateFullEventLocation = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		try {
+			const userId = userValidator(req);
+			const eventId = variableValidator(req.params.event_id)
+				? Number(req.params.event_id)
+				: null;
+			const locationId = variableValidator(req.params.location_id)
+				? Number(req.params.location_id)
+				: null;
+			if (eventId === null || locationId === null) {
+				return res
+					.status(400)
+					.json({ message: "Missing event or location id" });
+			}
+			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
+				return res.status(403).json({ message: "Forbidden" });
+			}
+			return res.status(405).json({ message: "Method not implemented." });
+		} catch (err) {
+			next(err);
+		}
+	} catch (err) {
+		next(err);
+	}
+};
