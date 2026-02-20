@@ -34,14 +34,11 @@ export const authRateLimiter = rateLimit({
 	windowMs: 10 * 60 * 1000,
 	limit: 5,
 	message: {
+		error: "Too many authentication attempts",
 
-		error: 'Too many authentication attempts',
-
-		retryAfter: '10 minutes'
-
+		retryAfter: "10 minutes",
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
 	skipSuccessfulRequests: true,
-
 });
