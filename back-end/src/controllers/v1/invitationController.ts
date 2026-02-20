@@ -159,8 +159,8 @@ export const updateInvitation = async (
 		const params: StrNum[] = [];
 
 		if (req.body.role) {
-			sql += ` title = ?,`;
-			params.push(req.body.title);
+			sql += ` role = ?,`;
+			params.push(req.body.role);
 		}
 		if (!req.body.role)
 			return res.status(400).json({ message: "Nothing to update" });
