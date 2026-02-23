@@ -18,23 +18,33 @@ export const getToken = async (
 	next: NextFunction,
 ) => {
 	try {
+		// @ts-expect-error rateLimit cannot be undefined, as is checked by variableValidator
+		const remainingAttempts: string = variableValidator(req.rateLimit)
+			? req.rateLimit.remaining
+			: "unknown remaining attempts";
 		if (Config.secret === "null") {
 			next(new AppError("Server not configured", 500));
 			return;
 		}
 
 		if (variableValidator(req.body))
-			return res.status(400).json({ message: "Missing body" });
-	} catch (err) {
-		next(err);
-	}
-	try {
+			return res.status(400).json({
+				message: "Missing body",
+				remainingAttempts: remainingAttempts,
+			});
+
 		const { email, password } = req.body;
 
 		if (!arrayValidator([email, password]))
-			return res.status(400).json({ message: "Missing email or password" });
+			return res.status(400).json({
+				message: "Missing email or password",
+				remainingAttempts: remainingAttempts,
+			});
 		else if (!emailValidator(email)) {
-			return res.status(400).json({ message: "Invalid email" });
+			return res.status(400).json({
+				message: "Invalid email",
+				remainingAttempts: remainingAttempts,
+			});
 		}
 
 		const queryResult = await queryWithoutExecutioner(
@@ -42,7 +52,10 @@ export const getToken = async (
 			[email],
 		);
 		if (!queryResult || queryResult.rows.length === 0) {
-			return res.status(401).json({ message: "Unauthorized" });
+			return res.status(401).json({
+				message: "Unauthorized",
+				remainingAttempts: remainingAttempts,
+			});
 		}
 		const user = queryResult.rows[0];
 
@@ -51,7 +64,10 @@ export const getToken = async (
 			user.password_hash,
 		);
 		if (!passwordMatch) {
-			return res.status(401).json({ message: "Unauthorized" });
+			return res.status(401).json({
+				message: "Unauthorized",
+				remainingAttempts: remainingAttempts,
+			});
 		}
 
 		const payload: User = {

@@ -1,5 +1,4 @@
-// biome-ignore lint/suspicious/noExplicitAny: <Checks a variable, and the variable need to be any to ensure all variables can be checked>
-export function variableValidator(value: any): boolean {
+export function variableValidator<T>(value: T | null | undefined): value is T {
 	return value !== null && value !== undefined;
 }
 

@@ -4,7 +4,10 @@ import express from "express";
 
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
-import { rateLimiter } from "./middlewares/v1/rateLimitHandler.js";
+import {
+	authRateLimiter,
+	rateLimiter,
+} from "./middlewares/v1/rateLimitHandler.js";
 
 import type { User } from "./models/user.js";
 import adminRoutes from "./routes/v1/adminRoutes.js";
@@ -16,7 +19,7 @@ import userRoutes from "./routes/v1/userRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
-	rateLimit?: { resetTime: number };
+	rateLimit?: { resetTime: number; remaining: number };
 }
 
 const app = express();
@@ -28,7 +31,7 @@ app.use(express.json());
 app.use(checkToken);
 
 // Routes V1
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authRateLimiter, authRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/event", eventRoutes);
 app.use("/api/v1/location", locationRoutes);
