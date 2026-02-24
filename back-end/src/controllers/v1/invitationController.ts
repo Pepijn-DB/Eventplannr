@@ -189,15 +189,15 @@ export const updateFullInvitation = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM invitation WHERE id = ?`, [
-			invitationId,
-		]);
-
 		const sql = `UPDATE invitation SET role = ? WHERE id = ?`;
 
 		if (!req.body.role) {
 			return res.status(400).json({ message: "Nothing to update" });
 		}
+
+		await ifMatchValidator(req, `SELECT * FROM invitation WHERE id = ?`, [
+			invitationId,
+		]);
 
 		await database.query(sql, [req.body.role, invitationId], userId);
 
