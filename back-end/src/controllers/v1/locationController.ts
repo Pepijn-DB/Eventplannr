@@ -337,7 +337,7 @@ export const updateFullEventLocation = async (
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
 			}
-			await ifMatchValidator(req, `SELECT * FROM event_location WHERE id = ?`, [
+			await ifMatchValidator(req, `SELECT * FROM event_locations WHERE id = ?`, [
 				locationId,
 			]);
 			return res.status(405).json({ message: "Method not implemented." });
