@@ -181,11 +181,11 @@ export const updateFullEvent = async (
 			[req.body.title, req.body.description, req.body.status, eventId],
 			userId,
 		);
+		
+		return res.status(200).json({ message: "Event updated" });
 	} catch (err) {
 		next(err);
 	}
-
-	return res.status(200).json({ message: "Event updated" });
 };
 
 export const deleteEvent = async (
