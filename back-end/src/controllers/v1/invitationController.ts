@@ -200,6 +200,8 @@ export const updateFullInvitation = async (
 		}
 
 		await database.query(sql, [req.body.role, invitationId], userId);
+
+		return res.status(200).json({ message: "Invitation updated" });
 	} catch (err) {
 		next(err);
 	}
