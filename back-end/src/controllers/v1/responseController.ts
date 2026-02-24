@@ -230,7 +230,7 @@ export const deleteDateResponse = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (
-			resultInvitation.rows.length === 0 &&
+			resultInvitation.rows.length === 0 ||
 			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
 		) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -276,7 +276,7 @@ export const createLocationResponse = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (
-			resultInvitation.rows.length === 0 &&
+			resultInvitation.rows.length === 0 ||
 			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
 		) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -358,7 +358,7 @@ export const deleteLocationResponse = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (
-			resultInvitation.rows.length === 0 &&
+			resultInvitation.rows.length === 0 ||
 			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
 		) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -407,7 +407,7 @@ export const updateLocationResponse = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		if (
-			resultInvitation.rows.length === 0 &&
+			resultInvitation.rows.length === 0 ||
 			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
 		) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -458,7 +458,10 @@ export const updateFullLocationResponse = async (
 		) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
+		if (
+			resultInvitation.rows.length === 0 ||
+			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const invitationId = resultInvitation.rows[0].id;
