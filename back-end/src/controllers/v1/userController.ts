@@ -182,14 +182,19 @@ export const updateFullUser = async (
 			return res.status(400).json({ message: "Request is not complete" });
 
 		const sql = `UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = ?`;
-		const username = variableValidator(req.body.username) ? req.body.username as string : null;
-		const email = variableValidator(req.body.email) ? req.body.email as string : null;
-		const password_hash = variableValidator(req.body.password) ? await bcrypt.hash(
-			req.body.password as string,
-			SALT_ROUNDS,
-		) : null;
-		if (username === null || email === null || password_hash === null) return res.status(400).json({ message: "Missing required fields" })
-		await database.query(sql, [username, email, password_hash, userId], userId);z
+		const username = variableValidator(req.body.username)
+			? (req.body.username as string)
+			: null;
+		const email = variableValidator(req.body.email)
+			? (req.body.email as string)
+			: null;
+		const password_hash = variableValidator(req.body.password)
+			? await bcrypt.hash(req.body.password as string, SALT_ROUNDS)
+			: null;
+		if (username === null || email === null || password_hash === null)
+			return res.status(400).json({ message: "Missing required fields" });
+		await database.query(sql, [username, email, password_hash, userId], userId);
+		z;
 		return res.status(200).json({ message: "User updated successfully" });
 	} catch (err) {
 		next(err);

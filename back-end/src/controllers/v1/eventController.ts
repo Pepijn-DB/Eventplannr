@@ -157,7 +157,6 @@ export const updateFullEvent = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-
 		await ifMatchValidator(req, `SELECT * FROM events WHERE id = ?`, [eventId]);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {

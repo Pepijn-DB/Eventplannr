@@ -6,7 +6,10 @@ import {
 	hasEventPermission,
 	hasLocationPermission,
 } from "../../services/permissionService.js";
-import {ifMatchValidator, userValidator} from "../../validators/requestValidator.js";
+import {
+	ifMatchValidator,
+	userValidator,
+} from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
 export const getLocations = async (
@@ -146,7 +149,9 @@ export const updateFullLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 
-		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [locationId]);
+		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [
+			locationId,
+		]);
 		await database.query(sql, [locationName, locationId], userId);
 		return res.status(200).json({ message: "Location updated successfully" });
 	} catch (err) {
