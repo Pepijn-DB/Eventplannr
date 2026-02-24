@@ -194,7 +194,6 @@ export const updateFullUser = async (
 		if (username === null || email === null || password_hash === null)
 			return res.status(400).json({ message: "Missing required fields" });
 		await database.query(sql, [username, email, password_hash, userId], userId);
-		z;
 		return res.status(200).json({ message: "User updated successfully" });
 	} catch (err) {
 		next(err);
