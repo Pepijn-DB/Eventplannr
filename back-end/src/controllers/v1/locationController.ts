@@ -329,9 +329,7 @@ export const updateFullEventLocation = async (
 			: null;
 		const locationId = Number(req.params.location_id);
 		if (eventId === null || locationId === null) {
-			return res
-				.status(400)
-				.json({ message: "Missing event or location id" });
+			return res.status(400).json({ message: "Missing event or location id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
