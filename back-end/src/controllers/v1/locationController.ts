@@ -327,7 +327,7 @@ export const updateFullEventLocation = async (
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		const locationId = Number(req.params.location_id);
+		const locationId = variableValidator(req.params.location_id) ? Number(req.params.location_id) : null;
 		if (eventId === null || locationId === null) {
 			return res.status(400).json({ message: "Missing event or location id" });
 		}
