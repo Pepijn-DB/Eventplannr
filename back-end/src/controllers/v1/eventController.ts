@@ -125,9 +125,9 @@ export const updateEvent = async (
 		if (req.body.status) {
 			sql += ` status = ?,`;
 			if (
-				req.body.status !== "CLOSED" ||
-				req.body.status !== "OPEN" ||
-				req.body.status !== "CANCELLED" ||
+				req.body.status !== "CLOSED" &&
+				req.body.status !== "OPEN" &&
+				req.body.status !== "CANCELLED" &&
 				req.body.status !== "DRAFT"
 			) {
 				return res.status(400).json({ message: "Invalid status" });
@@ -166,9 +166,9 @@ export const updateFullEvent = async (
 
 		const sql = `UPDATE events SET title = ?, description = ?, status = ? WHERE id = ?`;
 		if (
-			req.body.status !== "CLOSED" ||
-			req.body.status !== "OPEN" ||
-			req.body.status !== "CANCELLED" ||
+			req.body.status !== "CLOSED" &&
+			req.body.status !== "OPEN" &&
+			req.body.status !== "CANCELLED" &&
 			req.body.status !== "DRAFT"
 		) {
 			return res.status(400).json({ message: "Invalid status" });
