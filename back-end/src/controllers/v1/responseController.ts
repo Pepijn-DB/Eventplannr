@@ -5,6 +5,7 @@ import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
+	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
@@ -180,6 +181,13 @@ export const updateFullDateResponse = async (
 		}
 
 		const sql = `UPDATE date_response SET state = ? WHERE invitation_id = ? AND date_id = ?`;
+
+		await ifMatchValidator(
+			req,
+			`SELECT * FROM date_response WHERE invitation_id = ? AND date_id = ?`,
+			[invitationId, dateId],
+		);
+
 		const result = await database.query(
 			sql,
 			[state, invitationId, dateId],
@@ -462,6 +470,13 @@ export const updateFullLocationResponse = async (
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 		const sql = `UPDATE location_response SET state = ? WHERE invitation_id = ? AND location_id = ?`;
+
+		await ifMatchValidator(
+			req,
+			`SELECT * FROM location_response WHERE invitation_id = ? AND location_id = ?`,
+			[invitationId, locationId],
+		);
+
 		const result = await database.query(
 			sql,
 			[state, invitationId, locationId],

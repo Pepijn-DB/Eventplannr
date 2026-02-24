@@ -5,7 +5,10 @@ import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { hasGlobalPermission } from "../../services/permissionService.js";
-import { userValidator } from "../../validators/requestValidator.js";
+import {
+	ifMatchValidator,
+	userValidator,
+} from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
 const SALT_ROUNDS = 10;
@@ -193,6 +196,11 @@ export const updateFullUser = async (
 			: null;
 		if (username === null || email === null || password_hash === null)
 			return res.status(400).json({ message: "Missing required fields" });
+
+		await ifMatchValidator(req, `SELECT * FROM users WHERE id = ?`, [
+			requestedUser,
+		]);
+
 		await database.query(sql, [username, email, password_hash, userId], userId);
 		return res.status(200).json({ message: "User updated successfully" });
 	} catch (err) {

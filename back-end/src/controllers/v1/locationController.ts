@@ -328,9 +328,7 @@ export const updateFullEventLocation = async (
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;
-			const locationId = variableValidator(req.params.location_id)
-				? Number(req.params.location_id)
-				: null;
+			const locationId = Number(req.params.location_id);
 			if (eventId === null || locationId === null) {
 				return res
 					.status(400)
@@ -339,6 +337,9 @@ export const updateFullEventLocation = async (
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
 			}
+			await ifMatchValidator(req, `SELECT * FROM event_location WHERE id = ?`, [
+				locationId,
+			]);
 			return res.status(405).json({ message: "Method not implemented." });
 		} catch (err) {
 			next(err);
