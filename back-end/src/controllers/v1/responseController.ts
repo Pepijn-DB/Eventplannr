@@ -142,6 +142,58 @@ export const updateDateResponse = async (
 	}
 };
 
+export const updateFullDateResponse = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const dateId = variableValidator(req.params.date_id)
+			? Number(req.params.date_id)
+			: null;
+		if (!eventId || !dateId) {
+			return res.status(400).json({ message: "Missing event or date id" });
+		}
+		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
+		const resultInvitation = await database.query(
+			sqlInvitation,
+			[userId, eventId],
+			userId,
+		);
+		if (
+			!resultInvitation ||
+			!resultInvitation.rows[0] ||
+			!resultInvitation.rows[0].id
+		) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		if (resultInvitation.rows.length === 0) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+		const invitationId = resultInvitation.rows[0].id;
+
+		const state = variableValidator(req.body.state) ? req.body.state : null;
+		if (!state) {
+			return res.status(400).json({ message: "Missing or invalid state" });
+		}
+
+		const sql = `UPDATE date_response SET state = ? WHERE invitation_id = ? AND date_id = ?`;
+		const result = await database.query(
+			sql,
+			[state, invitationId, dateId],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		return res.status(200).json(result.rows);
+	} catch (err) {
+		next(err);
+	}
+};
+
 export const deleteDateResponse = async (
 	req: AuthRequest,
 	res: Response,
@@ -320,6 +372,58 @@ export const deleteLocationResponse = async (
 };
 
 export const updateLocationResponse = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const locationId = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: null;
+		if (!eventId || !locationId) {
+			return res.status(400).json({ message: "Missing event or location id" });
+		}
+		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
+		const resultInvitation = await database.query(
+			sqlInvitation,
+			[userId, eventId],
+			userId,
+		);
+		if (
+			!resultInvitation ||
+			!resultInvitation.rows[0] ||
+			!resultInvitation.rows[0].id
+		) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		if (
+			resultInvitation.rows.length === 0 &&
+			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+		) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+		const invitationId = resultInvitation.rows[0].id;
+		const state = variableValidator(req.body.state) ? req.body.state : null;
+		if (!state) {
+			return res.status(400).json({ message: "Missing or invalid state" });
+		}
+		const sql = `UPDATE location_response SET state = ? WHERE invitation_id = ? AND location_id = ?`;
+		const result = await database.query(
+			sql,
+			[state, invitationId, locationId],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullLocationResponse = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
