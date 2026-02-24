@@ -201,7 +201,7 @@ export const updateFullUser = async (
 			requestedUser,
 		]);
 
-		await database.query(sql, [username, email, password_hash, userId], userId);
+		await database.query(sql, [username, email, password_hash, requestedUser], userId);
 		return res.status(200).json({ message: "User updated successfully" });
 	} catch (err) {
 		next(err);
