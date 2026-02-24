@@ -6,7 +6,10 @@ import {
 	hasEventPermission,
 	hasLocationPermission,
 } from "../../services/permissionService.js";
-import { userValidator } from "../../validators/requestValidator.js";
+import {
+	ifMatchValidator,
+	userValidator,
+} from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
 export const getLocations = async (
@@ -118,6 +121,37 @@ export const updateLocation = async (
 			: null;
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
+		await database.query(sql, [locationName, locationId], userId);
+		return res.status(200).json({ message: "Location updated successfully" });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullLocation = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const locationId = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: null;
+		if (!locationId)
+			return res.status(400).json({ message: "Missing location id" });
+		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
+			return res.status(403).json({ message: "Forbidden" });
+		const sql = `UPDATE locations SET name = ? WHERE id = ?`;
+		const locationName = variableValidator(req.body.name)
+			? req.body.name
+			: null;
+		if (!locationName)
+			return res.status(400).json({ message: "Missing location name" });
+
+		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [
+			locationId,
+		]);
 		await database.query(sql, [locationName, locationId], userId);
 		return res.status(200).json({ message: "Location updated successfully" });
 	} catch (err) {
@@ -278,6 +312,36 @@ export const updateEventLocation = async (
 		} catch (err) {
 			next(err);
 		}
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullEventLocation = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = variableValidator(req.params.event_id)
+			? Number(req.params.event_id)
+			: null;
+		const locationId = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: null;
+		if (eventId === null || locationId === null) {
+			return res.status(400).json({ message: "Missing event or location id" });
+		}
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+		await ifMatchValidator(
+			req,
+			`SELECT * FROM event_locations WHERE event_id = ? AND location_id = ?`,
+			[eventId, locationId],
+		);
+		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
 		next(err);
 	}

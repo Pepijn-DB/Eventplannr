@@ -5,6 +5,7 @@ import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
+	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
@@ -110,6 +111,30 @@ export const updateEventDate = async (
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+
+		return res.status(405).json({ message: "Method not implemented." });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullEventDate = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const dateId = Number(req.params.date_id);
+
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		await ifMatchValidator(req, `SELECT * FROM event_dates WHERE id = ?`, [
+			dateId,
+		]);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {

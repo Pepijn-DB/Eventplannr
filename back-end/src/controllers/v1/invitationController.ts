@@ -7,6 +7,7 @@ import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
+	ifMatchValidator,
 	invitationValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
@@ -169,6 +170,38 @@ export const updateInvitation = async (
 		params.push(invitationId);
 
 		await database.query(sql, params, userId);
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullInvitation = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const invitationId = invitationValidator(req);
+
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		const sql = `UPDATE invitation SET role = ? WHERE id = ?`;
+
+		if (!req.body.role) {
+			return res.status(400).json({ message: "Nothing to update" });
+		}
+
+		await ifMatchValidator(req, `SELECT * FROM invitation WHERE id = ?`, [
+			invitationId,
+		]);
+
+		await database.query(sql, [req.body.role, invitationId], userId);
+
+		return res.status(200).json({ message: "Invitation updated" });
 	} catch (err) {
 		next(err);
 	}
