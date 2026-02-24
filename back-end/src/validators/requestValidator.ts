@@ -33,11 +33,13 @@ export async function ifMatchValidator(
 	const result = await database.query(sqlOriginal, sqlParams, userId);
 	const previousHash = await hash(result.rows[0]);
 
-	if (!req.headers["If-Match"]) {
+	const ifMatchHeader = req.get("If-Match") ?? req.headers["if-match"];
+	if (!ifMatchHeader) {
 		throw new AppError("Missing If-Match header", 428);
 	}
-
-	const reqEventHash = req.headers["If-Match"] as string;
+	const reqEventHash = Array.isArray(ifMatchHeader)
+		? ifMatchHeader[0]
+		: ifMatchHeader;
 
 	if (previousHash !== reqEventHash) {
 		throw new AppError("Precondition failed", 412);
