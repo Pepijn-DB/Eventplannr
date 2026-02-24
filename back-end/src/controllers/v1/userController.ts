@@ -158,6 +158,44 @@ export const updateUser = async (
 	}
 };
 
+export const updateFullUser = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	const requestedUser = variableValidator(req.params.id)
+		? Number(req.params.id)
+		: null;
+	const userId = userValidator(req);
+
+	try {
+		if (
+			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
+			userId !== requestedUser
+		) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		if (requestedUser === null) return res.status(400).json("Missing user id");
+
+		if (!req.body.username || !req.body.email || !req.body.password)
+			return res.status(400).json({ message: "Request is not complete" });
+
+		const sql = `UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = ?`;
+		const username = variableValidator(req.body.username) ? req.body.username as string : null;
+		const email = variableValidator(req.body.email) ? req.body.email as string : null;
+		const password_hash = variableValidator(req.body.password) ? await bcrypt.hash(
+			req.body.password as string,
+			SALT_ROUNDS,
+		) : null;
+		if (username === null || email === null || password_hash === null) return res.status(400).json({ message: "Missing required fields" })
+		await database.query(sql, [username, email, password_hash, userId], userId);z
+		return res.status(200).json({ message: "User updated successfully" });
+	} catch (err) {
+		next(err);
+	}
+};
+
 export const deleteUser = async (
 	req: AuthRequest,
 	res: Response,
@@ -220,6 +258,25 @@ export const getUserPermissions = async (
 };
 
 export const updateUserPermission = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const userId = userValidator(req);
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		return res.status(405).json({ message: "Method not implemented." });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const updateFullUserPermission = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
