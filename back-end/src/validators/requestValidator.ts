@@ -44,5 +44,5 @@ export async function ifMatchValidator(
 	if (previousHash !== reqEventHash) {
 		throw new AppError("Precondition failed", 412);
 	}
-	return false;
+	return true;
 }
