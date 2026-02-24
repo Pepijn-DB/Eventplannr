@@ -458,10 +458,7 @@ export const updateFullLocationResponse = async (
 		) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		if (
-			resultInvitation.rows.length === 0 &&
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
-		) {
+		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const invitationId = resultInvitation.rows[0].id;
