@@ -2,6 +2,7 @@
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
 
+import config from "./config/config.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
 import {
@@ -16,7 +17,6 @@ import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
-import config from "./config/config.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
