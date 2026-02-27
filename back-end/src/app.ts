@@ -16,6 +16,7 @@ import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
+import config from "./config/config.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
@@ -29,6 +30,15 @@ app.use(rateLimiter);
 app.use(express.json());
 
 app.use(checkToken);
+
+app.use((req: AuthRequest, res: Response, next: NextFunction) => {
+	if (req.rateLimit) {
+		res.setHeader("X-RateLimit-Remaining", req.rateLimit.remaining);
+		res.setHeader("X-RateLimit-Reset", req.rateLimit.resetTime);
+	}
+	res.setHeader("Access-Control-Allow-Origin", config.cors_url);
+	next();
+});
 
 // Routes V1
 app.use("/api/v1/auth", authRateLimiter, authRoutes);

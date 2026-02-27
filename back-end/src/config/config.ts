@@ -5,6 +5,7 @@ dotenv.config();
 interface Config {
 	port: number;
 	secret: string;
+	cors_url: string;
 }
 
 interface DbConfig {
@@ -19,6 +20,7 @@ interface DbConfig {
 const config: Config = {
 	port: Number(process.env.PORT) || 3000,
 	secret: process.env.SECRET || "SECRET STRING SHOULD BE SET IN ENV",
+	cors_url: process.env.CORS_URL || "*",
 };
 
 export const dbConfig: DbConfig = {
