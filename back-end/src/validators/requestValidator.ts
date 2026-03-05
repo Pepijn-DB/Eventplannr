@@ -31,7 +31,7 @@ export async function ifMatchValidator(
 ): Promise<boolean> {
 	const userId = userValidator(req);
 	const result = await database.query(sqlOriginal, sqlParams, userId);
-	const previousHash = await hash(result.rows[0]);
+	const previousHash = await hash(result.rows);
 
 	const ifMatchHeader = req.get("If-Match") ?? req.headers["if-match"];
 	if (!ifMatchHeader) {
