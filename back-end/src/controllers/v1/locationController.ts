@@ -167,8 +167,8 @@ export const getEventLocations = async (
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		if (eventId === null) {
-			return res.status(400).json({ message: "Missing event id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -197,8 +197,8 @@ export const getEventLocation = async (
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		if (eventId === null) {
-			return res.status(400).json({ message: "Missing event id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -230,10 +230,16 @@ export const createEventLocation = async (
 		const locationId = variableValidator(req.body.location_id)
 			? Number(req.body.location_id)
 			: null;
-		if (eventId === null) {
-			return res.status(400).json({ message: "Missing event id" });
-		} else if (locationId === null) {
-			return res.status(400).json({ message: "Missing location id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
+		} else if (
+			locationId === null ||
+			Number.isNaN(locationId) ||
+			locationId < 0
+		) {
+			return res
+				.status(400)
+				.json({ message: "Missing or invalid location id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -259,8 +265,8 @@ export const deleteEventLocation = async (
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;
-			if (eventId === null) {
-				return res.status(400).json({ message: "Missing event id" });
+			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
@@ -289,8 +295,8 @@ export const updateEventLocation = async (
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;
-			if (eventId === null) {
-				return res.status(400).json({ message: "Missing event id" });
+			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
@@ -314,8 +320,8 @@ export const updateFullEventLocation = async (
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		if (eventId === null) {
-			return res.status(400).json({ message: "Missing event id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });

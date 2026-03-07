@@ -25,6 +25,7 @@ function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	}
 	if (
 		(invitationId === -1 && needsInvitationId) ||
+		Number.isNaN(eventId) ||
 		Number.isNaN(invitationId) ||
 		invitationId < 0
 	) {

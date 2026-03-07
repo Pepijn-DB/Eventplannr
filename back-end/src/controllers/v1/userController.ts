@@ -20,8 +20,12 @@ function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 		? Number(req.params.id)
 		: -1;
 
-	if (requestedUser === -1 && needsReqUser) {
-		throw new AppError("Missing user id", 400);
+	if (
+		(requestedUser === -1 && needsReqUser) ||
+		Number.isNaN(requestedUser) ||
+		requestedUser < 0
+	) {
+		throw new AppError("Missing or invalid user id", 400);
 	}
 
 	return {
@@ -320,8 +324,10 @@ export const deleteUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null)
-			return res.status(400).json({ message: "Missing permissionId" });
+		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
+			return res
+				.status(400)
+				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
 		await database.query(sql, [requestedUser, permissionId], userId);
@@ -350,8 +356,10 @@ export const createUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null)
-			return res.status(400).json({ message: "Missing permissionId" });
+		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
+			return res
+				.status(400)
+				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
 		await database.query(sql, [requestedUser, permissionId], userId);

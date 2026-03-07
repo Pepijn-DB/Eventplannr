@@ -35,11 +35,10 @@ function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	if (
 		!eventId ||
 		!requestedUserId ||
-		(needsId && id === -1) ||
+		(needsId && id < -1) ||
 		Number.isNaN(id) ||
 		Number.isNaN(requestedUserId) ||
-		requestedUserId < 0 ||
-		id < 0
+		requestedUserId < 0
 	) {
 		let missing = "";
 		if (!eventId) missing += "event id, ";
