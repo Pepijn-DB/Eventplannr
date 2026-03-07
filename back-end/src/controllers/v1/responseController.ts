@@ -11,11 +11,11 @@ import {
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
-function getRequestVariables(req: AuthRequest, needsId?: boolean) {
+function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	const userId = userValidator(req);
 	const eventId = eventValidator(req);
-	const requestedUserId = variableValidator(req.query.user_id)
-		? Number(req.query.user_id)
+	const requestedUserId = variableValidator(req.params.user_id)
+		? Number(req.params.user_id)
 		: null;
 
 	let id: number | null = -1;
@@ -32,12 +32,20 @@ function getRequestVariables(req: AuthRequest, needsId?: boolean) {
 		type = "location";
 	}
 
-	if (!eventId || !requestedUserId) {
+	if (
+		!eventId ||
+		!requestedUserId ||
+		(needsId && id === -1) ||
+		Number.isNaN(id) ||
+		Number.isNaN(requestedUserId) ||
+		requestedUserId < 0 ||
+		id < 0
+	) {
 		let missing = "";
 		if (!eventId) missing += "event id, ";
 		if (!requestedUserId) missing += "user id, ";
 		missing = missing.slice(0, -2);
-		throw new AppError(`Missing ${missing} or invalid`, 400);
+		throw new AppError(`Missing or invalid ${missing} or invalid`, 400);
 	}
 	if (needsId && id === -1) {
 		throw new AppError(`Missing ${type} id`, 400);

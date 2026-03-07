@@ -20,11 +20,15 @@ function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	const invitationId = variableValidator(req.params.invitation_id)
 		? Number(req.params.invitation_id)
 		: -1;
-	if (eventId === -1) {
-		throw new AppError("Missing event id", 400);
+	if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
+		throw new AppError("Missing or invalid event id", 400);
 	}
-	if (invitationId === -1 && needsInvitationId) {
-		throw new AppError("Missing invitation id", 400);
+	if (
+		(invitationId === -1 && needsInvitationId) ||
+		Number.isNaN(invitationId) ||
+		invitationId < 0
+	) {
+		throw new AppError("Missing or invalid invitation id", 400);
 	}
 	return { userId, eventId, invitationId };
 }

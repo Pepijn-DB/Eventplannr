@@ -19,8 +19,12 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 		? Number(req.params.location_id)
 		: -1;
 
-	if (locationId === -1 && needsId) {
-		throw new AppError("Missing location id", 400);
+	if (
+		(locationId === -1 && needsId) ||
+		Number.isNaN(locationId) ||
+		locationId < 0
+	) {
+		throw new AppError("Missing or invalid location id", 400);
 	}
 
 	return { userId, locationId };
@@ -219,7 +223,7 @@ export const createEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId } = getRequestVariables(req, true);
+		const { userId } = getRequestVariables(req, false);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;

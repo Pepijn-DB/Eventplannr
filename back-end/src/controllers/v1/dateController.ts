@@ -18,8 +18,8 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 		? Number(req.params.date_id)
 		: -1;
 
-	if (dateId === -1 && needsId) {
-		throw new AppError("Missing date id", 400);
+	if ((dateId === -1 && needsId) || Number.isNaN(dateId) || dateId < 0) {
+		throw new AppError("Missing or invalid date id", 400);
 	}
 
 	return { userId, eventId, dateId };
