@@ -128,12 +128,12 @@ export const updateUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const { userId, requestedUser } = getRequestVariables(req, true);
-
-	let sql = `UPDATE users SET`;
-	const params: StrNum[] = [];
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
+		let sql = `UPDATE users SET`;
+		const params: StrNum[] = [];
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
@@ -173,9 +173,9 @@ export const updateFullUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const { userId, requestedUser } = getRequestVariables(req, true);
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
@@ -219,9 +219,9 @@ export const deleteUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const { userId, requestedUser } = getRequestVariables(req, true);
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
@@ -243,14 +243,14 @@ export const getUserPermissions = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const { userId, requestedUser } = getRequestVariables(req, true);
-
-	if (!userId) return res.status(401).json({ message: "Unauthorized" });
-	if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-		return res.status(403).json({ message: "Forbidden" });
-	}
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
 		const sql = `
 		SELECT up.user_id, up.permission
 		FROM user_permissions up
@@ -321,7 +321,7 @@ export const deleteUserPermission = async (
 		}
 
 		if (permissionId === null)
-			return res.status(400).json("Missing permission id");
+			return res.status(400).json({ message: "Missing permissionId" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
 		await database.query(sql, [requestedUser, permissionId], userId);
@@ -351,7 +351,7 @@ export const createUserPermission = async (
 		}
 
 		if (permissionId === null)
-			return res.status(400).json("Missing permission id");
+			return res.status(400).json({ message: "Missing permissionId" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
 		await database.query(sql, [requestedUser, permissionId], userId);

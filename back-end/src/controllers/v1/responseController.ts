@@ -94,8 +94,8 @@ export const createDateResponse = async (
 			eventId,
 			requestedUserId,
 			id: dateId,
-		} = getRequestVariables(req);
-		const invitationId = getInvitationId(userId, eventId);
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(userId, eventId);
 		if (
 			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
 			requestedUserId !== userId
@@ -108,7 +108,7 @@ export const createDateResponse = async (
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 
-		const sql = `INSERT INTO responses (invitation_id, date_id, state) VALUES (?, ?, ?)`;
+		const sql = `INSERT INTO date_response (invitation_id, date_id, state) VALUES (?, ?, ?)`;
 		const result = await database.query(
 			sql,
 			[invitationId, dateId, state],
@@ -486,7 +486,8 @@ export const getAllDateResponses = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, eventId } = getRequestVariables(req, true);
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 			const result = await database.query(sql, [eventId], userId);
@@ -504,7 +505,8 @@ export const getAllLocationResponses = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, eventId } = getRequestVariables(req, true);
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
 		if (!eventId) {
 			return res.status(400).json({ message: "Missing event id" });
 		}

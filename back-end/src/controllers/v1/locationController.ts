@@ -219,12 +219,17 @@ export const createEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, locationId } = getRequestVariables(req, true);
+		const { userId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
+		const locationId = variableValidator(req.body.location_id)
+			? Number(req.body.location_id)
+			: null;
 		if (eventId === null) {
 			return res.status(400).json({ message: "Missing event id" });
+		} else if (locationId === null) {
+			return res.status(400).json({ message: "Missing location id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
