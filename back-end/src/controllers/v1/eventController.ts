@@ -1,14 +1,35 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
-	eventValidator,
 	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
+import { variableValidator } from "../../validators/variableValidator.js";
+
+function getRequestVariables(req: AuthRequest, needsId: boolean) {
+	const userId = userValidator(req);
+	const eventId = variableValidator(req.params.event_id)
+		? Number(req.params.event_id)
+		: -1;
+
+	if (
+		(eventId === -1 && needsId) ||
+		Number.isNaN(eventId) ||
+		(eventId < 0 && needsId)
+	) {
+		throw new AppError("Missing or invalid event_id", 400);
+	}
+
+	return {
+		userId,
+		eventId,
+	};
+}
 
 export const getEvents = async (
 	req: AuthRequest,
@@ -16,7 +37,7 @@ export const getEvents = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
@@ -43,8 +64,7 @@ export const getEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
@@ -76,7 +96,7 @@ export const createEvent = async (
 	const { title, description } = req.body;
 	if (!title) return res.status(400).json({ message: "Missing title" });
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		const sql = `
             INSERT INTO events (creator_user, title, description, status)
@@ -107,8 +127,7 @@ export const updateEvent = async (
 	const params: StrNum[] = [];
 
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -154,8 +173,7 @@ export const updateFullEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -194,8 +212,7 @@ export const deleteEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });

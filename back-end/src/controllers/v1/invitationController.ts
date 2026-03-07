@@ -1,17 +1,37 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
-	eventValidator,
 	ifMatchValidator,
-	invitationValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+
+function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
+	const userId = userValidator(req);
+	const eventId = variableValidator(req.params.event_id)
+		? Number(req.params.event_id)
+		: -1;
+	const invitationId = variableValidator(req.params.invitation_id)
+		? Number(req.params.invitation_id)
+		: -1;
+	if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
+		throw new AppError("Missing or invalid event id", 400);
+	}
+	if (
+		(invitationId === -1 && needsInvitationId) ||
+		Number.isNaN(invitationId) ||
+		(invitationId < 0 && needsInvitationId)
+	) {
+		throw new AppError("Missing or invalid invitation id", 400);
+	}
+	return { userId, eventId, invitationId };
+}
 
 export const getInvitations = async (
 	req: AuthRequest,
@@ -19,8 +39,7 @@ export const getInvitations = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -47,8 +66,11 @@ export const getUserInvitations = async (
 ) => {
 	try {
 		const userId = Number(
-			variableValidator(req.params.id) ? req.params.id : userValidator(req),
+			variableValidator(req.params.id) ? req.params.id : -1,
 		);
+		if (userId === -1 || Number.isNaN(userId) || userId < 0) {
+			return res.status(400).json({ message: "Missing or invalid user id" });
+		}
 		const sql = `
             SELECT i.user_id, i.event_id, i.role
             FROM invitation i
@@ -74,8 +96,7 @@ export const deleteInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const invitationId = invitationValidator(req);
+		const { userId, invitationId } = getRequestVariables(req, true);
 
 		const sqlEvent = `SELECT e.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.invitation_id = ?`;
 		const resultEvent = await databaseService.query(
@@ -112,8 +133,7 @@ export const createInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -148,9 +168,7 @@ export const updateInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const invitationId = invitationValidator(req);
+		const { userId, eventId, invitationId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -181,9 +199,7 @@ export const updateFullInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const invitationId = invitationValidator(req);
+		const { userId, eventId, invitationId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -213,8 +229,7 @@ export const getInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });

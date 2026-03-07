@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
@@ -10,14 +11,31 @@ import {
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
+function getRequestVariables(req: AuthRequest, needsId: boolean) {
+	const userId = userValidator(req);
+	const eventId = eventValidator(req);
+	const dateId = variableValidator(req.params.date_id)
+		? Number(req.params.date_id)
+		: -1;
+
+	if (
+		(dateId === -1 && needsId) ||
+		Number.isNaN(dateId) ||
+		(dateId < 0 && needsId)
+	) {
+		throw new AppError("Missing or invalid date id", 400);
+	}
+
+	return { userId, eventId, dateId };
+}
+
 export const getEventDates = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -40,8 +58,7 @@ export const createEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -71,18 +88,10 @@ export const deleteEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
-		}
-
-		if (dateId === null) {
-			return res.status(400).json({ message: "Missing date id" });
 		}
 
 		const sql = `DELETE FROM event_dates WHERE id = ?`;
@@ -102,11 +111,7 @@ export const updateEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const _dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -124,9 +129,7 @@ export const updateFullEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = Number(req.params.date_id);
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -148,18 +151,10 @@ export const getEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
-		}
-
-		if (dateId === null) {
-			return res.status(400).json({ message: "Missing date id" });
 		}
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;

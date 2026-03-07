@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
@@ -10,44 +11,113 @@ import {
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
+function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
+	const userId = userValidator(req);
+	const eventId = eventValidator(req);
+	let requestedUserId: number = -1;
+	if (variableValidator(req.params.user_id)) {
+		requestedUserId = Number(req.params.user_id);
+	} else if (variableValidator(req.body.user_id)) {
+		requestedUserId = Number(req.body.user_id);
+	}
+	let id: number | null = -1;
+	let type = "";
+	if (req.path.includes("/date")) {
+		id = variableValidator(req.params.date_id)
+			? Number(req.params.date_id)
+			: -1;
+		type = "date";
+	} else if (req.path.includes("/location")) {
+		id = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: -1;
+		type = "location";
+	}
+
+	if (
+		!eventId ||
+		!requestedUserId ||
+		(needsId && id < -1) ||
+		Number.isNaN(id) ||
+		Number.isNaN(requestedUserId) ||
+		requestedUserId < 0
+	) {
+		let missing = "";
+		if (!eventId) missing += "event id, ";
+		if (!requestedUserId) missing += "user id, ";
+		missing = missing.slice(0, -2);
+		throw new AppError(`Missing or invalid ${missing} or invalid`, 400);
+	}
+	if (needsId && id === -1) {
+		throw new AppError(`Missing ${type} id`, 400);
+	}
+
+	return {
+		id: id,
+		userId: userId,
+		eventId: eventId,
+		requestedUserId: requestedUserId,
+	};
+}
+
+async function getInvitationId(
+	userId: number,
+	eventId: number,
+	requester: number = -1,
+): Promise<number> {
+	if (requester === -1) {
+		requester = userId;
+	}
+
+	const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
+	const resultInvitation = await database.query(
+		sqlInvitation,
+		[userId, eventId],
+		requester,
+	);
+	if (resultInvitation && resultInvitation.rows.length === 0) {
+		throw new AppError("Forbidden", 403);
+	}
+	if (
+		!resultInvitation ||
+		!resultInvitation.rows[0] ||
+		!resultInvitation.rows[0].id
+	) {
+		throw new AppError("Internal server error", 500);
+	}
+	try {
+		return Number(resultInvitation.rows[0].id);
+	} catch {
+		throw new AppError("Internal server error", 500);
+	}
+}
+
 export const createDateResponse = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
-		if (!eventId || !dateId) {
-			return res.status(400).json({ message: "Missing event or date id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
 			userId,
-		);
+			eventId,
+			requestedUserId,
+			id: dateId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(userId, eventId);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (resultInvitation.rows.length === 0) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 
-		const sql = `INSERT INTO responses (invitation_id, date_id, state) VALUES (?, ?, ?)`;
+		const sql = `INSERT INTO date_response (invitation_id, date_id, state) VALUES (?, ?, ?)`;
 		const result = await database.query(
 			sql,
 			[invitationId, dateId, state],
@@ -68,17 +138,19 @@ export const getDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
-		if (!eventId || !dateId) {
-			return res.status(400).json({ message: "Missing event or date id" });
-		}
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: dateId,
+		} = getRequestVariables(req, true);
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ?`;
-			const result = await database.query(sql, [dateId], userId);
+			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
+			const result = await database.query(
+				sql,
+				[dateId, requestedUserId],
+				userId,
+			);
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
@@ -97,31 +169,23 @@ export const updateDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
-		if (!eventId || !dateId) {
-			return res.status(400).json({ message: "Missing event or date id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: dateId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (resultInvitation.rows.length === 0) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
@@ -149,31 +213,23 @@ export const updateFullDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
-		if (!eventId || !dateId) {
-			return res.status(400).json({ message: "Missing event or date id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: dateId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (resultInvitation.rows.length === 0) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
@@ -208,34 +264,23 @@ export const deleteDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
-		if (!eventId || !dateId) {
-			return res.status(400).json({ message: "Missing event or date id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: dateId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
-		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (
-			resultInvitation.rows.length === 0 ||
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 
 		const sql = `DELETE FROM date_response WHERE invitation_id = ? AND date_id = ?`;
 		const result = await database.query(sql, [invitationId, dateId], userId);
@@ -254,34 +299,19 @@ export const createLocationResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!eventId || !locationId) {
-			return res.status(400).json({ message: "Missing event or location id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
 			userId,
-		);
+			eventId,
+			requestedUserId,
+			id: locationId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(userId, eventId, userId);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
-		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (
-			resultInvitation.rows.length === 0 ||
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -307,17 +337,19 @@ export const getLocationResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!eventId || !locationId) {
-			return res.status(400).json({ message: "Missing event or location id" });
-		}
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: locationId,
+		} = getRequestVariables(req, true);
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ?`;
-			const result = await database.query(sql, [locationId], userId);
+			const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
+			const result = await database.query(
+				sql,
+				[locationId, requestedUserId],
+				userId,
+			);
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
@@ -336,34 +368,23 @@ export const deleteLocationResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!eventId || !locationId) {
-			return res.status(400).json({ message: "Missing event or location id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: locationId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
-		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (
-			resultInvitation.rows.length === 0 ||
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 		const sql = `DELETE FROM location_response WHERE invitation_id = ? AND location_id = ?`;
 		const result = await database.query(
 			sql,
@@ -385,34 +406,23 @@ export const updateLocationResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!eventId || !locationId) {
-			return res.status(400).json({ message: "Missing event or location id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: locationId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
-		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (
-			resultInvitation.rows.length === 0 ||
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -426,6 +436,7 @@ export const updateLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(201);
 	} catch (err) {
 		next(err);
 	}
@@ -437,34 +448,23 @@ export const updateFullLocationResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!eventId || !locationId) {
-			return res.status(400).json({ message: "Missing event or location id" });
-		}
-		const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
-		const resultInvitation = await database.query(
-			sqlInvitation,
-			[userId, eventId],
+		const {
+			userId,
+			eventId,
+			requestedUserId,
+			id: locationId,
+		} = getRequestVariables(req, true);
+		const invitationId = await getInvitationId(
+			requestedUserId,
+			eventId,
 			userId,
 		);
 		if (
-			!resultInvitation ||
-			!resultInvitation.rows[0] ||
-			!resultInvitation.rows[0].id
-		) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		if (
-			resultInvitation.rows.length === 0 ||
-			!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))
+			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+			requestedUserId !== userId
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const invitationId = resultInvitation.rows[0].id;
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -485,6 +485,7 @@ export const updateFullLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(201);
 	} catch (err) {
 		next(err);
 	}
@@ -498,9 +499,6 @@ export const getAllDateResponses = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
-		if (!eventId) {
-			return res.status(400).json({ message: "Missing event id" });
-		}
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 			const result = await database.query(sql, [eventId], userId);
