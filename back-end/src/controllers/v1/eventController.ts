@@ -17,7 +17,11 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 		? Number(req.params.event_id)
 		: -1;
 
-	if ((eventId === -1 && needsId) || Number.isNaN(eventId) || eventId < 0) {
+	if (
+		(eventId === -1 && needsId) ||
+		Number.isNaN(eventId) ||
+		(eventId < 0 && needsId)
+	) {
 		throw new AppError("Missing or invalid event_id", 400);
 	}
 

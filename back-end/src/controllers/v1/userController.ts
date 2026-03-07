@@ -23,7 +23,7 @@ function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 	if (
 		(requestedUser === -1 && needsReqUser) ||
 		Number.isNaN(requestedUser) ||
-		requestedUser < 0
+		(needsReqUser && requestedUser < 0)
 	) {
 		throw new AppError("Missing or invalid user id", 400);
 	}

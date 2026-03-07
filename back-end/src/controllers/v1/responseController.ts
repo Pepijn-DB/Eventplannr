@@ -14,10 +14,12 @@ import { variableValidator } from "../../validators/variableValidator.js";
 function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	const userId = userValidator(req);
 	const eventId = eventValidator(req);
-	const requestedUserId = variableValidator(req.params.user_id)
-		? Number(req.params.user_id)
-		: null;
-
+	let requestedUserId: number = -1;
+	if (variableValidator(req.params.user_id)) {
+		requestedUserId = Number(req.params.user_id);
+	} else if (variableValidator(req.body.user_id)) {
+		requestedUserId = Number(req.body.user_id);
+	}
 	let id: number | null = -1;
 	let type = "";
 	if (req.path.includes("/date")) {
@@ -434,6 +436,7 @@ export const updateLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(201);
 	} catch (err) {
 		next(err);
 	}
@@ -482,6 +485,7 @@ export const updateFullLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(201);
 	} catch (err) {
 		next(err);
 	}

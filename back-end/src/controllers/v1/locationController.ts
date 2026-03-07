@@ -22,7 +22,7 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	if (
 		(locationId === -1 && needsId) ||
 		Number.isNaN(locationId) ||
-		locationId < 0
+		(locationId < 0 && needsId)
 	) {
 		throw new AppError("Missing or invalid location id", 400);
 	}

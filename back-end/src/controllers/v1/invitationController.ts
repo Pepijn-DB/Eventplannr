@@ -25,9 +25,8 @@ function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	}
 	if (
 		(invitationId === -1 && needsInvitationId) ||
-		Number.isNaN(eventId) ||
 		Number.isNaN(invitationId) ||
-		invitationId < 0
+		(invitationId < 0 && needsInvitationId)
 	) {
 		throw new AppError("Missing or invalid invitation id", 400);
 	}
@@ -69,8 +68,8 @@ export const getUserInvitations = async (
 		const userId = Number(
 			variableValidator(req.params.id) ? req.params.id : -1,
 		);
-		if (userId === -1) {
-			return res.status(400).json({ message: "Missing user id" });
+		if (userId === -1 || Number.isNaN(userId) || userId < 0) {
+			return res.status(400).json({ message: "Missing or invalid user id" });
 		}
 		const sql = `
             SELECT i.user_id, i.event_id, i.role
