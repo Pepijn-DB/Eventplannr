@@ -18,9 +18,8 @@ export const getToken = async (
 	next: NextFunction,
 ) => {
 	try {
-		// @ts-expect-error rateLimit cannot be undefined, as is checked by variableValidator
 		const remainingAttempts: string = variableValidator(req.rateLimit)
-			? req.rateLimit.remaining
+			? Number(req.rateLimit.remaining).toString()
 			: "unknown remaining attempts";
 		if (Config.secret === "null") {
 			next(new AppError("Server not configured", 500));

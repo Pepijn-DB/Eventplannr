@@ -29,8 +29,17 @@ router.get("/:event_id/location", getAllLocationResponses);
 router.post("/:event_id/location/:location_id", createLocationResponse);
 
 router.get("/:event_id/location/:location_id/:user_id", getLocationResponse);
-router.delete("/:event_id/location/:location_id/:user_id", deleteLocationResponse);
-router.patch("/:event_id/location/:location_id/:user_id", updateLocationResponse);
-router.put("/:event_id/location/:location_id/:user_id", updateFullLocationResponse);
+router.delete(
+	"/:event_id/location/:location_id/:user_id",
+	deleteLocationResponse,
+);
+router.patch(
+	"/:event_id/location/:location_id/:user_id",
+	updateLocationResponse,
+);
+router.put(
+	"/:event_id/location/:location_id/:user_id",
+	updateFullLocationResponse,
+);
 
 export default router;
