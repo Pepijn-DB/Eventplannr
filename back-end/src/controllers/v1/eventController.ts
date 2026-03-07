@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
@@ -8,12 +9,13 @@ import {
 	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
-import {variableValidator} from "../../validators/variableValidator.js";
-import {AppError} from "../../middlewares/errorHandler.js";
+import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	const userId = userValidator(req);
-	const eventId = variableValidator(req.params.event_id) ? Number(req.params.event_id) : -1;
+	const eventId = variableValidator(req.params.event_id)
+		? Number(req.params.event_id)
+		: -1;
 
 	if (eventId === -1 && needsId) {
 		throw new AppError("Missing event_id", 400);
@@ -22,7 +24,7 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	return {
 		userId,
 		eventId,
-	}
+	};
 }
 
 export const getEvents = async (

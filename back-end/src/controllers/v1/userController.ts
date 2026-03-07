@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
@@ -10,7 +11,6 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import {AppError} from "../../middlewares/errorHandler.js";
 
 const SALT_ROUNDS = 10;
 
@@ -27,7 +27,7 @@ function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 	return {
 		userId,
 		requestedUser,
-	}
+	};
 }
 
 export const getUsers = async (

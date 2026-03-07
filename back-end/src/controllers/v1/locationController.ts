@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event, Location } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import {
@@ -11,7 +12,6 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import {AppError} from "../../middlewares/errorHandler.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	const userId = userValidator(req);
@@ -276,7 +276,7 @@ export const updateEventLocation = async (
 ) => {
 	try {
 		try {
-			const { userId, locationId } = getRequestVariables(req, true);
+			const { userId } = getRequestVariables(req, true);
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;

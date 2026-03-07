@@ -1,23 +1,25 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
-	eventValidator,
 	ifMatchValidator,
-	invitationValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import {AppError} from "../../middlewares/errorHandler.js";
 
 function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	const userId = userValidator(req);
-	const eventId = variableValidator(req.params.event_id) ? Number(req.params.event_id) : -1;
-	const invitationId = variableValidator(req.params.invitation_id) ? Number(req.params.invitation_id) : -1;
+	const eventId = variableValidator(req.params.event_id)
+		? Number(req.params.event_id)
+		: -1;
+	const invitationId = variableValidator(req.params.invitation_id)
+		? Number(req.params.invitation_id)
+		: -1;
 	if (eventId === -1) {
 		throw new AppError("Missing event id", 400);
 	}
@@ -63,7 +65,7 @@ export const getUserInvitations = async (
 			variableValidator(req.params.id) ? req.params.id : -1,
 		);
 		if (userId === -1) {
-			return res.status(400).json({message: "Missing user id"});
+			return res.status(400).json({ message: "Missing user id" });
 		}
 		const sql = `
             SELECT i.user_id, i.event_id, i.role
