@@ -108,11 +108,13 @@ export const createEvent = async (
 			[userId, title, description],
 			userId,
 		);
-		if (!result) {
+		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 
-		return res.status(201).json({ message: "Event created" });
+		return res
+			.status(201)
+			.json({ message: "Event created", event: result.rows[0] });
 	} catch (err) {
 		next(err);
 	}
@@ -164,11 +166,11 @@ export const updateEvent = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
-
-	return res.status(200).json({ message: "Event updated" });
 };
 
 export const updateFullEvent = async (
@@ -204,11 +206,11 @@ export const updateFullEvent = async (
 			userId,
 		);
 
-		return res.status(200).json({ message: "Event updated" });
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -227,7 +229,6 @@ export const deleteEvent = async (
 		}
 
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
-		return res.status(200).json({ message: "Event deleted" });
 		const result = await database.query(sqlDelete, [eventId], userId);
 
 		if (!result) {
@@ -259,6 +260,8 @@ export const deleteEvent = async (
 			[eventId],
 			userId,
 		);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}

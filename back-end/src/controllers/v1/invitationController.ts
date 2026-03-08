@@ -123,7 +123,6 @@ export const deleteInvitation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
 
 		await databaseService.query(
 			`DELETE FROM location_response WHERE invitation_id = ?`,
@@ -135,6 +134,8 @@ export const deleteInvitation = async (
 			[invitationId],
 			userId,
 		);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -166,10 +167,12 @@ export const createInvitation = async (
 			[eventId, invitedUserId, role],
 			userId,
 		);
-		if (!result) {
+		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res
+			.status(201)
+			.json({ result: result.rows, invitation: result.rows[0] });
 	} catch (err) {
 		next(err);
 	}
@@ -205,6 +208,8 @@ export const updateInvitation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -242,7 +247,7 @@ export const updateFullInvitation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 
-		return res.status(200).json({ message: "Invitation updated" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}

@@ -201,7 +201,7 @@ export const updateDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -252,7 +252,7 @@ export const updateFullDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -287,7 +287,7 @@ export const deleteDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -322,10 +322,13 @@ export const createLocationResponse = async (
 			[invitationId, locationId, state],
 			userId,
 		);
-		if (!result) {
+		if (!result || !result.rows[0]) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(201).json({
+			message: "Location response created successfully",
+			location_response: result.rows[0],
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -343,20 +346,19 @@ export const getLocationResponse = async (
 			requestedUserId,
 			id: locationId,
 		} = getRequestVariables(req, true);
-		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
-			const result = await database.query(
-				sql,
-				[locationId, requestedUserId],
-				userId,
-			);
-			if (!result) {
-				return res.status(500).json({ message: "Internal server error" });
-			}
-			return res.status(200).json({ result: result.rows });
-		} else {
+		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+		const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN locations l ON l.id = lr.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
+		const result = await database.query(
+			sql,
+			[locationId, requestedUserId],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -394,7 +396,7 @@ export const deleteLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -436,7 +438,7 @@ export const updateLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(201);
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -485,7 +487,7 @@ export const updateFullLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(201);
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -499,12 +501,15 @@ export const getAllDateResponses = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
-		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
-			const result = await database.query(sql, [eventId], userId);
-			return res.status(200).json({ result: result.rows });
+		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
+			return res.status(403).json({ message: "Forbidden" });
 		}
-		return res.status(403).json({ message: "Forbidden" });
+		const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
+		const result = await database.query(sql, [eventId], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -521,12 +526,15 @@ export const getAllLocationResponses = async (
 		if (!eventId) {
 			return res.status(400).json({ message: "Missing event id" });
 		}
-		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN locations l ON l.id = lr.location_id WHERE i.event_id = ?`;
-			const result = await database.query(sql, [eventId], userId);
-			return res.status(200).json({ result: result.rows });
+		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
+			return res.status(403).json({ message: "Forbidden" });
 		}
-		return res.status(403).json({ message: "Forbidden" });
+		const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN locations l ON l.id = lr.location_id WHERE i.event_id = ?`;
+		const result = await database.query(sql, [eventId], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}

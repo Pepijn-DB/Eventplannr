@@ -118,10 +118,12 @@ export const createUser = async (
 			password_hash,
 			email,
 		]);
-		if (!result) {
+		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ result: result.rows });
+		return res
+			.status(201)
+			.json({ message: "User created successfully", user: result.rows[0] });
 	} catch (err) {
 		next(err);
 	}
@@ -165,11 +167,11 @@ export const updateUser = async (
 			return res.status(400).json({ message: "Nothing to update" });
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(requestedUser);
-		return res.status(200).json({ message: "User updated successfully" });
 		const result = await database.query(sql, params, userId);
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -215,10 +217,10 @@ export const updateFullUser = async (
 			[username, email, password_hash, requestedUser],
 			userId,
 		);
-		return res.status(200).json({ message: "User updated successfully" });
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -252,7 +254,7 @@ export const deleteUser = async (
 			userId,
 		);
 
-		return res.status(200).json({ message: "User deleted successfully" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -346,10 +348,6 @@ export const deleteUserPermission = async (
 				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
-
-		return res
-			.status(200)
-			.json({ message: "User permission deleted successfully" });
 		const result = await database.query(
 			sql,
 			[requestedUser, permissionId],
@@ -358,6 +356,7 @@ export const deleteUserPermission = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -385,10 +384,6 @@ export const createUserPermission = async (
 				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-
-		return res
-			.status(200)
-			.json({ message: "User permission created successfully" });
 		const result = await database.query(
 			sql,
 			[requestedUser, permissionId],
@@ -397,6 +392,10 @@ export const createUserPermission = async (
 		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		return res.status(201).json({
+			message: "User permission created successfully",
+			user_permission: result.rows[0],
+		});
 	} catch (err) {
 		next(err);
 	}
