@@ -53,7 +53,7 @@ export const getInvitations = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -84,7 +84,7 @@ export const getUserInvitations = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -121,7 +121,7 @@ export const deleteInvitation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -156,7 +156,7 @@ export const createInvitation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -243,7 +243,7 @@ export const getInvitation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}

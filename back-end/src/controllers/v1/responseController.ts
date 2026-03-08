@@ -126,7 +126,7 @@ export const createDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -154,7 +154,7 @@ export const getDateResponse = async (
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
-			return res.status(200).json(result.rows);
+			return res.status(200).json({ result: result.rows });
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
 		}
@@ -201,7 +201,7 @@ export const updateDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -252,7 +252,7 @@ export const updateFullDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -287,7 +287,7 @@ export const deleteDateResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -325,7 +325,7 @@ export const createLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -353,7 +353,7 @@ export const getLocationResponse = async (
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
-			return res.status(200).json(result.rows);
+			return res.status(200).json({ result: result.rows });
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
 		}
@@ -394,7 +394,7 @@ export const deleteLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -502,7 +502,7 @@ export const getAllDateResponses = async (
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 			const result = await database.query(sql, [eventId], userId);
-			return res.status(200).json(result.rows);
+			return res.status(200).json({ result: result.rows });
 		}
 		return res.status(403).json({ message: "Forbidden" });
 	} catch (err) {
@@ -524,7 +524,7 @@ export const getAllLocationResponses = async (
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN locations l ON l.id = lr.location_id WHERE i.event_id = ?`;
 			const result = await database.query(sql, [eventId], userId);
-			return res.status(200).json(result.rows);
+			return res.status(200).json({ result: result.rows });
 		}
 		return res.status(403).json({ message: "Forbidden" });
 	} catch (err) {

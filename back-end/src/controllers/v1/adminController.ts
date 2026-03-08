@@ -14,7 +14,7 @@ export const getLogs = async (
 	try {
 		const userId = userValidator(req);
 		if (await hasGlobalPermission(userId, Global.ADMIN_ALL)) {
-			return res.status(200).json(getErrors);
+			return res.status(200).json({ errors: getErrors });
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
 		}

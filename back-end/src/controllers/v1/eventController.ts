@@ -52,7 +52,7 @@ export const getEvents = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -82,7 +82,7 @@ export const getEvent = async (
 			return res.status(400).json({ message: "Event not found" });
 		}
 
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
