@@ -73,10 +73,12 @@ export const createEventDate = async (
 
 		const sql = `INSERT INTO event_dates (event_id, date) VALUES (?, ?)`;
 		const result = await database.query(sql, [eventId, req.body.date], userId);
-		if (!result) {
+		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(201).json({ message: "Date created" });
+		return res
+			.status(201)
+			.json({ message: "Date created", event_date: result.rows[0] });
 	} catch (err) {
 		next(err);
 	}
@@ -96,10 +98,18 @@ export const deleteEventDate = async (
 
 		const sql = `DELETE FROM event_dates WHERE id = ?`;
 		const result = await database.query(sql, [dateId], userId);
+
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		return res.status(200).json({ message: "Date deleted" });
+
+		await database.query(
+			`DELETE FROM date_responses WHERE date_id = ?`,
+			[dateId],
+			userId,
+		);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
