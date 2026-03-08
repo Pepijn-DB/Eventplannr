@@ -31,7 +31,7 @@ function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 		) {
 			throw new AppError("Missing or invalid invitation id", 400);
 		}
-		return {userId, eventId, invitationId};
+		return { userId, eventId, invitationId };
 	} catch (err) {
 		if (err instanceof AppError) {
 			throw err;

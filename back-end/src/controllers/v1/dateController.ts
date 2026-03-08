@@ -27,7 +27,7 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 			throw new AppError("Missing or invalid date id", 400);
 		}
 
-		return {userId, eventId, dateId};
+		return { userId, eventId, dateId };
 	} catch (err) {
 		if (err instanceof AppError) {
 			throw err;

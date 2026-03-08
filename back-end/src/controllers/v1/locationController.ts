@@ -28,7 +28,7 @@ function getRequestVariables(req: AuthRequest, needsId: boolean) {
 			throw new AppError("Missing or invalid location id", 400);
 		}
 
-		return {userId, locationId};
+		return { userId, locationId };
 	} catch (err) {
 		if (err instanceof AppError) {
 			throw err;
