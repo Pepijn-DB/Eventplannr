@@ -15,23 +15,30 @@ import { variableValidator } from "../../validators/variableValidator.js";
 const SALT_ROUNDS = 10;
 
 function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
-	const userId = userValidator(req);
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: -1;
+	try {
+		const userId = userValidator(req);
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: -1;
 
-	if (
-		(requestedUser === -1 && needsReqUser) ||
-		Number.isNaN(requestedUser) ||
-		(needsReqUser && requestedUser < 0)
-	) {
-		throw new AppError("Missing or invalid user id", 400);
+		if (
+			(requestedUser === -1 && needsReqUser) ||
+			Number.isNaN(requestedUser) ||
+			(needsReqUser && requestedUser < 0)
+		) {
+			throw new AppError("Missing or invalid user id", 400);
+		}
+
+		return {
+			userId,
+			requestedUser,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-
-	return {
-		userId,
-		requestedUser,
-	};
 }
 
 export const getUsers = async (

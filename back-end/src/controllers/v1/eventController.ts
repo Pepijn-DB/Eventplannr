@@ -12,23 +12,30 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
-	const userId = userValidator(req);
-	const eventId = variableValidator(req.params.event_id)
-		? Number(req.params.event_id)
-		: -1;
+	try {
+		const userId = userValidator(req);
+		const eventId = variableValidator(req.params.event_id)
+			? Number(req.params.event_id)
+			: -1;
 
-	if (
-		(eventId === -1 && needsId) ||
-		Number.isNaN(eventId) ||
-		(eventId < 0 && needsId)
-	) {
-		throw new AppError("Missing or invalid event_id", 400);
+		if (
+			(eventId === -1 && needsId) ||
+			Number.isNaN(eventId) ||
+			(eventId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid event_id", 400);
+		}
+
+		return {
+			userId,
+			eventId,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-
-	return {
-		userId,
-		eventId,
-	};
 }
 
 export const getEvents = async (

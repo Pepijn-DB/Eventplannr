@@ -13,24 +13,31 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
-	const userId = userValidator(req);
-	const eventId = variableValidator(req.params.event_id)
-		? Number(req.params.event_id)
-		: -1;
-	const invitationId = variableValidator(req.params.invitation_id)
-		? Number(req.params.invitation_id)
-		: -1;
-	if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
-		throw new AppError("Missing or invalid event id", 400);
+	try {
+		const userId = userValidator(req);
+		const eventId = variableValidator(req.params.event_id)
+			? Number(req.params.event_id)
+			: -1;
+		const invitationId = variableValidator(req.params.invitation_id)
+			? Number(req.params.invitation_id)
+			: -1;
+		if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
+			throw new AppError("Missing or invalid event id", 400);
+		}
+		if (
+			(invitationId === -1 && needsInvitationId) ||
+			Number.isNaN(invitationId) ||
+			(invitationId < 0 && needsInvitationId)
+		) {
+			throw new AppError("Missing or invalid invitation id", 400);
+		}
+		return {userId, eventId, invitationId};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-	if (
-		(invitationId === -1 && needsInvitationId) ||
-		Number.isNaN(invitationId) ||
-		(invitationId < 0 && needsInvitationId)
-	) {
-		throw new AppError("Missing or invalid invitation id", 400);
-	}
-	return { userId, eventId, invitationId };
 }
 
 export const getInvitations = async (

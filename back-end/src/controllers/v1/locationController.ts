@@ -14,20 +14,27 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
-	const userId = userValidator(req);
-	const locationId = variableValidator(req.params.location_id)
-		? Number(req.params.location_id)
-		: -1;
+	try {
+		const userId = userValidator(req);
+		const locationId = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: -1;
 
-	if (
-		(locationId === -1 && needsId) ||
-		Number.isNaN(locationId) ||
-		(locationId < 0 && needsId)
-	) {
-		throw new AppError("Missing or invalid location id", 400);
+		if (
+			(locationId === -1 && needsId) ||
+			Number.isNaN(locationId) ||
+			(locationId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid location id", 400);
+		}
+
+		return {userId, locationId};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-
-	return { userId, locationId };
 }
 
 export const getLocations = async (
@@ -314,6 +321,15 @@ export const deleteEventLocation = async (
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
 			}
+
+			const eventLocationId = (
+				await database.query(
+					`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
+					[eventId, locationId],
+					userId,
+				)
+			).rows[0].id;
+
 			const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
 			const result = await database.query(sql, [eventId, locationId], userId);
 

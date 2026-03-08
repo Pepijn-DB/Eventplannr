@@ -12,52 +12,59 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
-	const userId = userValidator(req);
-	const eventId = eventValidator(req);
-	let requestedUserId: number = -1;
-	if (variableValidator(req.params.user_id)) {
-		requestedUserId = Number(req.params.user_id);
-	} else if (variableValidator(req.body.user_id)) {
-		requestedUserId = Number(req.body.user_id);
-	}
-	let id: number | null = -1;
-	let type = "";
-	if (req.path.includes("/date")) {
-		id = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: -1;
-		type = "date";
-	} else if (req.path.includes("/location")) {
-		id = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: -1;
-		type = "location";
-	}
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		let requestedUserId: number = -1;
+		if (variableValidator(req.params.user_id)) {
+			requestedUserId = Number(req.params.user_id);
+		} else if (variableValidator(req.body.user_id)) {
+			requestedUserId = Number(req.body.user_id);
+		}
+		let id: number | null = -1;
+		let type = "";
+		if (req.path.includes("/date")) {
+			id = variableValidator(req.params.date_id)
+				? Number(req.params.date_id)
+				: -1;
+			type = "date";
+		} else if (req.path.includes("/location")) {
+			id = variableValidator(req.params.location_id)
+				? Number(req.params.location_id)
+				: -1;
+			type = "location";
+		}
 
-	if (
-		!eventId ||
-		!requestedUserId ||
-		(needsId && id < -1) ||
-		Number.isNaN(id) ||
-		Number.isNaN(requestedUserId) ||
-		requestedUserId < 0
-	) {
-		let missing = "";
-		if (!eventId) missing += "event id, ";
-		if (!requestedUserId) missing += "user id, ";
-		missing = missing.slice(0, -2);
-		throw new AppError(`Missing or invalid ${missing} or invalid`, 400);
-	}
-	if (needsId && id === -1) {
-		throw new AppError(`Missing ${type} id`, 400);
-	}
+		if (
+			!eventId ||
+			!requestedUserId ||
+			(needsId && id < -1) ||
+			Number.isNaN(id) ||
+			Number.isNaN(requestedUserId) ||
+			requestedUserId < 0
+		) {
+			let missing = "";
+			if (!eventId) missing += "event id, ";
+			if (!requestedUserId) missing += "user id, ";
+			missing = missing.slice(0, -2);
+			throw new AppError(`Missing or invalid ${missing} or invalid`, 400);
+		}
+		if (needsId && id === -1) {
+			throw new AppError(`Missing ${type} id`, 400);
+		}
 
-	return {
-		id: id,
-		userId: userId,
-		eventId: eventId,
-		requestedUserId: requestedUserId,
-	};
+		return {
+			id: id,
+			userId: userId,
+			eventId: eventId,
+			requestedUserId: requestedUserId,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
+	}
 }
 
 async function getInvitationId(
@@ -87,7 +94,10 @@ async function getInvitationId(
 	}
 	try {
 		return Number(resultInvitation.rows[0].id);
-	} catch {
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
 		throw new AppError("Internal server error", 500);
 	}
 }
