@@ -79,7 +79,7 @@ export const getToken = async (
 			expiresIn: "1d",
 		});
 
-		res.status(200).json({ token: token });
+		return res.status(200).json({ token: token });
 	} catch (err) {
 		next(err);
 	}
