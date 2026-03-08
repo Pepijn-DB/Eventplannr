@@ -84,6 +84,16 @@ export const deleteLocation = async (
 		const sql = `DELETE FROM locations WHERE id = ?`;
 		await database.query(sql, [locationId], userId);
 		return res.status(200).json({ message: "Location deleted successfully" });
+		await database.query(
+			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
+			[locationId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_locations WHERE location_id = ?`,
+			[locationId],
+			userId,
+		);
 	} catch (err) {
 		next(err);
 	}
@@ -276,6 +286,12 @@ export const deleteEventLocation = async (
 			return res
 				.status(201)
 				.json({ message: "Event location deleted successfully" });
+
+			await database.query(
+				`DELETE FROM location_response WHERE location_id = ?`,
+				[eventLocationId],
+				userId,
+			);
 		} catch (err) {
 			next(err);
 		}

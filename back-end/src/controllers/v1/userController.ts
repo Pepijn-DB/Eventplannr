@@ -235,6 +235,11 @@ export const deleteUser = async (
 
 		const sql = `DELETE FROM users WHERE id = ?`;
 		await database.query(sql, [requestedUser], userId);
+		await database.query(
+			`DELETE FROM user_permissions WHERE user_id = ?`,
+			[requestedUser],
+			userId,
+		);
 
 		return res.status(200).json({ message: "User deleted successfully" });
 	} catch (err) {

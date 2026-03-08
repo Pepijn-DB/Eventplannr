@@ -122,6 +122,16 @@ export const deleteInvitation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		return res.status(200).json({ result: result.rows });
+		await databaseService.query(
+			`DELETE FROM location_response WHERE invitation_id = ?`,
+			[invitationId],
+			userId,
+		);
+		await databaseService.query(
+			`DELETE FROM date_response WHERE invitation_id = ?`,
+			[invitationId],
+			userId,
+		);
 	} catch (err) {
 		next(err);
 	}

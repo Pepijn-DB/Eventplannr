@@ -221,6 +221,31 @@ export const deleteEvent = async (
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
 		await database.query(sqlDelete, [eventId], userId);
 		return res.status(200).json({ message: "Event deleted" });
+		await database.query(
+			`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE event_id = ?)`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_dates WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_locations WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM invitations WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
 	} catch (err) {
 		next(err);
 	}
