@@ -159,7 +159,11 @@ export const updateEvent = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(eventId);
 
-		await database.query(sql, params, userId);
+		const result = await database.query(sql, params, userId);
+
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -194,13 +198,17 @@ export const updateFullEvent = async (
 
 		await ifMatchValidator(req, `SELECT * FROM events WHERE id = ?`, [eventId]);
 
-		await database.query(
+		const result = await database.query(
 			sql,
 			[req.body.title, req.body.description, req.body.status, eventId],
 			userId,
 		);
 
 		return res.status(200).json({ message: "Event updated" });
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+
 	} catch (err) {
 		next(err);
 	}
@@ -219,8 +227,13 @@ export const deleteEvent = async (
 		}
 
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
-		await database.query(sqlDelete, [eventId], userId);
 		return res.status(200).json({ message: "Event deleted" });
+		const result = await database.query(sqlDelete, [eventId], userId);
+
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+
 		await database.query(
 			`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
 			[eventId],

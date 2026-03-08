@@ -113,15 +113,18 @@ export const deleteInvitation = async (
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+
 		const sql = `
             DELETE FROM invitation 
             WHERE invitation_id = ?
         `;
+
 		const result = await databaseService.query(sql, [invitationId], userId);
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		return res.status(200).json({ result: result.rows });
+
 		await databaseService.query(
 			`DELETE FROM location_response WHERE invitation_id = ?`,
 			[invitationId],
@@ -197,7 +200,11 @@ export const updateInvitation = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(invitationId);
 
-		await database.query(sql, params, userId);
+		const result = await database.query(sql, params, userId);
+
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 	} catch (err) {
 		next(err);
 	}
@@ -225,7 +232,15 @@ export const updateFullInvitation = async (
 			invitationId,
 		]);
 
-		await database.query(sql, [req.body.role, invitationId], userId);
+		const result = await database.query(
+			sql,
+			[req.body.role, invitationId],
+			userId,
+		);
+
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
 		return res.status(200).json({ message: "Invitation updated" });
 	} catch (err) {
