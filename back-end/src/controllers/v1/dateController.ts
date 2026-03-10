@@ -81,9 +81,7 @@ export const createEventDate = async (
 		const sql = `INSERT INTO event_dates (event_id, date) VALUES (?, ?)`;
 		await database.query(sql, [eventId, req.body.date], userId);
 
-		return res
-			.status(201)
-			.json({ message: "Date created" });
+		return res.status(201).json({ message: "Date created" });
 	} catch (err) {
 		next(err);
 	}

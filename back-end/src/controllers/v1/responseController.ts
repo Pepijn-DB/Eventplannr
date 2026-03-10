@@ -128,11 +128,7 @@ export const createDateResponse = async (
 		}
 
 		const sql = `INSERT INTO date_response (invitation_id, date_id, state) VALUES (?, ?, ?)`;
-		await database.query(
-			sql,
-			[invitationId, dateId, state],
-			userId,
-		);
+		await database.query(sql, [invitationId, dateId, state], userId);
 		return res.status(200).json({ message: "Date response created" });
 	} catch (err) {
 		next(err);
@@ -324,11 +320,7 @@ export const createLocationResponse = async (
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 		const sql = `INSERT INTO location_response (invitation_id, location_id, state) VALUES (?, ?, ?)`;
-		await database.query(
-			sql,
-			[invitationId, locationId, state],
-			userId,
-		);
+		await database.query(sql, [invitationId, locationId, state], userId);
 		return res.status(201).json({
 			message: "Location response created successfully",
 		});

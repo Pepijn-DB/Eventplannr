@@ -110,15 +110,9 @@ export const createEvent = async (
             VALUES (?, ?, ?, OPEN)
         `;
 
-		await database.query(
-			sql,
-			[userId, title, description],
-			userId,
-		);
+		await database.query(sql, [userId, title, description], userId);
 
-		return res
-			.status(201)
-			.json({ message: "Event created" });
+		return res.status(201).json({ message: "Event created" });
 	} catch (err) {
 		next(err);
 	}

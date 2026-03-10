@@ -126,9 +126,7 @@ export const createUser = async (
 			email,
 		]);
 
-		return res
-			.status(201)
-			.json({ message: "User created successfully" });
+		return res.status(201).json({ message: "User created successfully" });
 	} catch (err) {
 		next(err);
 	}
@@ -389,11 +387,7 @@ export const createUserPermission = async (
 				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-		await database.query(
-			sql,
-			[requestedUser, permissionId],
-			userId,
-		);
+		await database.query(sql, [requestedUser, permissionId], userId);
 		return res.status(201).json({
 			message: "User permission created successfully",
 		});
