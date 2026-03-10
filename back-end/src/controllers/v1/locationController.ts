@@ -89,13 +89,6 @@ export const deleteLocation = async (
 		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
 			return res.status(403).json({ message: "Forbidden" });
 
-		const sql = `DELETE FROM locations WHERE id = ?`;
-		const result = await database.query(sql, [locationId], userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-
 		await database.query(
 			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
 			[locationId],
@@ -106,6 +99,13 @@ export const deleteLocation = async (
 			[locationId],
 			userId,
 		);
+
+		const sql = `DELETE FROM locations WHERE id = ?`;
+		const result = await database.query(sql, [locationId], userId);
+
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
 		return res.status(204).json();
 	} catch (err) {
@@ -126,15 +126,10 @@ export const createLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 		const sql = `INSERT INTO locations (creator_user, name) VALUES (?, ?)`;
-		const result = await database.query(sql, [userId, locationName], userId);
-
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [userId, locationName], userId);
 
 		return res.status(201).json({
 			message: "Location created successfully",
-			location: result.rows[0],
 		});
 	} catch (err) {
 		next(err);
@@ -291,13 +286,9 @@ export const createEventLocation = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `INSERT INTO event_locations (event_id, location_id) VALUES (?, ?)`;
-		const result = await database.query(sql, [eventId, locationId], userId);
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [eventId, locationId], userId);
 		return res.status(201).json({
 			message: "Event location created successfully",
-			event_location: result.rows[0],
 		});
 	} catch (err) {
 		next(err);
@@ -330,18 +321,18 @@ export const deleteEventLocation = async (
 				)
 			).rows[0].id;
 
+			await database.query(
+				`DELETE FROM location_response WHERE location_id = ?`,
+				[eventLocationId],
+				userId,
+			);
+
 			const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
 			const result = await database.query(sql, [eventId, locationId], userId);
 
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
-
-			await database.query(
-				`DELETE FROM location_response WHERE location_id = ?`,
-				[eventLocationId],
-				userId,
-			);
 
 			return res.status(204).json();
 		} catch (err) {

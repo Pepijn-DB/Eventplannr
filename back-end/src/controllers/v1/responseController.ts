@@ -128,15 +128,12 @@ export const createDateResponse = async (
 		}
 
 		const sql = `INSERT INTO date_response (invitation_id, date_id, state) VALUES (?, ?, ?)`;
-		const result = await database.query(
+		await database.query(
 			sql,
 			[invitationId, dateId, state],
 			userId,
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ result: result.rows });
+		return res.status(200).json({ message: "Date response created" });
 	} catch (err) {
 		next(err);
 	}
@@ -327,17 +324,13 @@ export const createLocationResponse = async (
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 		const sql = `INSERT INTO location_response (invitation_id, location_id, state) VALUES (?, ?, ?)`;
-		const result = await database.query(
+		await database.query(
 			sql,
 			[invitationId, locationId, state],
 			userId,
 		);
-		if (!result || !result.rows[0]) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 		return res.status(201).json({
 			message: "Location response created successfully",
-			location_response: result.rows[0],
 		});
 	} catch (err) {
 		next(err);

@@ -120,17 +120,15 @@ export const createUser = async (
 		if (username === null || password_hash === null || email === null)
 			return res.status(400).json({ message: "Missing required fields" });
 
-		const result = await database.queryWithoutExecutioner(sql, [
+		await database.queryWithoutExecutioner(sql, [
 			username,
 			password_hash,
 			email,
 		]);
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res
 			.status(201)
-			.json({ message: "User created successfully", user: result.rows[0] });
+			.json({ message: "User created successfully" });
 	} catch (err) {
 		next(err);
 	}
@@ -248,18 +246,18 @@ export const deleteUser = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
+		await database.query(
+			`DELETE FROM user_permissions WHERE user_id = ?`,
+			[requestedUser],
+			userId,
+		);
+
 		const sql = `DELETE FROM users WHERE id = ?`;
 		const result = await database.query(sql, [requestedUser], userId);
 
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-
-		await database.query(
-			`DELETE FROM user_permissions WHERE user_id = ?`,
-			[requestedUser],
-			userId,
-		);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -391,17 +389,13 @@ export const createUserPermission = async (
 				.json({ message: "Missing or invalid permissionId" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-		const result = await database.query(
+		await database.query(
 			sql,
 			[requestedUser, permissionId],
 			userId,
 		);
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 		return res.status(201).json({
 			message: "User permission created successfully",
-			user_permission: result.rows[0],
 		});
 	} catch (err) {
 		next(err);

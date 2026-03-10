@@ -169,17 +169,14 @@ export const createInvitation = async (
             INSERT INTO invitation (event_id, user_id, role)
             VALUES (?, ?, ?)
         `;
-		const result = await databaseService.query(
+		await databaseService.query(
 			sql,
 			[eventId, invitedUserId, role],
 			userId,
 		);
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 		return res
 			.status(201)
-			.json({ result: result.rows, invitation: result.rows[0] });
+			.json({ message: "Invitation created" });
 	} catch (err) {
 		next(err);
 	}
