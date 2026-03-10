@@ -16,7 +16,7 @@ export const getLogs = async (
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		return res.status(200).json({ errors: getErrors });
+		return res.status(200).json({ errors: getErrors() });
 	} catch (err) {
 		next(err);
 	}
