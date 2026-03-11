@@ -43,11 +43,18 @@ function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 			Number.isNaN(requestedUserId) ||
 			requestedUserId < 0
 		) {
-			let missing = "";
-			if (!eventId) missing += "event id, ";
-			if (!requestedUserId) missing += "user id, ";
-			missing = missing.slice(0, -2);
-			throw new AppError(`Missing or invalid ${missing} or invalid`, 400);
+			const missingFields: string[] = [];
+			if (!eventId) {
+				missingFields.push("event id");
+			}
+			if (!requestedUserId) {
+				missingFields.push("user id");
+			}
+			const message =
+				missingFields.length > 0
+					? `Missing or invalid ${missingFields.join(", ")}`
+					: "Missing or invalid request parameters";
+			throw new AppError(message, 400);
 		}
 		if (needsId && id === -1) {
 			throw new AppError(`Missing ${type} id`, 400);
