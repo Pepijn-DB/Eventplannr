@@ -336,8 +336,8 @@ export const deleteUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permissionId = variableValidator(req.params.permission_id)
-			? Number(req.params.permission_id)
+		const permission = variableValidator(req.params.permission)
+			? req.params.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -345,15 +345,15 @@ export const deleteUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
+		if (permission === null || Array.isArray(permission))
 			return res
 				.status(400)
-				.json({ message: "Missing or invalid permissionId" });
+				.json({ message: "Missing or invalid permission" });
 
-		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
+		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
 		const result = await database.query(
 			sql,
-			[requestedUser, permissionId],
+			[requestedUser, permission],
 			userId,
 		);
 		if (!result) {
@@ -372,8 +372,8 @@ export const createUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permissionId = variableValidator(req.body.permission_id)
-			? Number(req.body.permission_id)
+		const permission = variableValidator(req.body.permission)
+			? req.body.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -381,13 +381,13 @@ export const createUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
+		if (permission === null || Array.isArray(permission))
 			return res
 				.status(400)
-				.json({ message: "Missing or invalid permissionId" });
+				.json({ message: "Missing or invalid permission" });
 
-		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-		await database.query(sql, [requestedUser, permissionId], userId);
+		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
+		await database.query(sql, [requestedUser, permission], userId);
 		return res.status(201).json({
 			message: "User permission created successfully",
 		});
