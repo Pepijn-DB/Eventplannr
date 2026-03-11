@@ -12,21 +12,28 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
-	const userId = userValidator(req);
-	const eventId = eventValidator(req);
-	const dateId = variableValidator(req.params.date_id)
-		? Number(req.params.date_id)
-		: -1;
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const dateId = variableValidator(req.params.date_id)
+			? Number(req.params.date_id)
+			: -1;
 
-	if (
-		(dateId === -1 && needsId) ||
-		Number.isNaN(dateId) ||
-		(dateId < 0 && needsId)
-	) {
-		throw new AppError("Missing or invalid date id", 400);
+		if (
+			(dateId === -1 && needsId) ||
+			Number.isNaN(dateId) ||
+			(dateId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid date id", 400);
+		}
+
+		return { userId, eventId, dateId };
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-
-	return { userId, eventId, dateId };
 }
 
 export const getEventDates = async (
@@ -43,9 +50,6 @@ export const getEventDates = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ? ORDER BY ed.date ASC`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -72,10 +76,8 @@ export const createEventDate = async (
 		}
 
 		const sql = `INSERT INTO event_dates (event_id, date) VALUES (?, ?)`;
-		const result = await database.query(sql, [eventId, req.body.date], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [eventId, req.body.date], userId);
+
 		return res.status(201).json({ message: "Date created" });
 	} catch (err) {
 		next(err);
@@ -94,12 +96,16 @@ export const deleteEventDate = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
+		await database.query(
+			`DELETE FROM date_response WHERE date_id = ?`,
+			[dateId],
+			userId,
+		);
+
 		const sql = `DELETE FROM event_dates WHERE id = ?`;
-		const result = await database.query(sql, [dateId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ message: "Date deleted" });
+		await database.query(sql, [dateId], userId);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -159,9 +165,7 @@ export const getEventDate = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
 		const result = await database.query(sql, [dateId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

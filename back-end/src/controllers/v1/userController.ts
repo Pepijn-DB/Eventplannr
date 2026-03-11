@@ -15,23 +15,30 @@ import { variableValidator } from "../../validators/variableValidator.js";
 const SALT_ROUNDS = 10;
 
 function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
-	const userId = userValidator(req);
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: -1;
+	try {
+		const userId = userValidator(req);
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: -1;
 
-	if (
-		(requestedUser === -1 && needsReqUser) ||
-		Number.isNaN(requestedUser) ||
-		(needsReqUser && requestedUser < 0)
-	) {
-		throw new AppError("Missing or invalid user id", 400);
+		if (
+			(requestedUser === -1 && needsReqUser) ||
+			Number.isNaN(requestedUser) ||
+			(needsReqUser && requestedUser < 0)
+		) {
+			throw new AppError("Missing or invalid user id", 400);
+		}
+
+		return {
+			userId,
+			requestedUser,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-
-	return {
-		userId,
-		requestedUser,
-	};
 }
 
 export const getUsers = async (
@@ -51,9 +58,7 @@ export const getUsers = async (
 		FROM users u
 	`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -81,9 +86,7 @@ export const getUser = async (
 		WHERE u.id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -113,15 +116,13 @@ export const createUser = async (
 		if (username === null || password_hash === null || email === null)
 			return res.status(400).json({ message: "Missing required fields" });
 
-		const result = await database.queryWithoutExecutioner(sql, [
+		await database.queryWithoutExecutioner(sql, [
 			username,
 			password_hash,
 			email,
 		]);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ result: result.rows });
+
+		return res.status(201).json({ message: "User created successfully" });
 	} catch (err) {
 		next(err);
 	}
@@ -166,7 +167,8 @@ export const updateUser = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(requestedUser);
 		await database.query(sql, params, userId);
-		return res.status(200).json({ message: "User updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -212,7 +214,8 @@ export const updateFullUser = async (
 			[username, email, password_hash, requestedUser],
 			userId,
 		);
-		return res.status(200).json({ message: "User updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -233,10 +236,16 @@ export const deleteUser = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
+		await database.query(
+			`DELETE FROM user_permissions WHERE user_id = ?`,
+			[requestedUser],
+			userId,
+		);
+
 		const sql = `DELETE FROM users WHERE id = ?`;
 		await database.query(sql, [requestedUser], userId);
 
-		return res.status(200).json({ message: "User deleted successfully" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -261,9 +270,7 @@ export const getUserPermissions = async (
 		WHERE up.user_id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -315,8 +322,8 @@ export const deleteUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permissionId = variableValidator(req.params.permission_id)
-			? Number(req.params.permission_id)
+		const permission = variableValidator(req.params.permission)
+			? req.params.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -324,17 +331,13 @@ export const deleteUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
-			return res
-				.status(400)
-				.json({ message: "Missing or invalid permissionId" });
+		if (permission === null || Array.isArray(permission))
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
-		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
-		await database.query(sql, [requestedUser, permissionId], userId);
+		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
+		await database.query(sql, [requestedUser, permission], userId);
 
-		return res
-			.status(200)
-			.json({ message: "User permission deleted successfully" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -347,8 +350,8 @@ export const createUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permissionId = variableValidator(req.body.permission_id)
-			? Number(req.body.permission_id)
+		const permission = variableValidator(req.body.permission)
+			? req.body.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -356,17 +359,14 @@ export const createUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (permissionId === null || Number.isNaN(permissionId) || permissionId < 0)
-			return res
-				.status(400)
-				.json({ message: "Missing or invalid permissionId" });
+		if (permission === null || Array.isArray(permission))
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
-		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-		await database.query(sql, [requestedUser, permissionId], userId);
-
-		return res
-			.status(200)
-			.json({ message: "User permission created successfully" });
+		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
+		await database.query(sql, [requestedUser, permission], userId);
+		return res.status(201).json({
+			message: "User permission created successfully",
+		});
 	} catch (err) {
 		next(err);
 	}

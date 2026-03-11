@@ -13,24 +13,31 @@ import {
 import { variableValidator } from "../../validators/variableValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
-	const userId = userValidator(req);
-	const eventId = variableValidator(req.params.event_id)
-		? Number(req.params.event_id)
-		: -1;
-	const invitationId = variableValidator(req.params.invitation_id)
-		? Number(req.params.invitation_id)
-		: -1;
-	if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
-		throw new AppError("Missing or invalid event id", 400);
+	try {
+		const userId = userValidator(req);
+		const eventId = variableValidator(req.params.event_id)
+			? Number(req.params.event_id)
+			: -1;
+		const invitationId = variableValidator(req.params.invitation_id)
+			? Number(req.params.invitation_id)
+			: -1;
+		if (eventId === -1 || Number.isNaN(eventId) || eventId < 0) {
+			throw new AppError("Missing or invalid event id", 400);
+		}
+		if (
+			(invitationId === -1 && needsInvitationId) ||
+			Number.isNaN(invitationId) ||
+			(invitationId < 0 && needsInvitationId)
+		) {
+			throw new AppError("Missing or invalid invitation id", 400);
+		}
+		return { userId, eventId, invitationId };
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
 	}
-	if (
-		(invitationId === -1 && needsInvitationId) ||
-		Number.isNaN(invitationId) ||
-		(invitationId < 0 && needsInvitationId)
-	) {
-		throw new AppError("Missing or invalid invitation id", 400);
-	}
-	return { userId, eventId, invitationId };
 }
 
 export const getInvitations = async (
@@ -50,9 +57,7 @@ export const getInvitations = async (
             WHERE i.event_id = ?
         `;
 		const result = await databaseService.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -81,9 +86,7 @@ export const getUserInvitations = async (
 			[userId],
 			userValidator(req),
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -113,15 +116,26 @@ export const deleteInvitation = async (
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+
+		await databaseService.query(
+			`DELETE FROM location_response WHERE invitation_id = ?`,
+			[invitationId],
+			userId,
+		);
+		await databaseService.query(
+			`DELETE FROM date_response WHERE invitation_id = ?`,
+			[invitationId],
+			userId,
+		);
+
 		const sql = `
             DELETE FROM invitation 
             WHERE invitation_id = ?
         `;
-		const result = await databaseService.query(sql, [invitationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ result: result.rows });
+
+		await databaseService.query(sql, [invitationId], userId);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -148,15 +162,8 @@ export const createInvitation = async (
             INSERT INTO invitation (event_id, user_id, role)
             VALUES (?, ?, ?)
         `;
-		const result = await databaseService.query(
-			sql,
-			[eventId, invitedUserId, role],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ result: result.rows });
+		await databaseService.query(sql, [eventId, invitedUserId, role], userId);
+		return res.status(201).json({ message: "Invitation created" });
 	} catch (err) {
 		next(err);
 	}
@@ -188,6 +195,8 @@ export const updateInvitation = async (
 		params.push(invitationId);
 
 		await database.query(sql, params, userId);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -217,7 +226,7 @@ export const updateFullInvitation = async (
 
 		await database.query(sql, [req.body.role, invitationId], userId);
 
-		return res.status(200).json({ message: "Invitation updated" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -240,9 +249,7 @@ export const getInvitation = async (
         WHERE i.event_id = ? AND i.user_id = ?
     `;
 		const result = await databaseService.query(sql, [eventId, userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
