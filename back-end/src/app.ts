@@ -25,11 +25,7 @@ export interface AuthRequest extends Request {
 
 const app = express();
 
-app.use(rateLimiter);
-
 app.use(express.json());
-
-app.use(checkToken);
 
 app.use((req: AuthRequest, res: Response, next: NextFunction) => {
 	if (req.rateLimit) {
@@ -39,6 +35,10 @@ app.use((req: AuthRequest, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", config.cors_url);
 	next();
 });
+
+app.use(rateLimiter);
+
+app.use(checkToken);
 
 // Routes V1
 app.use("/api/v1/auth", authRateLimiter, authRoutes);
