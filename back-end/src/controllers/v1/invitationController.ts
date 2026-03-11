@@ -121,16 +121,6 @@ export const deleteInvitation = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		const sql = `
-            DELETE FROM invitation 
-            WHERE invitation_id = ?
-        `;
-
-		const result = await databaseService.query(sql, [invitationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-
 		await databaseService.query(
 			`DELETE FROM location_response WHERE invitation_id = ?`,
 			[invitationId],
@@ -141,6 +131,16 @@ export const deleteInvitation = async (
 			[invitationId],
 			userId,
 		);
+
+		const sql = `
+            DELETE FROM invitation 
+            WHERE invitation_id = ?
+        `;
+
+		const result = await databaseService.query(sql, [invitationId], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 
 		return res.status(204).json();
 	} catch (err) {
