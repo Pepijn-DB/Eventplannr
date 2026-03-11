@@ -32,7 +32,11 @@ export async function hasEventPermission(
 		case Event.EDIT_INVITATION: {
 			{
 				const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
-				const resultInv = await database.query(sqlInv, [user, event], requester);
+				const resultInv = await database.query(
+					sqlInv,
+					[user, event],
+					requester,
+				);
 				return (
 					resultInv.rows.length > 0 ||
 					(await hasGlobalPermission(user, Global.EDIT_ALL_INVITATIONS)) ||
@@ -53,7 +57,11 @@ export async function hasEventPermission(
 			const sqlInv = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND i.role = ORGANIZER`;
 			const sqlEvent = `SELECT e.id, e.creator_id FROM events e WHERE e.creator_id = ? AND e.id = ?`;
 			const resultInv = await database.query(sqlInv, [user, event], requester);
-			const resultEvent = await database.query(sqlEvent, [user, event], requester);
+			const resultEvent = await database.query(
+				sqlEvent,
+				[user, event],
+				requester,
+			);
 			return (
 				resultEvent.rows.length > 0 ||
 				resultInv.rows.length > 0 ||

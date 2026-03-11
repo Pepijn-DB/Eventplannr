@@ -346,9 +346,7 @@ export const deleteUserPermission = async (
 		}
 
 		if (permission === null || Array.isArray(permission))
-			return res
-				.status(400)
-				.json({ message: "Missing or invalid permission" });
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
 		const result = await database.query(
@@ -382,9 +380,7 @@ export const createUserPermission = async (
 		}
 
 		if (permission === null || Array.isArray(permission))
-			return res
-				.status(400)
-				.json({ message: "Missing or invalid permission" });
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
 		await database.query(sql, [requestedUser, permission], userId);

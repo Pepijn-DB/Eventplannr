@@ -313,12 +313,10 @@ export const deleteEventLocation = async (
 				return res.status(403).json({ message: "Forbidden" });
 			}
 
-			const eventLocation = (
-				await database.query(
-					`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
-					[eventId, locationId],
-					userId,
-				)
+			const eventLocation = await database.query(
+				`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
+				[eventId, locationId],
+				userId,
 			);
 
 			if (!eventLocation || eventLocation.rows.length === 0) {
