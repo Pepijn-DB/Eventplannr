@@ -55,9 +55,6 @@ export const getEvents = async (
         `;
 
 		const result = await database.query(sql, [userId, userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -81,9 +78,6 @@ export const getEvent = async (
         `;
 
 		const result = await database.query(sql, [userId, eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
 		if (result.rows.length === 0) {
 			return res.status(400).json({ message: "Event not found" });
@@ -159,11 +153,7 @@ export const updateEvent = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(eventId);
 
-		const result = await database.query(sql, params, userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, params, userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -198,15 +188,11 @@ export const updateFullEvent = async (
 
 		await ifMatchValidator(req, `SELECT * FROM events WHERE id = ?`, [eventId]);
 
-		const result = await database.query(
+		await database.query(
 			sql,
 			[req.body.title, req.body.description, req.body.status, eventId],
 			userId,
 		);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
 		return res.status(204).json();
 	} catch (err) {
@@ -253,11 +239,7 @@ export const deleteEvent = async (
 		);
 
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
-		const result = await database.query(sqlDelete, [eventId], userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sqlDelete, [eventId], userId);
 
 		return res.status(204).json();
 	} catch (err) {

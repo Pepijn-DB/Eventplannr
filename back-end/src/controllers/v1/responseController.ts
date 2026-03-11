@@ -161,9 +161,7 @@ export const getDateResponse = async (
 				[dateId, requestedUserId],
 				userId,
 			);
-			if (!result) {
-				return res.status(500).json({ message: "Internal server error" });
-			}
+
 			return res.status(200).json({ result: result.rows });
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
@@ -203,14 +201,8 @@ export const updateDateResponse = async (
 		}
 
 		const sql = `UPDATE date_response SET state = ? WHERE invitation_id = ? AND date_id = ?`;
-		const result = await database.query(
-			sql,
-			[state, invitationId, dateId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [state, invitationId, dateId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -254,14 +246,8 @@ export const updateFullDateResponse = async (
 			[invitationId, dateId],
 		);
 
-		const result = await database.query(
-			sql,
-			[state, invitationId, dateId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [state, invitationId, dateId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -293,10 +279,8 @@ export const deleteDateResponse = async (
 		}
 
 		const sql = `DELETE FROM date_response WHERE invitation_id = ? AND date_id = ?`;
-		const result = await database.query(sql, [invitationId, dateId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [invitationId, dateId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -357,9 +341,7 @@ export const getLocationResponse = async (
 			[locationId, requestedUserId],
 			userId,
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -390,14 +372,8 @@ export const deleteLocationResponse = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `DELETE FROM location_response WHERE invitation_id = ? AND location_id = ?`;
-		const result = await database.query(
-			sql,
-			[invitationId, locationId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [invitationId, locationId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -432,14 +408,8 @@ export const updateLocationResponse = async (
 			return res.status(400).json({ message: "Missing or invalid state" });
 		}
 		const sql = `UPDATE location_response SET state = ? WHERE invitation_id = ? AND location_id = ?`;
-		const result = await database.query(
-			sql,
-			[state, invitationId, locationId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [state, invitationId, locationId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -481,14 +451,8 @@ export const updateFullLocationResponse = async (
 			[invitationId, locationId],
 		);
 
-		const result = await database.query(
-			sql,
-			[state, invitationId, locationId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [state, invitationId, locationId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -508,9 +472,7 @@ export const getAllDateResponses = async (
 		}
 		const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -533,9 +495,7 @@ export const getAllLocationResponses = async (
 		}
 		const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

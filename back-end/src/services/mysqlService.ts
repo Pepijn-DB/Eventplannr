@@ -110,9 +110,10 @@ export async function query(
 
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 		return { rows: Array.isArray(rows) ? (rows as any[]) : [] };
-		// biome-ignore lint/suspicious/noExplicitAny: <Catch clause must be any or undefined (TS)>
-	} catch (err: any) {
-		throw new AppError(err?.message || "Database query error", 500);
+	} catch (err) {
+		let message = "Database query error";
+		if (err instanceof Error) message = err.message;
+		throw new AppError(message, 500);
 	}
 }
 

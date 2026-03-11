@@ -50,9 +50,6 @@ export const getEventDates = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ? ORDER BY ed.date ASC`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -106,11 +103,7 @@ export const deleteEventDate = async (
 		);
 
 		const sql = `DELETE FROM event_dates WHERE id = ?`;
-		const result = await database.query(sql, [dateId], userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [dateId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -172,9 +165,7 @@ export const getEventDate = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
 		const result = await database.query(sql, [dateId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

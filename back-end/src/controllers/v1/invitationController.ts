@@ -57,9 +57,7 @@ export const getInvitations = async (
             WHERE i.event_id = ?
         `;
 		const result = await databaseService.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -88,9 +86,7 @@ export const getUserInvitations = async (
 			[userId],
 			userValidator(req),
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -137,10 +133,7 @@ export const deleteInvitation = async (
             WHERE invitation_id = ?
         `;
 
-		const result = await databaseService.query(sql, [invitationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await databaseService.query(sql, [invitationId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -201,11 +194,7 @@ export const updateInvitation = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(invitationId);
 
-		const result = await database.query(sql, params, userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, params, userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -235,15 +224,7 @@ export const updateFullInvitation = async (
 			invitationId,
 		]);
 
-		const result = await database.query(
-			sql,
-			[req.body.role, invitationId],
-			userId,
-		);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [req.body.role, invitationId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -268,9 +249,7 @@ export const getInvitation = async (
         WHERE i.event_id = ? AND i.user_id = ?
     `;
 		const result = await databaseService.query(sql, [eventId, userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

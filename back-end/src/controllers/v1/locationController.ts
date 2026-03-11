@@ -48,9 +48,7 @@ export const getLocations = async (
 					 FROM locations l
 					 WHERE l.creator_user = ?`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -70,9 +68,7 @@ export const getLocation = async (
 					 FROM locations l
 					 WHERE l.creator_user = ? AND l.id = ?`;
 		const result = await database.query(sql, [userId, locationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -101,11 +97,7 @@ export const deleteLocation = async (
 		);
 
 		const sql = `DELETE FROM locations WHERE id = ?`;
-		const result = await database.query(sql, [locationId], userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [locationId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -151,14 +143,8 @@ export const updateLocation = async (
 			: null;
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
-		const result = await database.query(
-			sql,
-			[locationName, locationId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [locationName, locationId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -184,14 +170,8 @@ export const updateFullLocation = async (
 		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [
 			locationId,
 		]);
-		const result = await database.query(
-			sql,
-			[locationName, locationId],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [locationName, locationId], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -219,9 +199,7 @@ export const getEventLocations = async (
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -249,9 +227,7 @@ export const getEventLocation = async (
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ? AND el.location_id = ?`;
 		const result = await database.query(sql, [eventId, locationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -332,11 +308,7 @@ export const deleteEventLocation = async (
 			);
 
 			const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
-			const result = await database.query(sql, [eventId, locationId], userId);
-
-			if (!result) {
-				return res.status(500).json({ message: "Internal server error" });
-			}
+			await database.query(sql, [eventId, locationId], userId);
 
 			return res.status(204).json();
 		} catch (err) {

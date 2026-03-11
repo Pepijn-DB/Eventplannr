@@ -27,16 +27,20 @@ const app = express();
 
 app.use(express.json());
 
-app.use((req: AuthRequest, res: Response, next: NextFunction) => {
-	if (req.rateLimit) {
-		res.setHeader("X-RateLimit-Remaining", req.rateLimit.remaining);
-		res.setHeader("X-RateLimit-Reset", req.rateLimit.resetTime);
-	}
+app.use((_req: AuthRequest, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", config.cors_url);
 	next();
 });
 
 app.use(rateLimiter);
+
+app.use((req: AuthRequest, res: Response, next: NextFunction) => {
+	if (req.rateLimit) {
+		res.setHeader("X-RateLimit-Remaining", req.rateLimit.remaining);
+		res.setHeader("X-RateLimit-Reset", req.rateLimit.resetTime);
+	}
+	next();
+});
 
 app.use(checkToken);
 

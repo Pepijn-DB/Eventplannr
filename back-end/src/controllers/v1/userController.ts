@@ -58,9 +58,7 @@ export const getUsers = async (
 		FROM users u
 	`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -88,9 +86,7 @@ export const getUser = async (
 		WHERE u.id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -170,10 +166,8 @@ export const updateUser = async (
 			return res.status(400).json({ message: "Nothing to update" });
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(requestedUser);
-		const result = await database.query(sql, params, userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, params, userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -215,14 +209,12 @@ export const updateFullUser = async (
 			requestedUser,
 		]);
 
-		const result = await database.query(
+		await database.query(
 			sql,
 			[username, email, password_hash, requestedUser],
 			userId,
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -251,11 +243,7 @@ export const deleteUser = async (
 		);
 
 		const sql = `DELETE FROM users WHERE id = ?`;
-		const result = await database.query(sql, [requestedUser], userId);
-
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [requestedUser], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -282,9 +270,7 @@ export const getUserPermissions = async (
 		WHERE up.user_id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -349,14 +335,8 @@ export const deleteUserPermission = async (
 			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
-		const result = await database.query(
-			sql,
-			[requestedUser, permission],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [requestedUser, permission], userId);
+
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
