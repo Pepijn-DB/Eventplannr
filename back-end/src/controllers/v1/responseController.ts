@@ -136,7 +136,7 @@ export const createDateResponse = async (
 
 		const sql = `INSERT INTO date_response (invitation_id, date_id, state) VALUES (?, ?, ?)`;
 		await database.query(sql, [invitationId, dateId, state], userId);
-		return res.status(200).json({ message: "Date response created" });
+		return res.status(201).json({ message: "Date response created" });
 	} catch (err) {
 		next(err);
 	}
