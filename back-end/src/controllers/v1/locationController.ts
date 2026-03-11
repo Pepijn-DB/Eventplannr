@@ -313,13 +313,19 @@ export const deleteEventLocation = async (
 				return res.status(403).json({ message: "Forbidden" });
 			}
 
-			const eventLocationId = (
+			const eventLocation = (
 				await database.query(
 					`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
 					[eventId, locationId],
 					userId,
 				)
-			).rows[0].id;
+			);
+
+			if (!eventLocation || eventLocation.rows.length === 0) {
+				return res.status(404).json({ message: "Event location not found" });
+			}
+
+			const eventLocationId = eventLocation.rows[0].id;
 
 			await database.query(
 				`DELETE FROM location_response WHERE location_id = ?`,
