@@ -28,8 +28,8 @@ router.get("/:id/invitations", getUserInvitations);
 
 router.get("/:id/permissions", getUserPermissions);
 router.post("/:id/permissions", createUserPermission);
-router.delete("/:id/permissions/:permission_id", deleteUserPermission);
-router.patch("/:id/permissions/:permission_id", updateUserPermission);
-router.put("/:id/permissions/:permission_id", updateFullUserPermission);
+router.delete("/:id/permissions/:permission", deleteUserPermission);
+router.patch("/:id/permissions/:permission", updateUserPermission);
+router.put("/:id/permissions/:permission", updateFullUserPermission);
 
 export default router;
