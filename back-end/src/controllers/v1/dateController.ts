@@ -100,7 +100,7 @@ export const deleteEventDate = async (
 		}
 
 		await database.query(
-			`DELETE FROM date_responses WHERE date_id = ?`,
+			`DELETE FROM date_response WHERE date_id = ?`,
 			[dateId],
 			userId,
 		);

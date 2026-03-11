@@ -247,7 +247,7 @@ export const deleteEvent = async (
 			userId,
 		);
 		await database.query(
-			`DELETE FROM invitations WHERE event_id = ?`,
+			`DELETE FROM invitation WHERE event_id = ?`,
 			[eventId],
 			userId,
 		);
