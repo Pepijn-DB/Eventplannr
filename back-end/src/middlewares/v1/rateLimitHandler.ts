@@ -32,6 +32,7 @@ export const rateLimiter = rateLimit({
 });
 
 export const authRateLimiter = rateLimit({
+	// 10-minute total time
 	windowMs: 10 * 60 * 1000,
 	limit: 5,
 	message: {
