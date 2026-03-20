@@ -9,6 +9,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+import databaseService from "../../services/databaseService.js";
 
 export const createDateResponse = async (
 	req: AuthRequest,
@@ -182,10 +183,13 @@ export const updateFullDateResponse = async (
 
 		const sql = `UPDATE date_response SET state = ? WHERE invitation_id = ? AND date_id = ?`;
 
+		const idDateRes = await databaseService.query(`SELECT * FROM date_response WHERE invitation_id = ? AND date_id = ?`,
+			[invitationId, dateId], userId)
+
 		await ifMatchValidator(
 			req,
-			`SELECT * FROM date_response WHERE invitation_id = ? AND date_id = ?`,
-			[invitationId, dateId],
+			'date_response',
+			idDateRes.rows[0].id,
 		);
 
 		const result = await database.query(
@@ -471,10 +475,13 @@ export const updateFullLocationResponse = async (
 		}
 		const sql = `UPDATE location_response SET state = ? WHERE invitation_id = ? AND location_id = ?`;
 
+		const idResult = await database.query(`SELECT id FROM location_response WHERE invitation_id = ? AND location_id = ?`,
+			[invitationId, locationId], userId);
+
 		await ifMatchValidator(
 			req,
-			`SELECT * FROM location_response WHERE invitation_id = ? AND location_id = ?`,
-			[invitationId, locationId],
+			'location_response',
+			idResult.rows[0].id,
 		);
 
 		const result = await database.query(

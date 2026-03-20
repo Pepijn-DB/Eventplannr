@@ -195,9 +195,7 @@ export const updateFullInvitation = async (
 			return res.status(400).json({ message: "Nothing to update" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM invitation WHERE id = ?`, [
-			invitationId,
-		]);
+		await ifMatchValidator(req, `invitation`, invitationId);
 
 		await database.query(sql, [req.body.role, invitationId], userId);
 

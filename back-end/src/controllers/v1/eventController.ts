@@ -174,7 +174,7 @@ export const updateFullEvent = async (
 			return res.status(400).json({ message: "Invalid status" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM events WHERE id = ?`, [eventId]);
+		await ifMatchValidator(req, `events`, eventId);
 
 		await database.query(
 			sql,

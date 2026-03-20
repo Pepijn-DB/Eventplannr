@@ -132,9 +132,7 @@ export const updateFullEventDate = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM event_dates WHERE id = ?`, [
-			dateId,
-		]);
+		await ifMatchValidator(req, `event_dates`, dateId);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {

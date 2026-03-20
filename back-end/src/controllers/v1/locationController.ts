@@ -149,9 +149,7 @@ export const updateFullLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 
-		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [
-			locationId,
-		]);
+		await ifMatchValidator(req, `locations`, locationId);
 		await database.query(sql, [locationName, locationId], userId);
 		return res.status(200).json({ message: "Location updated successfully" });
 	} catch (err) {
@@ -336,10 +334,14 @@ export const updateFullEventLocation = async (
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
+
+		const idResult = await database.query(`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
+			[eventId, locationId], userId);
+
 		await ifMatchValidator(
 			req,
-			`SELECT * FROM event_locations WHERE event_id = ? AND location_id = ?`,
-			[eventId, locationId],
+			'event_locations',
+			idResult.rows[0].id
 		);
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {

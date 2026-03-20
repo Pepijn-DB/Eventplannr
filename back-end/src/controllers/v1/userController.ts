@@ -197,9 +197,7 @@ export const updateFullUser = async (
 		if (username === null || email === null || password_hash === null)
 			return res.status(400).json({ message: "Missing required fields" });
 
-		await ifMatchValidator(req, `SELECT * FROM users WHERE id = ?`, [
-			requestedUser,
-		]);
+		await ifMatchValidator(req, 'users', requestedUser);
 
 		await database.query(
 			sql,
