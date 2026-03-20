@@ -247,7 +247,7 @@ export const getInvitation = async (
         FROM invitation i
         WHERE i.event_id = ? AND i.user_id = ?
     `;
-    
+
 		const result = await databaseService.query(sql, [eventId], userId);
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });

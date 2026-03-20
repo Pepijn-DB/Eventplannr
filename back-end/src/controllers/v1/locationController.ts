@@ -215,7 +215,7 @@ export const getEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, locationId } = getRequestVariables(req, true);
+		const { userId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;

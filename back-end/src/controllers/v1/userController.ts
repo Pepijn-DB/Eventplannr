@@ -92,7 +92,7 @@ export const getUser = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		await setETag(req, "users", result.rows[0].id, res);
-    
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

@@ -150,12 +150,7 @@ export const getDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const {
-			userId,
-			eventId,
-			requestedUserId,
-			id: dateId,
-		} = getRequestVariables(req, true);
+		const { userId, eventId, id: dateId } = getRequestVariables(req, true);
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
 			const result = await database.query(sql, [dateId], userId);
