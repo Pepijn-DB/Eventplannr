@@ -17,7 +17,7 @@ export async function setETag(
 		res.setHeader("ETag", hash);
 	} catch (err) {
 		if (err instanceof AppError && err.message.includes("Invalid table")) {
-			throw new AppError("Invalid table");
+			throw new AppError("Invalid table", 400, { cause: err});
 		} else if (err instanceof Error) {
 			throw new AppError(err.message, 500, { cause: err });
 		} else {
@@ -56,7 +56,7 @@ export async function getETag(
 			break;
 		}
 		case "date_response": {
-			sql = `SELECT date_id, invitation_id, state FROM location_responses WHERE id = ?`;
+			sql = `SELECT date_id, invitation_id, state FROM date_response WHERE id = ?`;
 			break;
 		}
 
