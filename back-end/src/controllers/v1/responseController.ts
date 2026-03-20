@@ -458,6 +458,10 @@ export const updateFullLocationResponse = async (
 			userId,
 		);
 
+		if (!idResult || idResult.rows.length === 0) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+
 		await ifMatchValidator(req, "location_response", idResult.rows[0].id);
 
 		const result = await database.query(

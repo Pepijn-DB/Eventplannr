@@ -164,7 +164,7 @@ export const getEventDate = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
 		const result = await database.query(sql, [dateId], userId);
-		if (!result) {
+		if (!result || result.rows.length === 0) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 

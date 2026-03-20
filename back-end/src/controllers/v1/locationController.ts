@@ -374,6 +374,10 @@ export const updateFullEventLocation = async (
 			userId,
 		);
 
+		if (!idResult || idResult.rows.length === 0) {
+			return res.status(404).json({ message: "Event location not found" });
+		}
+
 		await ifMatchValidator(req, "event_locations", idResult.rows[0].id);
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
