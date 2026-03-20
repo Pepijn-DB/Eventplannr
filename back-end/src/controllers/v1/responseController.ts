@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../app.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import databaseService from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
@@ -83,6 +84,7 @@ export const getDateResponse = async (
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
+			await setETag(req, "date_response", result.rows[0].id, res);
 			return res.status(200).json(result.rows);
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
@@ -324,6 +326,7 @@ export const getLocationResponse = async (
 			if (!result) {
 				return res.status(500).json({ message: "Internal server error" });
 			}
+			await setETag(req, "location_response", result.rows[0].id, res);
 			return res.status(200).json(result.rows);
 		} else {
 			return res.status(403).json({ message: "Forbidden" });

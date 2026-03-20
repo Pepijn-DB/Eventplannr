@@ -2,6 +2,7 @@ import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 import { Event, Location } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import {
 	hasEventPermission,
 	hasLocationPermission,
@@ -53,6 +54,7 @@ export const getLocation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		await setETag(req, "locations", result.rows[0].id, res);
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);
@@ -214,6 +216,7 @@ export const getEventLocation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
+		await setETag(req, "event_locations", result.rows[0].id, res);
 		return res.status(200).json(result.rows);
 	} catch (err) {
 		next(err);

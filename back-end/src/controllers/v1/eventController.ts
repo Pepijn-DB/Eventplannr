@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../app.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
@@ -61,6 +62,8 @@ export const getEvent = async (
 		if (result.rows.length === 0) {
 			return res.status(400).json({ message: "Event not found" });
 		}
+
+		await setETag(req, "events", result.rows[0].id, res);
 
 		return res.status(200).json(result.rows);
 	} catch (err) {
