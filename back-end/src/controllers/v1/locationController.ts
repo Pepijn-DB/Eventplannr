@@ -335,14 +335,13 @@ export const updateFullEventLocation = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		const idResult = await database.query(`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
-			[eventId, locationId], userId);
-
-		await ifMatchValidator(
-			req,
-			'event_locations',
-			idResult.rows[0].id
+		const idResult = await database.query(
+			`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
+			[eventId, locationId],
+			userId,
 		);
+
+		await ifMatchValidator(req, "event_locations", idResult.rows[0].id);
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
 		next(err);

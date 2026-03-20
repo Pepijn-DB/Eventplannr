@@ -1,6 +1,6 @@
 import type { AuthRequest } from "../app.js";
 import { AppError } from "../middlewares/errorHandler.js";
-import {getETag} from "../services/eTagService.js";
+import { getETag } from "../services/eTagService.js";
 
 export function userValidator(req: AuthRequest): number {
 	if (!req.user) throw new AppError("Unauthorized", 401);
@@ -35,7 +35,7 @@ export async function ifMatchValidator(
 		? ifMatchHeader[0]
 		: ifMatchHeader;
 
-	if (await getETag(req, table, id) !== reqEventHash) {
+	if ((await getETag(req, table, id)) !== reqEventHash) {
 		throw new AppError("Precondition failed", 412);
 	}
 	return true;
