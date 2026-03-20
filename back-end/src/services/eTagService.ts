@@ -1,8 +1,30 @@
+import type { Response } from "express";
 import type { AuthRequest } from "../app.js";
 import { AppError } from "../middlewares/errorHandler.js";
 import hash from "../models/hash.js";
 import { userValidator } from "../validators/requestValidator.js";
 import database from "./databaseService.js";
+
+export async function setETag(
+	req: AuthRequest,
+	table: string,
+	id: number,
+	res: Response,
+): Promise<void> {
+	try {
+		const hash = await getETag(req, table, id);
+
+		res.setHeader("ETag", hash);
+	} catch (err) {
+		if (err instanceof AppError && err.message.includes("Invalid table")) {
+			throw new AppError("Invalid table");
+		} else if (err instanceof Error) {
+			throw new AppError(err.message, 500, { cause: err });
+		} else {
+			throw new AppError("Internal server error", 500, { cause: err });
+		}
+	}
+}
 
 export async function getETag(
 	req: AuthRequest,
