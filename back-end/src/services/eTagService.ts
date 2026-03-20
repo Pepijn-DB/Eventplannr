@@ -48,7 +48,7 @@ export async function getETag(
 		}
 
 		case "invitation": {
-			sql = `SELECT event_id, user_id, role FROM invitations WHERE id = ?`;
+			sql = `SELECT event_id, user_id, role FROM invitation WHERE id = ?`;
 			break;
 		}
 		case "location_response": {

@@ -72,7 +72,7 @@ export const getLocation = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		await setETag(req, "locations", result.rows[0].id, res);
+		await setETag(req, "location", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -172,7 +172,7 @@ export const updateFullLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 
-		await ifMatchValidator(req, `locations`, locationId);
+		await ifMatchValidator(req, `location`, locationId);
 		await database.query(sql, [locationName, locationId], userId);
 
 		return res.status(204).json();
