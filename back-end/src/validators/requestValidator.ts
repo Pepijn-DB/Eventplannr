@@ -1,8 +1,6 @@
 import type { AuthRequest } from "../app.js";
 import { AppError } from "../middlewares/errorHandler.js";
-import hash from "../models/hash.js";
-import type { StrNum } from "../models/strnum.js";
-import database from "../services/databaseService.js";
+import {getETag} from "../services/eTagService.js";
 
 export function userValidator(req: AuthRequest): number {
 	if (!req.user) throw new AppError("Unauthorized", 401);
@@ -26,13 +24,9 @@ export function invitationValidator(req: AuthRequest): number {
 
 export async function ifMatchValidator(
 	req: AuthRequest,
-	sqlOriginal: string,
-	sqlParams: StrNum[] = [],
+	table: string,
+	id: number,
 ): Promise<boolean> {
-	const userId = userValidator(req);
-	const result = await database.query(sqlOriginal, sqlParams, userId);
-	const previousHash = await hash(result.rows);
-
 	const ifMatchHeader = req.get("If-Match") ?? req.headers["if-match"];
 	if (!ifMatchHeader) {
 		throw new AppError("Missing If-Match header", 428);
@@ -41,7 +35,7 @@ export async function ifMatchValidator(
 		? ifMatchHeader[0]
 		: ifMatchHeader;
 
-	if (previousHash !== reqEventHash) {
+	if (await getETag(req, table, id) !== reqEventHash) {
 		throw new AppError("Precondition failed", 412);
 	}
 	return true;
