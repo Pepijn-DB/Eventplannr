@@ -35,8 +35,8 @@ import {
 const router = Router();
 
 router.get("/", getEvents); // Get all events (created and invited)
-
 router.post("/", createEvent); // Create a new event
+
 router.get("/:event_id", getEvent); // Get event by id
 router.delete("/:event_id", deleteEvent); // Delete event by id
 router.patch("/:event_id", updateEvent); // Update event by id

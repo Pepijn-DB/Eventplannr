@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import type { AuthRequest } from "../../app.js";
 
 export const rateLimiter = rateLimit({
+	// 15-minute total time
 	windowMs: 15 * 60 * 1000,
 
 	limit: 100,
@@ -31,6 +32,7 @@ export const rateLimiter = rateLimit({
 });
 
 export const authRateLimiter = rateLimit({
+	// 10-minute total time
 	windowMs: 10 * 60 * 1000,
 	limit: 5,
 	message: {

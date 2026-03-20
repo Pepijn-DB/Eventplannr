@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
@@ -11,14 +12,38 @@ import {
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
+function getRequestVariables(req: AuthRequest, needsId: boolean) {
+	try {
+		const userId = userValidator(req);
+		const eventId = eventValidator(req);
+		const dateId = variableValidator(req.params.date_id)
+			? Number(req.params.date_id)
+			: -1;
+
+		if (
+			(dateId === -1 && needsId) ||
+			Number.isNaN(dateId) ||
+			(dateId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid date id", 400);
+		}
+
+		return { userId, eventId, dateId };
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
+	}
+}
+
 export const getEventDates = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -26,10 +51,7 @@ export const getEventDates = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ? ORDER BY ed.date ASC`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -41,8 +63,7 @@ export const createEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -56,10 +77,8 @@ export const createEventDate = async (
 		}
 
 		const sql = `INSERT INTO event_dates (event_id, date) VALUES (?, ?)`;
-		const result = await database.query(sql, [eventId, req.body.date], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [eventId, req.body.date], userId);
+
 		return res.status(201).json({ message: "Date created" });
 	} catch (err) {
 		next(err);
@@ -72,26 +91,22 @@ export const deleteEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (dateId === null) {
-			return res.status(400).json({ message: "Missing date id" });
-		}
+		await database.query(
+			`DELETE FROM date_response WHERE date_id = ?`,
+			[dateId],
+			userId,
+		);
 
 		const sql = `DELETE FROM event_dates WHERE id = ?`;
-		const result = await database.query(sql, [dateId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json({ message: "Date deleted" });
+		await database.query(sql, [dateId], userId);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -103,11 +118,7 @@ export const updateEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const _dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -125,9 +136,7 @@ export const updateFullEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = Number(req.params.date_id);
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -147,18 +156,10 @@ export const getEventDate = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
-		const dateId = variableValidator(req.params.date_id)
-			? Number(req.params.date_id)
-			: null;
+		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
-		}
-
-		if (dateId === null) {
-			return res.status(400).json({ message: "Missing date id" });
 		}
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
@@ -169,7 +170,7 @@ export const getEventDate = async (
 
 		await setETag(req, "event_dates", result.rows[0].id, res);
 
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}

@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
@@ -14,13 +15,40 @@ import { variableValidator } from "../../validators/variableValidator.js";
 
 const SALT_ROUNDS = 10;
 
+function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
+	try {
+		const userId = userValidator(req);
+		const requestedUser = variableValidator(req.params.id)
+			? Number(req.params.id)
+			: -1;
+
+		if (
+			(requestedUser === -1 && needsReqUser) ||
+			Number.isNaN(requestedUser) ||
+			(needsReqUser && requestedUser < 0)
+		) {
+			throw new AppError("Missing or invalid user id", 400);
+		}
+
+		return {
+			userId,
+			requestedUser,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
+	}
+}
+
 export const getUsers = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -31,10 +59,8 @@ export const getUsers = async (
 		FROM users u
 	`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -46,12 +72,7 @@ export const getUser = async (
 	next: NextFunction,
 ) => {
 	try {
-		const requestedUser = variableValidator(req.params.id)
-			? Number(req.params.id)
-			: null;
-		const userId = userValidator(req);
-
-		if (requestedUser === null) return res.status(400).json("Missing user id");
+		const { userId, requestedUser } = getRequestVariables(req, true);
 
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
@@ -66,11 +87,13 @@ export const getUser = async (
 		WHERE u.id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
+
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		await setETag(req, "users", result.rows[0].id, res);
-		return res.status(200).json(result.rows);
+    
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -99,15 +122,13 @@ export const createUser = async (
 		if (username === null || password_hash === null || email === null)
 			return res.status(400).json({ message: "Missing required fields" });
 
-		const result = await database.queryWithoutExecutioner(sql, [
+		await database.queryWithoutExecutioner(sql, [
 			username,
 			password_hash,
 			email,
 		]);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+
+		return res.status(201).json({ message: "User created successfully" });
 	} catch (err) {
 		next(err);
 	}
@@ -118,23 +139,18 @@ export const updateUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: null;
-	const userId = userValidator(req);
-
-	let sql = `UPDATE users SET`;
-	const params: StrNum[] = [];
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
+		let sql = `UPDATE users SET`;
+		const params: StrNum[] = [];
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-
-		if (requestedUser === null) return res.status(400).json("Missing user id");
 
 		if (req.body.username) {
 			sql += ` username = ?,`;
@@ -157,7 +173,8 @@ export const updateUser = async (
 		sql = `${sql.slice(0, -1)} WHERE id = ?`;
 		params.push(requestedUser);
 		await database.query(sql, params, userId);
-		return res.status(200).json({ message: "User updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -168,20 +185,15 @@ export const updateFullUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: null;
-	const userId = userValidator(req);
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
 		) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-
-		if (requestedUser === null) return res.status(400).json("Missing user id");
 
 		if (!req.body.username || !req.body.email || !req.body.password)
 			return res.status(400).json({ message: "Request is not complete" });
@@ -206,7 +218,8 @@ export const updateFullUser = async (
 			[username, email, password_hash, requestedUser],
 			userId,
 		);
-		return res.status(200).json({ message: "User updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -217,14 +230,9 @@ export const deleteUser = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: null;
-	const userId = userValidator(req);
-
-	if (requestedUser === null) return res.status(400).json("Missing user id");
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
 		if (
 			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
 			userId !== requestedUser
@@ -232,10 +240,16 @@ export const deleteUser = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
+		await database.query(
+			`DELETE FROM user_permissions WHERE user_id = ?`,
+			[requestedUser],
+			userId,
+		);
+
 		const sql = `DELETE FROM users WHERE id = ?`;
 		await database.query(sql, [requestedUser], userId);
 
-		return res.status(200).json({ message: "User deleted successfully" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -246,28 +260,22 @@ export const getUserPermissions = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const requestedUser = variableValidator(req.params.id)
-		? Number(req.params.id)
-		: null;
-	const userId = userValidator(req);
-
-	if (!userId) return res.status(401).json({ message: "Unauthorized" });
-	if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-		return res.status(403).json({ message: "Forbidden" });
-	}
-	if (requestedUser === null) return res.status(400).json("Missing user id");
-
 	try {
+		const { userId, requestedUser } = getRequestVariables(req, true);
+
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
 		const sql = `
 		SELECT up.user_id, up.permission
 		FROM user_permissions up
 		WHERE up.user_id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -279,7 +287,7 @@ export const updateUserPermission = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
@@ -298,7 +306,7 @@ export const updateFullUserPermission = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
@@ -317,12 +325,9 @@ export const deleteUserPermission = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const requestedUser = variableValidator(req.params.id)
-			? Number(req.params.id)
-			: null;
-		const permissionId = variableValidator(req.params.permission_id)
-			? Number(req.params.permission_id)
+		const { userId, requestedUser } = getRequestVariables(req, true);
+		const permission = variableValidator(req.params.permission)
+			? req.params.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -330,15 +335,13 @@ export const deleteUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (requestedUser === null || permissionId === null)
-			return res.status(400).json("Missing user id or permission id");
+		if (permission === null || Array.isArray(permission))
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
-		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?`;
-		await database.query(sql, [requestedUser, permissionId], userId);
+		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
+		await database.query(sql, [requestedUser, permission], userId);
 
-		return res
-			.status(200)
-			.json({ message: "User permission deleted successfully" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -350,12 +353,9 @@ export const createUserPermission = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const requestedUser = variableValidator(req.params.id)
-			? Number(req.params.id)
-			: null;
-		const permissionId = variableValidator(req.body.permission_id)
-			? Number(req.body.permission_id)
+		const { userId, requestedUser } = getRequestVariables(req, true);
+		const permission = variableValidator(req.body.permission)
+			? req.body.permission
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -363,15 +363,14 @@ export const createUserPermission = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		if (requestedUser === null || permissionId === null)
-			return res.status(400).json("Missing user id or permission id");
+		if (permission === null || Array.isArray(permission))
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
-		const sql = `INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)`;
-		await database.query(sql, [requestedUser, permissionId], userId);
-
-		return res
-			.status(200)
-			.json({ message: "User permission created successfully" });
+		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
+		await database.query(sql, [requestedUser, permission], userId);
+		return res.status(201).json({
+			message: "User permission created successfully",
+		});
 	} catch (err) {
 		next(err);
 	}

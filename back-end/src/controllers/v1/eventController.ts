@@ -1,15 +1,43 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
-	eventValidator,
 	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
+import { variableValidator } from "../../validators/variableValidator.js";
+
+function getRequestVariables(req: AuthRequest, needsId: boolean) {
+	try {
+		const userId = userValidator(req);
+		const eventId = variableValidator(req.params.event_id)
+			? Number(req.params.event_id)
+			: -1;
+
+		if (
+			(eventId === -1 && needsId) ||
+			Number.isNaN(eventId) ||
+			(eventId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid event_id", 400);
+		}
+
+		return {
+			userId,
+			eventId,
+		};
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
+	}
+}
 
 export const getEvents = async (
 	req: AuthRequest,
@@ -17,7 +45,7 @@ export const getEvents = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
@@ -28,11 +56,8 @@ export const getEvents = async (
         `;
 
 		const result = await database.query(sql, [userId, userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -44,8 +69,7 @@ export const getEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		const sql = `
             SELECT e.id, e.title, e.description, e.creator_user, e.status
@@ -55,9 +79,6 @@ export const getEvent = async (
         `;
 
 		const result = await database.query(sql, [userId, eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
 		if (result.rows.length === 0) {
 			return res.status(400).json({ message: "Event not found" });
@@ -65,7 +86,7 @@ export const getEvent = async (
 
 		await setETag(req, "events", result.rows[0].id, res);
 
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -79,21 +100,14 @@ export const createEvent = async (
 	const { title, description } = req.body;
 	if (!title) return res.status(400).json({ message: "Missing title" });
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 
 		const sql = `
             INSERT INTO events (creator_user, title, description, status)
             VALUES (?, ?, ?, OPEN)
         `;
 
-		const result = await database.query(
-			sql,
-			[userId, title, description],
-			userId,
-		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		await database.query(sql, [userId, title, description], userId);
 
 		return res.status(201).json({ message: "Event created" });
 	} catch (err) {
@@ -110,8 +124,7 @@ export const updateEvent = async (
 	const params: StrNum[] = [];
 
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -144,11 +157,11 @@ export const updateEvent = async (
 		params.push(eventId);
 
 		await database.query(sql, params, userId);
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
-
-	return res.status(200).json({ message: "Event updated" });
 };
 
 export const updateFullEvent = async (
@@ -157,8 +170,7 @@ export const updateFullEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -185,7 +197,7 @@ export const updateFullEvent = async (
 			userId,
 		);
 
-		return res.status(200).json({ message: "Event updated" });
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -197,16 +209,42 @@ export const deleteEvent = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const eventId = eventValidator(req);
+		const { userId, eventId } = getRequestVariables(req, true);
 
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
+		await database.query(
+			`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE event_id = ?)`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_dates WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_locations WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM invitation WHERE event_id = ?`,
+			[eventId],
+			userId,
+		);
+
 		const sqlDelete = `DELETE FROM events WHERE id = ?`;
 		await database.query(sqlDelete, [eventId], userId);
-		return res.status(200).json({ message: "Event deleted" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}

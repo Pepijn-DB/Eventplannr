@@ -2,7 +2,7 @@ import { dbConfig } from "../config/config.js";
 //dbConfig from the .env file
 
 import { Pool, type QueryResult } from "pg";
-
+import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
 import {
 	convertQuestionMarksToDollarParams,
@@ -36,6 +36,7 @@ export async function connect(): Promise<boolean> {
 
 		return connected;
 	} catch (_err) {
+		connected = false;
 		return false;
 	}
 }
@@ -66,7 +67,11 @@ export async function query(
 			const updateSql = `UPDATE ${tableName} SET updated_log = $1 WHERE id IN (${placeholders});`;
 			await pool.query(updateSql, [logNumber, ...ids]);
 		}
-	} catch (_err) {}
+	} catch (err) {
+		let message = "Database query error";
+		if (err instanceof Error) message = err.message;
+		throw new AppError(message, 500);
+	}
 
 	return { rows: result.rows };
 }

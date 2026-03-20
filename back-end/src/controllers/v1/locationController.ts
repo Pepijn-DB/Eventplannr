@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 import { Event, Location } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
@@ -13,21 +14,43 @@ import {
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
+function getRequestVariables(req: AuthRequest, needsId: boolean) {
+	try {
+		const userId = userValidator(req);
+		const locationId = variableValidator(req.params.location_id)
+			? Number(req.params.location_id)
+			: -1;
+
+		if (
+			(locationId === -1 && needsId) ||
+			Number.isNaN(locationId) ||
+			(locationId < 0 && needsId)
+		) {
+			throw new AppError("Missing or invalid location id", 400);
+		}
+
+		return { userId, locationId };
+	} catch (err) {
+		if (err instanceof AppError) {
+			throw err;
+		}
+		throw new AppError("Internal server error", 500);
+	}
+}
+
 export const getLocations = async (
 	req: AuthRequest,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 		const sql = `SELECT l.id, l.name
 					 FROM locations l
 					 WHERE l.creator_user = ?`;
 		const result = await database.query(sql, [userId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -39,12 +62,7 @@ export const getLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!locationId)
-			return res.status(400).json({ message: "Missing location id" });
+		const { userId, locationId } = getRequestVariables(req, true);
 		if (!(await hasLocationPermission(userId, locationId, Location.VIEW)))
 			return res.status(403).json({ message: "Forbidden" });
 		const sql = `SELECT l.id, l.name
@@ -55,7 +73,8 @@ export const getLocation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		await setETag(req, "locations", result.rows[0].id, res);
-		return res.status(200).json(result.rows);
+
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -67,17 +86,25 @@ export const deleteLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!locationId)
-			return res.status(400).json({ message: "Missing location id" });
+		const { userId, locationId } = getRequestVariables(req, true);
 		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
 			return res.status(403).json({ message: "Forbidden" });
+
+		await database.query(
+			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
+			[locationId],
+			userId,
+		);
+		await database.query(
+			`DELETE FROM event_locations WHERE location_id = ?`,
+			[locationId],
+			userId,
+		);
+
 		const sql = `DELETE FROM locations WHERE id = ?`;
 		await database.query(sql, [locationId], userId);
-		return res.status(200).json({ message: "Location deleted successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -89,7 +116,7 @@ export const createLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 		const locationName = variableValidator(req.body.name)
 			? req.body.name
 			: null;
@@ -97,7 +124,10 @@ export const createLocation = async (
 			return res.status(400).json({ message: "Missing location name" });
 		const sql = `INSERT INTO locations (creator_user, name) VALUES (?, ?)`;
 		await database.query(sql, [userId, locationName], userId);
-		return res.status(201).json({ message: "Location created successfully" });
+
+		return res.status(201).json({
+			message: "Location created successfully",
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -109,12 +139,7 @@ export const updateLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!locationId)
-			return res.status(400).json({ message: "Missing location id" });
+		const { userId, locationId } = getRequestVariables(req, true);
 		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
 			return res.status(403).json({ message: "Forbidden" });
 		const sql = `UPDATE locations SET name = ? WHERE id = ?`;
@@ -124,7 +149,8 @@ export const updateLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 		await database.query(sql, [locationName, locationId], userId);
-		return res.status(200).json({ message: "Location updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -136,12 +162,7 @@ export const updateFullLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (!locationId)
-			return res.status(400).json({ message: "Missing location id" });
+		const { userId, locationId } = getRequestVariables(req, true);
 		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
 			return res.status(403).json({ message: "Forbidden" });
 		const sql = `UPDATE locations SET name = ? WHERE id = ?`;
@@ -153,7 +174,8 @@ export const updateFullLocation = async (
 
 		await ifMatchValidator(req, `locations`, locationId);
 		await database.query(sql, [locationName, locationId], userId);
-		return res.status(200).json({ message: "Location updated successfully" });
+
+		return res.status(204).json();
 	} catch (err) {
 		next(err);
 	}
@@ -165,12 +187,12 @@ export const getEventLocations = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		if (eventId === null) {
-			return res.status(400).json({ message: "Missing event id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -180,10 +202,8 @@ export const getEventLocations = async (
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
-		return res.status(200).json(result.rows);
+
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -195,15 +215,12 @@ export const getEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId, locationId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (eventId === null || locationId === null) {
-			return res.status(400).json({ message: "Missing event or location id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -217,7 +234,7 @@ export const getEventLocation = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 		await setETag(req, "event_locations", result.rows[0].id, res);
-		return res.status(200).json(result.rows);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -229,24 +246,32 @@ export const createEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId } = getRequestVariables(req, false);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
 		const locationId = variableValidator(req.body.location_id)
 			? Number(req.body.location_id)
 			: null;
-		if (eventId === null || locationId === null) {
-			return res.status(400).json({ message: "Missing event or location id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
+		} else if (
+			locationId === null ||
+			Number.isNaN(locationId) ||
+			locationId < 0
+		) {
+			return res
+				.status(400)
+				.json({ message: "Missing or invalid location id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `INSERT INTO event_locations (event_id, location_id) VALUES (?, ?)`;
 		await database.query(sql, [eventId, locationId], userId);
-		return res
-			.status(201)
-			.json({ message: "Event location created successfully" });
+		return res.status(201).json({
+			message: "Event location created successfully",
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -259,26 +284,39 @@ export const deleteEventLocation = async (
 ) => {
 	try {
 		try {
-			const userId = userValidator(req);
+			const { userId, locationId } = getRequestVariables(req, true);
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;
-			const locationId = variableValidator(req.params.location_id)
-				? Number(req.params.location_id)
-				: null;
-			if (eventId === null || locationId === null) {
-				return res
-					.status(400)
-					.json({ message: "Missing event or location id" });
+			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
 			}
+
+			const eventLocation = await database.query(
+				`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
+				[eventId, locationId],
+				userId,
+			);
+
+			if (!eventLocation || eventLocation.rows.length === 0) {
+				return res.status(404).json({ message: "Event location not found" });
+			}
+
+			const eventLocationId = eventLocation.rows[0].id;
+
+			await database.query(
+				`DELETE FROM location_response WHERE location_id = ?`,
+				[eventLocationId],
+				userId,
+			);
+
 			const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
 			await database.query(sql, [eventId, locationId], userId);
-			return res
-				.status(201)
-				.json({ message: "Event location deleted successfully" });
+
+			return res.status(204).json();
 		} catch (err) {
 			next(err);
 		}
@@ -294,17 +332,12 @@ export const updateEventLocation = async (
 ) => {
 	try {
 		try {
-			const userId = userValidator(req);
+			const { userId } = getRequestVariables(req, true);
 			const eventId = variableValidator(req.params.event_id)
 				? Number(req.params.event_id)
 				: null;
-			const locationId = variableValidator(req.params.location_id)
-				? Number(req.params.location_id)
-				: null;
-			if (eventId === null || locationId === null) {
-				return res
-					.status(400)
-					.json({ message: "Missing event or location id" });
+			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
 			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 				return res.status(403).json({ message: "Forbidden" });
@@ -324,15 +357,12 @@ export const updateFullEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = userValidator(req);
+		const { userId, locationId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
-		const locationId = variableValidator(req.params.location_id)
-			? Number(req.params.location_id)
-			: null;
-		if (eventId === null || locationId === null) {
-			return res.status(400).json({ message: "Missing event or location id" });
+		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
+			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
