@@ -374,7 +374,10 @@ export const updateFullEventLocation = async (
 			userId,
 		);
 
-		if (!idResult || idResult.rows.length === 0) {
+		if (!idResult) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		if (idResult.rows.length === 0) {
 			return res.status(404).json({ message: "Event location not found" });
 		}
 
