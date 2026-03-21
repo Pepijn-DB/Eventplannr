@@ -143,36 +143,208 @@ export function parseQuery(sql: string): {
 } {
 	if (!sql) return { action: null, table: null, where: null };
 
-	const normalized = sql.replace(/\s+/g, " ").trim();
+	// Short-circuit and cap input length to avoid pathological cases
+	const MAX_LEN = 64 * 1024; // 64KB
+	if (sql.length > MAX_LEN) sql = sql.slice(0, MAX_LEN);
 
-	const actionMatch = normalized.match(/^\s*([A-Za-z]+)/);
-	const action = actionMatch?.[1]?.toUpperCase() ?? null;
+	// Normalize whitespace with a simple pass (no regex)
+	let normalized = "";
+	let lastSpace = false;
+	for (let i = 0; i < sql.length; i++) {
+		const ch = sql[i];
+		if (
+			ch === " " ||
+			ch === "\n" ||
+			ch === "\r" ||
+			ch === "\t" ||
+			ch === "\f" ||
+			ch === "\v"
+		) {
+			if (!lastSpace) {
+				normalized += " ";
+				lastSpace = true;
+			}
+		} else {
+			normalized += ch;
+			lastSpace = false;
+		}
+	}
+	normalized = normalized.trim();
+	if (!normalized) return { action: null, table: null, where: null };
 
-	const extractTable = (raw?: string): string | null => {
-		if (!raw) return null;
-		const cleaned = raw.replace(/[`"' ]/g, "");
-		const parts = cleaned.split(".");
-		return parts[parts.length - 1] ?? cleaned;
-	};
+	const upper = normalized.toUpperCase();
+
+	// Helper: find top-level keyword while skipping quoted strings and comments
+	function findTopLevel(keyword: string, from = 0): number {
+		const klen = keyword.length;
+		let inS = false; // '
+		let inD = false; // "
+		let inLine = false; // --
+		let inBlock = false; // /* */
+
+		for (let i = from; i + klen <= normalized.length; i++) {
+			const ch = normalized[i];
+
+			if (inLine) {
+				if (ch === "\n") inLine = false;
+				continue;
+			}
+			if (inBlock) {
+				if (ch === "*" && normalized[i + 1] === "/") {
+					inBlock = false;
+					i++; // skip /
+				}
+				continue;
+			}
+
+			// start comments only when not in quotes
+			if (!inS && !inD) {
+				if (ch === "-" && normalized[i + 1] === "-") {
+					inLine = true;
+					continue;
+				}
+				if (ch === "/" && normalized[i + 1] === "*") {
+					inBlock = true;
+					i++;
+					continue;
+				}
+			}
+
+			// toggle quotes (simple handling; ignores escaping inside quotes for readability)
+			if (!inD && ch === "'") {
+				inS = !inS;
+				continue;
+			}
+			if (!inS && ch === '"') {
+				inD = !inD;
+				continue;
+			}
+
+			if (!inS && !inD && !inLine && !inBlock) {
+				if (upper.substr(i, klen) === keyword) {
+					// ensure keyword boundaries (not part of larger identifier)
+					const before = i - 1 >= 0 ? upper.charAt(i - 1) : " ";
+					const after = i + klen < upper.length ? upper.charAt(i + klen) : " ";
+					if (!/[A-Z0-9_]/.test(before) && !/[A-Z0-9_]/.test(after)) return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	let action: string | null = null;
+	{
+		let i = 0;
+		while (i < normalized.length && normalized.charAt(i) === " ") i++;
+		const start = i;
+		while (i < normalized.length && /[A-Za-z]/.test(normalized.charAt(i))) i++;
+		if (i > start) action = normalized.slice(start, i).toUpperCase();
+	}
+
+	// Helper to clean table token
+	function cleanTableToken(tok: string | undefined): string | null {
+		if (!tok) return null;
+		return (
+			tok
+				.replace(/[`"' ]/g, "")
+				.split(".")
+				.pop() ?? null
+		);
+	}
 
 	let table: string | null = null;
 
-	const insertMatch = normalized.match(/INSERT\s+INTO\s+([`"'A-Za-z0-9_.]+)/i);
-	if (insertMatch?.[1]) table = extractTable(insertMatch[1]);
+	// INSERT INTO
+	let p = findTopLevel("INSERT");
+	if (p >= 0) {
+		const into = findTopLevel("INTO", p + 6);
+		if (into >= 0) {
+			let i = into + 4;
+			while (i < normalized.length && normalized[i] === " ") i++;
+			const start = i;
+			while (
+				i < normalized.length &&
+				normalized[i] !== " " &&
+				normalized[i] !== "(" &&
+				normalized[i] !== ";"
+			)
+				i++;
+			table = cleanTableToken(normalized.slice(start, i));
+		}
+	}
 
-	const updateMatch = normalized.match(/UPDATE\s+([`"'A-Za-z0-9_.]+)/i);
-	if (!table && updateMatch?.[1]) table = extractTable(updateMatch[1]);
+	// UPDATE
+	if (!table) {
+		p = findTopLevel("UPDATE");
+		if (p >= 0) {
+			let i = p + 6;
+			while (i < normalized.length && normalized[i] === " ") i++;
+			const start = i;
+			while (
+				i < normalized.length &&
+				normalized[i] !== " " &&
+				normalized[i] !== ";"
+			)
+				i++;
+			table = cleanTableToken(normalized.slice(start, i));
+		}
+	}
 
-	const deleteMatch = normalized.match(/DELETE\s+FROM\s+([`"'A-Za-z0-9_.]+)/i);
-	if (!table && deleteMatch?.[1]) table = extractTable(deleteMatch[1]);
+	// DELETE FROM
+	if (!table) {
+		p = findTopLevel("DELETE");
+		if (p >= 0) {
+			const from = findTopLevel("FROM", p + 6);
+			if (from >= 0) {
+				let i = from + 4;
+				while (i < normalized.length && normalized[i] === " ") i++;
+				const start = i;
+				while (
+					i < normalized.length &&
+					normalized[i] !== " " &&
+					normalized[i] !== ";"
+				)
+					i++;
+				table = cleanTableToken(normalized.slice(start, i));
+			}
+		}
+	}
 
-	const selectMatch = normalized.match(/\bFROM\s+([`"'A-Za-z0-9_.]+)/i);
-	if (!table && selectMatch?.[1]) table = extractTable(selectMatch[1]);
+	// SELECT ... FROM
+	if (!table) {
+		p = findTopLevel("FROM");
+		if (p >= 0) {
+			let i = p + 4;
+			while (i < normalized.length && normalized[i] === " ") i++;
+			const start = i;
+			while (
+				i < normalized.length &&
+				normalized[i] !== " " &&
+				normalized[i] !== ";" &&
+				normalized[i] !== "\n"
+			)
+				i++;
+			table = cleanTableToken(normalized.slice(start, i));
+		}
+	}
 
-	const whereMatch = normalized.match(
-		/\bWHERE\b\s+(.+?)(?=(\bORDER\b|\bLIMIT\b|;|$))/i,
-	);
-	const where = whereMatch?.[1]?.trim() ?? null;
+	// WHERE clause: capture up to ORDER/LIMIT/semicolon
+	let where: string | null = null;
+	const wpos = findTopLevel("WHERE");
+	if (wpos >= 0) {
+		const start = wpos + 5;
+		const ends: number[] = [];
+		const order = findTopLevel("ORDER", start);
+		if (order >= 0) ends.push(order);
+		const limit = findTopLevel("LIMIT", start);
+		if (limit >= 0) ends.push(limit);
+		const semi = normalized.indexOf(";", start);
+		if (semi >= 0) ends.push(semi);
+		let end = normalized.length;
+		if (ends.length) end = Math.min(...ends);
+		where = normalized.slice(start, end).trim();
+		if (where === "") where = null;
+	}
 
 	return { action, table, where };
 }
