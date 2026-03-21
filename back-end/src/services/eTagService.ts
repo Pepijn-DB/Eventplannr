@@ -17,7 +17,7 @@ export async function setETag(
 		res.setHeader("ETag", hash);
 	} catch (err) {
 		if (err instanceof AppError && err.message.includes("Invalid table")) {
-			throw new AppError("Invalid table", 400, { cause: err});
+			throw new AppError("Invalid table", 400, { cause: err });
 		} else if (err instanceof Error) {
 			throw new AppError(err.message, 500, { cause: err });
 		} else {

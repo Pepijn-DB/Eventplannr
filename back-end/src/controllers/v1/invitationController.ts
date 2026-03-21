@@ -238,7 +238,9 @@ export const getInvitation = async (
 ) => {
 	try {
 		const { userId, eventId } = getRequestVariables(req, false);
-		const requestedUser = (variableValidator(req.body.user_id) ? req.body.user_id : null) as StrNum;
+		const requestedUser = (
+			variableValidator(req.body.user_id) ? req.body.user_id : null
+		) as StrNum;
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
@@ -249,7 +251,11 @@ export const getInvitation = async (
         WHERE i.event_id = ? AND i.user_id = ?
     `;
 
-		const result = await databaseService.query(sql, [eventId, requestedUser], userId);
+		const result = await databaseService.query(
+			sql,
+			[eventId, requestedUser],
+			userId,
+		);
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
