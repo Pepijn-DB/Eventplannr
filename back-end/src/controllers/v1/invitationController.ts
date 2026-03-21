@@ -237,23 +237,29 @@ export const getInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, eventId } = getRequestVariables(req, false);
-		const requestedUser = (
-			variableValidator(req.body.user_id) ? req.body.user_id : null
-		) as StrNum;
+		const { userId, eventId, invitationId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `
-        SELECT i.user_id, i.event_id, i.role
+        SELECT i.id, i.user_id, i.event_id, i.role
         FROM invitation i
         WHERE i.event_id = ? AND i.user_id = ?
     `;
 
+		const resultUser = await database.query(
+			`SELECT i.user_id FROM invitation i WHERE i.id = ?`,
+			[invitationId],
+			userId,
+		);
+		if (resultUser.rows.length === 0) {
+			return res.status(400).json({ message: "Invitation not found" });
+		}
+
 		const result = await databaseService.query(
 			sql,
-			[eventId, requestedUser],
+			[eventId, resultUser.rows[0].user_id],
 			userId,
 		);
 		if (!result) {
