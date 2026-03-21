@@ -5,6 +5,7 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
@@ -220,9 +221,7 @@ export const updateFullInvitation = async (
 			return res.status(400).json({ message: "Nothing to update" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM invitation WHERE id = ?`, [
-			invitationId,
-		]);
+		await ifMatchValidator(req, `invitation`, invitationId);
 
 		await database.query(sql, [req.body.role, invitationId], userId);
 
@@ -238,17 +237,36 @@ export const getInvitation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, eventId } = getRequestVariables(req, false);
+		const { userId, eventId, invitationId } = getRequestVariables(req, false);
 
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
 		const sql = `
-        SELECT i.user_id, i.event_id, i.role
+        SELECT i.id, i.user_id, i.event_id, i.role
         FROM invitation i
         WHERE i.event_id = ? AND i.user_id = ?
     `;
-		const result = await databaseService.query(sql, [eventId, userId], userId);
+
+		const resultUser = await database.query(
+			`SELECT i.user_id FROM invitation i WHERE i.id = ?`,
+			[invitationId],
+			userId,
+		);
+		if (resultUser.rows.length === 0) {
+			return res.status(400).json({ message: "Invitation not found" });
+		}
+
+		const result = await databaseService.query(
+			sql,
+			[eventId, resultUser.rows[0].user_id],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+
+		await setETag(req, "invitation", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {

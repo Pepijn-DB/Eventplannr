@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event, Location } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import {
 	hasEventPermission,
 	hasLocationPermission,
@@ -68,6 +69,10 @@ export const getLocation = async (
 					 FROM locations l
 					 WHERE l.creator_user = ? AND l.id = ?`;
 		const result = await database.query(sql, [userId, locationId], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		await setETag(req, "location", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -167,9 +172,7 @@ export const updateFullLocation = async (
 		if (!locationName)
 			return res.status(400).json({ message: "Missing location name" });
 
-		await ifMatchValidator(req, `SELECT * FROM locations WHERE id = ?`, [
-			locationId,
-		]);
+		await ifMatchValidator(req, `location`, locationId);
 		await database.query(sql, [locationName, locationId], userId);
 
 		return res.status(204).json();
@@ -212,7 +215,7 @@ export const getEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId, locationId } = getRequestVariables(req, true);
+		const { userId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
@@ -226,8 +229,11 @@ export const getEventLocation = async (
 					 FROM event_locations el
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ? AND el.location_id = ?`;
-		const result = await database.query(sql, [eventId, locationId], userId);
-
+		const result = await database.query(sql, [eventId], userId);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		await setETag(req, "event_locations", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -361,11 +367,21 @@ export const updateFullEventLocation = async (
 		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		await ifMatchValidator(
-			req,
-			`SELECT * FROM event_locations WHERE event_id = ? AND location_id = ?`,
+
+		const idResult = await database.query(
+			`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
 			[eventId, locationId],
+			userId,
 		);
+
+		if (!idResult) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		if (idResult.rows.length === 0) {
+			return res.status(404).json({ message: "Event location not found" });
+		}
+
+		await ifMatchValidator(req, "event_locations", idResult.rows[0].id);
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
 		next(err);

@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
@@ -141,9 +142,7 @@ export const updateFullEventDate = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		await ifMatchValidator(req, `SELECT * FROM event_dates WHERE id = ?`, [
-			dateId,
-		]);
+		await ifMatchValidator(req, `event_dates`, dateId);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
@@ -165,6 +164,11 @@ export const getEventDate = async (
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
 		const result = await database.query(sql, [dateId], userId);
+		if (!result || result.rows.length === 0) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+
+		await setETag(req, "event_dates", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {

@@ -3,6 +3,7 @@ import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
@@ -151,17 +152,16 @@ export const getDateResponse = async (
 		const {
 			userId,
 			eventId,
-			requestedUserId,
+			requestedUserId: requestedUser,
 			id: dateId,
 		} = getRequestVariables(req, true);
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
-			const result = await database.query(
-				sql,
-				[dateId, requestedUserId],
-				userId,
-			);
-
+			const sql = `SELECT dr.id, u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
+			const result = await database.query(sql, [dateId, requestedUser], userId);
+			if (!result) {
+				return res.status(500).json({ message: "Internal server error" });
+			}
+			await setETag(req, "date_response", result.rows[0].id, res);
 			return res.status(200).json({ result: result.rows });
 		} else {
 			return res.status(403).json({ message: "Forbidden" });
@@ -240,14 +240,26 @@ export const updateFullDateResponse = async (
 
 		const sql = `UPDATE date_response SET state = ? WHERE invitation_id = ? AND date_id = ?`;
 
-		await ifMatchValidator(
-			req,
+		const idDateRes = await database.query(
 			`SELECT * FROM date_response WHERE invitation_id = ? AND date_id = ?`,
 			[invitationId, dateId],
+			userId,
 		);
 
-		await database.query(sql, [state, invitationId, dateId], userId);
+		if (!idDateRes || idDateRes.rows.length === 0) {
+			return res.status(404).json({ message: "Date response not found" });
+		}
 
+		await ifMatchValidator(req, "date_response", idDateRes.rows[0].id);
+
+		const result = await database.query(
+			sql,
+			[state, invitationId, dateId],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		return res.status(204).json();
 	} catch (err) {
 		next(err);
@@ -335,13 +347,16 @@ export const getLocationResponse = async (
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const sql = `SELECT u.username, lr.state, l.name FROM location_response lr INNER JOIN event_locations el ON lr.location_id = el.id INNER JOIN locations l ON l.id = el.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
+		const sql = `SELECT lr.id, u.username, lr.state, l.name FROM location_response lr INNER JOIN event_locations el ON lr.location_id = el.id INNER JOIN locations l ON l.id = el.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
 		const result = await database.query(
 			sql,
 			[locationId, requestedUserId],
 			userId,
 		);
-
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		await setETag(req, "location_response", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -445,12 +460,29 @@ export const updateFullLocationResponse = async (
 		}
 		const sql = `UPDATE location_response SET state = ? WHERE invitation_id = ? AND location_id = ?`;
 
-		await ifMatchValidator(
-			req,
-			`SELECT * FROM location_response WHERE invitation_id = ? AND location_id = ?`,
+		const idResult = await database.query(
+			`SELECT id FROM location_response WHERE invitation_id = ? AND location_id = ?`,
 			[invitationId, locationId],
+			userId,
 		);
 
+		if (!idResult) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
+		if (idResult.rows.length === 0) {
+			return res.status(404).json({ message: "Event location not found" });
+		}
+
+		await ifMatchValidator(req, "location_response", idResult.rows[0].id);
+
+		const result = await database.query(
+			sql,
+			[state, invitationId, locationId],
+			userId,
+		);
+		if (!result) {
+			return res.status(500).json({ message: "Internal server error" });
+		}
 		await database.query(sql, [state, invitationId, locationId], userId);
 
 		return res.status(204).json();

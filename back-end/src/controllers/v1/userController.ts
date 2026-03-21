@@ -5,6 +5,7 @@ import { AppError } from "../../middlewares/errorHandler.js";
 import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
+import { setETag } from "../../services/eTagService.js";
 import { hasGlobalPermission } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
@@ -86,6 +87,11 @@ export const getUser = async (
 		WHERE u.id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
+
+		if (result.rows.length === 0) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		await setETag(req, "users", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -205,9 +211,7 @@ export const updateFullUser = async (
 		if (username === null || email === null || password_hash === null)
 			return res.status(400).json({ message: "Missing required fields" });
 
-		await ifMatchValidator(req, `SELECT * FROM users WHERE id = ?`, [
-			requestedUser,
-		]);
+		await ifMatchValidator(req, "users", requestedUser);
 
 		await database.query(
 			sql,
