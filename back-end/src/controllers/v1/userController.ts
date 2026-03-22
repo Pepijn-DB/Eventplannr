@@ -60,6 +60,10 @@ export const getUsers = async (
 	`;
 		const result = await database.query(sql, [userId], userId);
 
+		if (result.rows.length === 0) {
+			return res.status(204).json({ message: "No users found" });
+		}
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
