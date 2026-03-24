@@ -165,6 +165,7 @@ export function parseQuery(sql: string): {
 		return { action: null, table: null, where: null };
 	}
 
+	const fromPos = lower.search(/\bfrom\b/);
 	return { action, table, where };
 }
 
