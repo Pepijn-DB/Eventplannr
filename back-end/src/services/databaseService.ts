@@ -179,8 +179,10 @@ export function parseQuery(sql: string): {
 	}
 
 	let endIndex = lower.length;
-	if (wherePos !== -1 && wherePos > afterFrom) endIndex = Math.min(endIndex, wherePos);
-	if (joinPos !== -1 && joinPos > afterFrom) endIndex = Math.min(endIndex, joinPos);
+	if (wherePos !== -1 && wherePos > afterFrom)
+		endIndex = Math.min(endIndex, wherePos);
+	if (joinPos !== -1 && joinPos > afterFrom)
+		endIndex = Math.min(endIndex, joinPos);
 
 	table = sql.substring(afterFrom, endIndex).trim();
 
