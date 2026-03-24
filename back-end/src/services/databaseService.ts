@@ -153,6 +153,17 @@ export function parseQuery(sql: string): {
 	let table: string | null = null;
 	let where: string | null = null;
 
+	if (lower.startsWith("select")) {
+		action = "SELECT";
+	} else if (lower.startsWith("insert")) {
+		action = "INSERT";
+	} else if (lower.startsWith("update")) {
+		action = "UPDATE";
+	} else if (lower.startsWith("delete")) {
+		action = "DELETE";
+	} else {
+		return { action: null, table: null, where: null };
+	}
 
 	return { action, table, where };
 }
