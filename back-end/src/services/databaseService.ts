@@ -146,6 +146,13 @@ export function parseQuery(sql: string): {
 	const action: string = "";
 	const table: string = "";
 	const where: string = "";
+	if (!sql) return { action: null, table: null, where: null };
+
+	const lower = sql.toLowerCase();
+	let action: string | null = null;
+	let table: string | null = null;
+	let where: string | null = null;
+
 
 	return { action, table, where };
 }
