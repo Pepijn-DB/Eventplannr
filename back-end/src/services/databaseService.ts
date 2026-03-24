@@ -141,11 +141,6 @@ export function parseQuery(sql: string): {
 	table: string | null;
 	where: string | null;
 } {
-	sql;
-	//TODO, see issue #30
-	const action: string = "";
-	const table: string = "";
-	const where: string = "";
 	if (!sql) return { action: null, table: null, where: null };
 
 	const lower = sql.toLowerCase();
@@ -166,6 +161,33 @@ export function parseQuery(sql: string): {
 	}
 
 	const fromPos = lower.search(/\bfrom\b/);
+	if (fromPos === -1) return { action, table: null, where: null };
+
+	const afterFrom = fromPos + "from".length;
+
+	const wherePos = lower.search(/\bwhere\b/);
+
+	const joinPattern = /\b(?:inner|outer|left|right|full|cross)?\s*join\b/g;
+	let joinPos = -1;
+	let execResult: RegExpExecArray | null = joinPattern.exec(lower);
+	while (execResult !== null) {
+		if (execResult.index >= afterFrom) {
+			joinPos = execResult.index;
+			break;
+		}
+		execResult = joinPattern.exec(lower);
+	}
+
+	let endIndex = lower.length;
+	if (wherePos !== -1 && wherePos > afterFrom) endIndex = Math.min(endIndex, wherePos);
+	if (joinPos !== -1 && joinPos > afterFrom) endIndex = Math.min(endIndex, joinPos);
+
+	table = sql.substring(afterFrom, endIndex).trim();
+
+	if (wherePos !== -1 && wherePos > afterFrom) {
+		where = sql.substring(wherePos).trim();
+	}
+
 	return { action, table, where };
 }
 
