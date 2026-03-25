@@ -160,8 +160,8 @@ export function parseQuery(sql: string): {
 		return { action: null, table: null, where: null };
 	}
 
-	const wherePos = lower.search(/\bwhere\b/);
-	if (wherePos !== -1) {
+	const wherePos = sql.search(/\bwhere\b/i);
+	if (wherePos !== -1 && wherePos < sql.length) {
 		where = sql.substring(wherePos).trim();
 	}
 
