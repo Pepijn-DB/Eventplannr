@@ -160,34 +160,26 @@ export function parseQuery(sql: string): {
 		return { action: null, table: null, where: null };
 	}
 
-	const fromPos = lower.search(/\bfrom\b/);
-	if (fromPos === -1) return { action, table: null, where: null };
-
-	const afterFrom = fromPos + "from".length;
-
 	const wherePos = lower.search(/\bwhere\b/);
-
-	const joinPattern = /\b(?:inner|outer|left|right|full|cross)?\s*join\b/g;
-	let joinPos = -1;
-	let execResult: RegExpExecArray | null = joinPattern.exec(lower);
-	while (execResult !== null) {
-		if (execResult.index >= afterFrom) {
-			joinPos = execResult.index;
-			break;
-		}
-		execResult = joinPattern.exec(lower);
+	if (wherePos !== -1) {
+		where = sql.substring(wherePos).trim();
 	}
 
-	let endIndex = lower.length;
-	if (wherePos !== -1 && wherePos > afterFrom)
-		endIndex = Math.min(endIndex, wherePos);
-	if (joinPos !== -1 && joinPos > afterFrom)
-		endIndex = Math.min(endIndex, joinPos);
+	// Helper to clean a raw table token
+	const cleanTableToken = (token: string | undefined) => {
+		if (!token) return null;
+		return token.replace(/[;,()]$/g, "").trim();
+	};
 
-	table = sql.substring(afterFrom, endIndex).trim();
-
-	if (wherePos !== -1 && wherePos > afterFrom) {
-		where = sql.substring(wherePos).trim();
+	if (action === "SELECT" || action === "DELETE") {
+		const fromMatch = sql.match(/\bfrom\s+([^\s;(),]+)/i);
+		if (fromMatch?.[1]) table = cleanTableToken(fromMatch[1]);
+	} else if (action === "INSERT") {
+		const intoMatch = sql.match(/\binsert\s+into\s+([^\s(;,]+)/i);
+		if (intoMatch?.[1]) table = cleanTableToken(intoMatch[1]);
+	} else if (action === "UPDATE") {
+		const updMatch = sql.match(/\bupdate\s+([^\s;(),]+)/i);
+		if (updMatch?.[1]) table = cleanTableToken(updMatch[1]);
 	}
 
 	return { action, table, where };
