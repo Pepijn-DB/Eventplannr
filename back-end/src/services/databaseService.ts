@@ -141,11 +141,46 @@ export function parseQuery(sql: string): {
 	table: string | null;
 	where: string | null;
 } {
-	sql;
-	//TODO, see issue #30
-	const action: string = "";
-	const table: string = "";
-	const where: string = "";
+	if (!sql) return { action: null, table: null, where: null };
+
+	const lower = sql.toLowerCase().trimStart();
+	let action: string | null = null;
+	let table: string | null = null;
+	let where: string | null = null;
+
+	if (lower.startsWith("select")) {
+		action = "SELECT";
+	} else if (lower.startsWith("insert")) {
+		action = "INSERT";
+	} else if (lower.startsWith("update")) {
+		action = "UPDATE";
+	} else if (lower.startsWith("delete")) {
+		action = "DELETE";
+	} else {
+		return { action: null, table: null, where: null };
+	}
+
+	const wherePos = sql.search(/\bwhere\b/i);
+	if (wherePos !== -1 && wherePos < sql.length) {
+		where = sql.substring(wherePos).trim();
+	}
+
+	// Helper to clean a raw table token
+	const cleanTableToken = (token: string | undefined) => {
+		if (!token) return null;
+		return token.replace(/[;,()]$/g, "").trim();
+	};
+
+	if (action === "SELECT" || action === "DELETE") {
+		const fromMatch = sql.match(/\bfrom\s+([^\s;(),]+)/i);
+		if (fromMatch?.[1]) table = cleanTableToken(fromMatch[1]);
+	} else if (action === "INSERT") {
+		const intoMatch = sql.match(/\binsert\s+into\s+([^\s(;,]+)/i);
+		if (intoMatch?.[1]) table = cleanTableToken(intoMatch[1]);
+	} else if (action === "UPDATE") {
+		const updMatch = sql.match(/\bupdate\s+([^\s;(),]+)/i);
+		if (updMatch?.[1]) table = cleanTableToken(updMatch[1]);
+	}
 
 	return { action, table, where };
 }
