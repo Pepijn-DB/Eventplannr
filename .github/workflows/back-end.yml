@@ -35,6 +35,9 @@ jobs:
     
     - name: Compile TypeScript
       run: npx tsc --noEmit
+
+    - name: Run tests
+      run: npm test
     
     - name: Run linter (Biome)
       run: npx biome check .
