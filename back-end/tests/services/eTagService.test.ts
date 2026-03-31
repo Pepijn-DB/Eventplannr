@@ -2,8 +2,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import database from "../../src/services/databaseService.js";
 import * as eTagService from "../../src/services/eTagService.js";
-import type {AuthRequest} from "../../src/app.js";
-import type {User} from "../../src/models/user.js";
 
 vi.mock("../../src/services/databaseService.js", () => {
 	const query = vi.fn();
@@ -37,9 +35,9 @@ const req = {
 	user: {
 		id: 1,
 		username: "user",
-		email: "test@email.local"
-	}
-}
+		email: "test@email.local",
+	},
+};
 
 describe("eTagService", () => {
 	beforeEach(() => {
