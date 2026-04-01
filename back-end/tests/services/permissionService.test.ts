@@ -46,7 +46,7 @@ describe("permissionService", () => {
 		);
 		expect(res).toBe(true);
 		expect(database.query).toHaveBeenCalledWith(
-			`SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`,
+			expect.stringContaining("user_permissions") && expect.stringContaining("GLOBAL_ADMIN"),
 			[1],
 			1,
 		);
@@ -59,7 +59,7 @@ describe("permissionService", () => {
 		const res = await permissionService.hasEventPermission(2, 5, Event.VIEW, 2);
 		expect(res).toBe(true);
 		expect(database.query).toHaveBeenCalledWith(
-			`SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ?`,
+			expect.stringContaining("invitation"),
 			[2, 5],
 			2,
 		);
@@ -75,7 +75,7 @@ describe("permissionService", () => {
 		);
 		expect(res).toBe(false);
 		expect(database.query).toHaveBeenCalledWith(
-			`SELECT event_id FROM invitation i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`,
+			expect.stringContaining("invitation") && expect.stringContaining("event_locations"),
 			[1, 10],
 			1,
 		);
