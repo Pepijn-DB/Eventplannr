@@ -45,6 +45,11 @@ describe("permissionService", () => {
 			1,
 		);
 		expect(res).toBe(true);
+		expect(database.query).toHaveBeenCalledWith(
+			`SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`,
+			[1],
+			1,
+		);
 	});
 
 	it("hasEventPermission VIEW returns true when invitation exists", async () => {
@@ -53,6 +58,11 @@ describe("permissionService", () => {
 		});
 		const res = await permissionService.hasEventPermission(2, 5, Event.VIEW, 2);
 		expect(res).toBe(true);
+		expect(database.query).toHaveBeenCalledWith(
+			`SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ?`,
+			[2, 5],
+			2,
+		);
 	});
 
 	it("hasLocationPermission VIEW returns false when no rows", async () => {
@@ -64,5 +74,10 @@ describe("permissionService", () => {
 			1,
 		);
 		expect(res).toBe(false);
+		expect(database.query).toHaveBeenCalledWith(
+			`SELECT event_id FROM invitation i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`,
+			[1, 10],
+			1,
+		);
 	});
 });
