@@ -75,7 +75,7 @@ export async function getETag(
 		}
 
 		default: {
-			throw new AppError(`Invalid table: ${table}`);
+			throw new AppError(`Invalid table: ${table}`, 400);
 		}
 	}
 
