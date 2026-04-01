@@ -35,7 +35,7 @@ describe("permissionService", () => {
 		(database.query as any).mockReset();
 	});
 
-	it("hasGlobalPermission ADMIN_ALL returns true when user_permission exists", async () => {
+	it("hasGlobalPermission ADMIN_ALL returns true when user_permissions exists", async () => {
 		(database.query as any).mockResolvedValueOnce({
 			rows: [{ user_id: 1, permission: "GLOBAL_ADMIN" }],
 		});
@@ -46,7 +46,7 @@ describe("permissionService", () => {
 		);
 		expect(res).toBe(true);
 		expect(database.query).toHaveBeenCalledWith(
-			`SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`,
+			`SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`,
 			[1],
 			1,
 		);
