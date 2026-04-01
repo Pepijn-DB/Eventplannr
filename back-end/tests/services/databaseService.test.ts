@@ -61,7 +61,9 @@ describe("databaseService utilities", () => {
 
 		const q5 = "NO ACTION WHERE id = 1";
 		expect(parseQuery(q5)).toEqual({
-			action: null, table: null, where: null,
+			action: null,
+			table: null,
+			where: null,
 		});
 	});
 
