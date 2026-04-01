@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dbConfig } from "../../src/config/config.js";
 import {
+	close,
 	connect,
 	convertQuestionMarksToDollarParams,
 	parseQuery,
 	prepareQueryAndParams,
 	query,
+	queryWithoutExecutioner,
 } from "../../src/services/databaseService.js";
 
 vi.mock("../../src/services/mysqlService.js", () => {
@@ -142,8 +144,15 @@ describe("connect()", () => {
 
 describe("query()", () => {
 	let originalType: string;
-	beforeEach(() => {
+	beforeEach(async () => {
 		originalType = dbConfig.type;
+		vi.clearAllMocks();
+		const mysql = await import("../../src/services/mysqlService.js");
+		const pg = await import("../../src/services/postgresService.js");
+		const mysqlDefault = vi.mocked(mysql.default, true);
+		const pgDefault = vi.mocked(pg.default, true);
+		mysqlDefault.connect.mockResolvedValue(false);
+		pgDefault.connect.mockResolvedValue(false);
 	});
 
 	afterEach(() => {
@@ -217,5 +226,116 @@ describe("query()", () => {
 		expect(res).toHaveProperty("rows");
 		expect(Array.isArray(res.rows)).toBe(true);
 		expect(res.rows.length).toBe(0);
+	});
+});
+
+describe("queryWithoutExecutioner()", () => {
+	let originalType: string;
+	beforeEach(async () => {
+		originalType = dbConfig.type;
+		vi.clearAllMocks();
+		const mysql = await import("../../src/services/mysqlService.js");
+		const pg = await import("../../src/services/postgresService.js");
+		const mysqlDefault = vi.mocked(mysql.default, true);
+		const pgDefault = vi.mocked(pg.default, true);
+		mysqlDefault.connect.mockResolvedValue(false);
+		pgDefault.connect.mockResolvedValue(false);
+	});
+
+	afterEach(() => {
+		dbConfig.type = originalType;
+	});
+
+	it("query with mysql should reject when DB is not available", async () => {
+		dbConfig.type = "mysql";
+		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
+			expect.objectContaining({
+				message: "Database connection error",
+				status: 500,
+			}),
+		);
+	});
+
+	it("query with postgres should reject when DB is not available", async () => {
+		dbConfig.type = "postgres";
+		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
+			expect.objectContaining({
+				message: "Database connection error",
+				status: 500,
+			}),
+		);
+	});
+
+	it("query with an unknown database type should throw Unknown database connection", async () => {
+		dbConfig.type = "unknown";
+		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
+			expect.objectContaining({
+				message: "Unknown database connection",
+				status: 500,
+			}),
+		);
+	});
+
+	it("postgres query uses postgres client when available", async () => {
+		dbConfig.type = "postgres";
+		const pg = await import("../../src/services/postgresService.js");
+		const pgDefault = vi.mocked(pg.default, true);
+		pgDefault.connect.mockResolvedValue(true);
+		pgDefault.query.mockResolvedValue({ rows: [{ id: 10 }] });
+
+		const res = await queryWithoutExecutioner("SELECT * FROM events", []);
+		expect(res).toHaveProperty("rows");
+		expect(Array.isArray(res.rows)).toBe(true);
+		expect(res.rows[0].id).toBe(10);
+	});
+
+	it("mysql query returns rows when mysqlService.query returns result", async () => {
+		dbConfig.type = "mysql";
+		const mysql = await import("../../src/services/mysqlService.js");
+		const mysqlDefault = vi.mocked(mysql.default, true);
+		mysqlDefault.connect.mockResolvedValue(true);
+		mysqlDefault.query.mockResolvedValue({ rows: [{ id: 5 }] });
+
+		const res = await queryWithoutExecutioner(
+			"INSERT INTO events (title) VALUES (?)",
+			["t"],
+		);
+		expect(res).toHaveProperty("rows");
+		expect(Array.isArray(res.rows)).toBe(true);
+		expect(res.rows[0].id).toBe(5);
+	});
+
+	it("mysql query returns empty rows when mysqlService.query returns null", async () => {
+		dbConfig.type = "mysql";
+		const mysql = await import("../../src/services/mysqlService.js");
+		const mysqlDefault = vi.mocked(mysql.default, true);
+		mysqlDefault.connect.mockResolvedValue(true);
+		mysqlDefault.query.mockResolvedValue(null);
+
+		const res = await queryWithoutExecutioner("SELECT 1", []);
+		expect(res).toHaveProperty("rows");
+		expect(Array.isArray(res.rows)).toBe(true);
+		expect(res.rows.length).toBe(0);
+	});
+});
+
+describe("close()", () => {
+	let originalType: string;
+	beforeEach(() => {
+		originalType = dbConfig.type;
+	});
+
+	afterEach(() => {
+		dbConfig.type = originalType;
+	});
+
+	it("connect with mysql", async () => {
+		dbConfig.type = "mysql";
+		expect(await close());
+	});
+
+	it("connect with postgres", async () => {
+		dbConfig.type = "postgres";
+		expect(await close());
 	});
 });
