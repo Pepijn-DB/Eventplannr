@@ -62,7 +62,7 @@ describe("eTagService", () => {
 		expect(res.setHeader).toHaveBeenCalled();
 	});
 
-	it("getETag throws for unknown table", () => {
-		expect(eTagService.getETag(req as any, "nope", 1)).rejects.toThrow();
+	it("getETag throws for unknown table", async () => {
+		await expect(eTagService.getETag(req as any, "nope", 1)).rejects.toThrow();
 	});
 });
