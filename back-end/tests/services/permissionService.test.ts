@@ -46,8 +46,7 @@ describe("permissionService", () => {
 		);
 		expect(res).toBe(true);
 		expect(database.query).toHaveBeenCalledWith(
-			expect.stringContaining("user_permissions") &&
-				expect.stringContaining("GLOBAL_ADMIN"),
+			expect.stringMatching(/(?=.*user_permissions)(?=.*GLOBAL_ADMIN)/),
 			[1],
 			1,
 		);
@@ -76,8 +75,7 @@ describe("permissionService", () => {
 		);
 		expect(res).toBe(false);
 		expect(database.query).toHaveBeenCalledWith(
-			expect.stringContaining("invitation") &&
-				expect.stringContaining("event_locations"),
+			expect.stringMatching(/(?=.*invitation)(?=.*event_locations)/),
 			[1, 10],
 			1,
 		);
