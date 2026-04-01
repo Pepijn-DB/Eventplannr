@@ -76,5 +76,6 @@ describe("postgresService", () => {
 			1,
 		);
 		expect(res).toHaveProperty("rows");
+		expect(instance.query).toHaveBeenCalledTimes(3);
 	});
 });
