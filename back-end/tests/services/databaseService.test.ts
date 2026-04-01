@@ -16,6 +16,16 @@ describe("databaseService utilities", () => {
 		expect(params).toEqual([1, 2, "active"]);
 	});
 
+	it("prepareQueryAndParams returns (NULL) if empty arrays", () => {
+		const sql = "SELECT * FROM users WHERE id IN (?) AND status = ?";
+		const { sql: preparedSql, params } = prepareQueryAndParams(sql, [
+			[],
+			"active",
+		]);
+		expect(preparedSql).toContain("(NULL)");
+		expect(params).toEqual(["active"]);
+	});
+
 	it("prepareQueryAndParams returns original when params length mismatch", () => {
 		const sql = "SELECT * FROM foo WHERE a = ? AND b = ?";
 		const { sql: preparedSql, params } = prepareQueryAndParams(sql, [1]);
@@ -47,6 +57,11 @@ describe("databaseService utilities", () => {
 			action: "DELETE",
 			table: "foo",
 			where: "WHERE bar = 2",
+		});
+
+		const q5 = "NO ACTION WHERE id = 1";
+		expect(parseQuery(q5)).toEqual({
+			action: null, table: null, where: null,
 		});
 	});
 
