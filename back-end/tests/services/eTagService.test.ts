@@ -27,7 +27,7 @@ vi.mock("../../src/services/databaseService.js", () => {
 	};
 });
 
-vi.mock("../../validators/requestValidator.js", () => ({
+vi.mock("../../src/validators/requestValidator.js", () => ({
 	userValidator: () => 42,
 }));
 
