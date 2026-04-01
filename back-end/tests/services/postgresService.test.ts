@@ -76,6 +76,6 @@ describe("postgresService", () => {
 			1,
 		);
 		expect(res).toHaveProperty("rows");
-		expect(instance.query).toHaveBeenCalledTimes(3);
+		expect(instance.query).toHaveBeenCalledWith(expect.stringContaining("log"), expect.arrayContaining([1, "events"]));
 	});
 });
