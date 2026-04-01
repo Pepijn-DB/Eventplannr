@@ -6,7 +6,12 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!!**/coverage",
+			"!!**/node_modules"
+		]
 	},
 	"formatter": {
 		"enabled": true,
