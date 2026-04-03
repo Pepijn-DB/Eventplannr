@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import database from "../../src/services/databaseService.js";
-import databaseService from "../../src/services/databaseService.js";
 import * as eTagService from "../../src/services/eTagService.js";
 
 vi.mock("../../src/services/databaseService.js", () => {
@@ -131,7 +130,7 @@ describe("setETag()", () => {
 
 	it("setETag() throws AppError with message for any other error", async () => {
 		const spy = vi
-			.spyOn(databaseService, "query")
+			.spyOn(database, "query")
 			.mockRejectedValue(new Error("Unknown error"));
 		await expect(eTagService.setETag(req, "users", 1, res)).rejects.toThrow(
 			expect.objectContaining({ message: "Unknown error", status: 500 }),
@@ -140,7 +139,7 @@ describe("setETag()", () => {
 	});
 
 	it("setETag() throws AppError for anything other than an error", async () => {
-		const spy = vi.spyOn(databaseService, "query").mockRejectedValue("Unknown");
+		const spy = vi.spyOn(database, "query").mockRejectedValue("Unknown");
 		await expect(eTagService.setETag(req, "users", 1, res)).rejects.toThrow(
 			expect.objectContaining({
 				message: "Internal server error",
