@@ -26,20 +26,13 @@ export async function connect(): Promise<boolean> {
 	if (!pool) return false;
 
 	try {
-		try {
-			pool.connect();
-
-			const query = await queryWithoutExecutioner("SELECT NOW()");
-			connected = query.rows.length > 0;
-		} catch (_err) {
-			connected = false;
-		}
-
-		return connected;
+		pool.connect();
+		const query = await queryWithoutExecutioner("SELECT NOW()");
+		connected = query.rows.length > 0;
 	} catch (_err) {
 		connected = false;
-		return false;
 	}
+	return connected;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
@@ -139,7 +132,7 @@ async function addLog(
 			[queryForLog, executioner, tableName, whereClause, action],
 		);
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-		const insertId = (res as any)?.insertId;
+		const insertId = (res as any)[0]?.insertId;
 		return insertId ?? null;
 	} catch (_err) {
 		return null;
