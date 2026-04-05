@@ -7,7 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!!**/coverage", "!!**/node_modules"]
+		"includes": [
+			"**",
+			"!!**/coverage",
+			"!!**/node_modules",
+			"!!**/tsconfig.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,
