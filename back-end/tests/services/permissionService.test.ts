@@ -29,6 +29,39 @@ vi.mock("../../src/services/databaseService.js", () => {
 
 // import enums for permissions
 import { Event, Global, Location } from "../../src/models/permissions.js";
+import {
+	hasEventPermission,
+	hasGlobalPermission,
+	hasLocationPermission,
+} from "../../src/services/permissionService.js";
+
+async function _testPermission(
+	checkPermission: Event | Location | Global,
+	_hasPermission: Event | Location | Global,
+	succeeds: boolean,
+): Promise<void> {
+	function isEnumValue<T extends object>(
+		enumObj: T,
+		value: unknown,
+	): value is T[keyof T] {
+		// for numeric enums we require a number and check membership among enum values
+		return (
+			typeof value === "number" &&
+			Object.values(enumObj as any).includes(value as any)
+		);
+	}
+
+	let result: boolean | undefined;
+	if (isEnumValue(Event, checkPermission)) {
+		result = await hasEventPermission(1, 1, checkPermission, 1);
+	} else if (isEnumValue(Location, checkPermission)) {
+		result = await hasLocationPermission(1, 1, checkPermission, 1);
+	} else if (isEnumValue(Global, checkPermission)) {
+		result = await hasGlobalPermission(1, checkPermission);
+	}
+
+	expect(result).toBe(succeeds);
+}
 
 describe("permissionService", () => {
 	beforeEach(() => {
