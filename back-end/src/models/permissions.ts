@@ -19,6 +19,27 @@ export enum Global {
 	ADMIN_ALL,
 }
 
+export const GlobalMeta: Record<Global, { sql: string | null }> = {
+	[Global.ACCESS_APP]: { sql: null },
+	[Global.VIEW_ALL_USERS]: { sql: null },
+	[Global.VIEW_ALL_EVENTS]: { sql: null },
+	[Global.VIEW_ALL_INVITATIONS]: { sql: null },
+	[Global.VIEW_ALL_LOCATIONS]: { sql: null },
+	[Global.VIEW_ALL_PERMISSIONS]: { sql: null },
+	[Global.VIEW_ALL_RESPONSES]: { sql: null },
+	[Global.VIEW_LOG]: { sql: null },
+	[Global.EDIT_ALL_USERS]: { sql: null },
+	[Global.EDIT_ALL_EVENTS]: { sql: null },
+	[Global.EDIT_ALL_INVITATIONS]: { sql: null },
+	[Global.EDIT_ALL_LOCATIONS]: { sql: null },
+	[Global.EDIT_ALL_PERMISSIONS]: { sql: null },
+	[Global.EDIT_ALL_RESPONSES]: { sql: null },
+	[Global.ADMIN_EVENT]: { sql: "EVENT_ADMIN" },
+	[Global.ADMIN_LOCATION]: { sql: null },
+	[Global.ADMIN_USER]: { sql: "USER_ADMIN" },
+	[Global.ADMIN_ALL]: { sql: "GLOBAL_ADMIN" },
+};
+
 export enum Event {
 	VIEW,
 	EDIT_DATE,

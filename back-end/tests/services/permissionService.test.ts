@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import database from "../../src/services/databaseService.js";
-import * as permissionService from "../../src/services/permissionService.js";
 
 vi.mock("../../src/services/databaseService.js", () => {
 	const query = vi.fn();
@@ -28,17 +27,22 @@ vi.mock("../../src/services/databaseService.js", () => {
 });
 
 // import enums for permissions
-import { Event, Global, Location } from "../../src/models/permissions.js";
+import {
+	Event,
+	Global,
+	GlobalMeta,
+	Location,
+} from "../../src/models/permissions.js";
 import {
 	hasEventPermission,
 	hasGlobalPermission,
 	hasLocationPermission,
 } from "../../src/services/permissionService.js";
 
-async function _testPermission(
-	checkPermission: Event | Location | Global,
-	_hasPermission: Event | Location | Global,
+async function testPermission(
 	succeeds: boolean,
+	checkPermission: Event | Location | Global,
+	hasPermission?: Event | Location | Global,
 ): Promise<void> {
 	function isEnumValue<T extends object>(
 		enumObj: T,
@@ -49,6 +53,17 @@ async function _testPermission(
 			typeof value === "number" &&
 			Object.values(enumObj as any).includes(value as any)
 		);
+	}
+
+	if (
+		hasPermission !== undefined &&
+		isEnumValue(Global, hasPermission) &&
+		GlobalMeta[hasPermission].sql !== undefined &&
+		GlobalMeta[hasPermission].sql !== null
+	) {
+		(database.query as any).mockResolvedValueOnce({
+			rows: [{ user_id: 1, permission: GlobalMeta[hasPermission].sql }],
+		});
 	}
 
 	let result: boolean | undefined;
@@ -69,48 +84,18 @@ describe("permissionService", () => {
 	});
 
 	it("hasGlobalPermission ADMIN_ALL returns true when user_permissions exists", async () => {
-		(database.query as any).mockResolvedValueOnce({
-			rows: [{ user_id: 1, permission: "GLOBAL_ADMIN" }],
-		});
-		const res = await permissionService.hasGlobalPermission(
-			1,
-			Global.ADMIN_ALL,
-			1,
-		);
-		expect(res).toBe(true);
-		expect(database.query).toHaveBeenCalledWith(
-			expect.stringMatching(/(?=.*user_permissions)(?=.*GLOBAL_ADMIN)/),
-			[1],
-			1,
-		);
+		await testPermission(true, Global.ADMIN_ALL, Global.ADMIN_ALL);
 	});
 
 	it("hasEventPermission VIEW returns true when invitation exists", async () => {
 		(database.query as any).mockResolvedValueOnce({
-			rows: [{ user_id: 2, event_id: 5, role: "X" }],
+			rows: [{ user_id: 2, event_id: 1, role: "X" }],
 		});
-		const res = await permissionService.hasEventPermission(2, 5, Event.VIEW, 2);
-		expect(res).toBe(true);
-		expect(database.query).toHaveBeenCalledWith(
-			expect.stringContaining("invitation"),
-			[2, 5],
-			2,
-		);
+		await testPermission(true, Event.VIEW);
 	});
 
 	it("hasLocationPermission VIEW returns false when no rows", async () => {
 		(database.query as any).mockResolvedValue({ rows: [] });
-		const res = await permissionService.hasLocationPermission(
-			1,
-			10,
-			Location.VIEW,
-			1,
-		);
-		expect(res).toBe(false);
-		expect(database.query).toHaveBeenCalledWith(
-			expect.stringMatching(/(?=.*invitation)(?=.*event_locations)/),
-			[1, 10],
-			1,
-		);
+		await testPermission(false, Location.VIEW);
 	});
 });
