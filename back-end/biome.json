@@ -6,7 +6,13 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!!**/coverage",
+			"!!**/node_modules",
+			"!!**/tsconfig.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,

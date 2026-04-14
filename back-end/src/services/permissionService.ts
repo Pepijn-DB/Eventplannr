@@ -125,7 +125,7 @@ export async function hasGlobalPermission(
 			return await hasGlobalPermission(user, Global.ADMIN_ALL);
 		}
 		case Global.ADMIN_USER: {
-			const sql = `SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'USER_ADMIN' LIMIT 1`;
+			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'USER_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
 			return (
 				result.rows.length > 0 ||
@@ -133,7 +133,7 @@ export async function hasGlobalPermission(
 			);
 		}
 		case Global.ADMIN_EVENT: {
-			const sql = `SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'EVENT_ADMIN' LIMIT 1`;
+			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'EVENT_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
 			return (
 				result.rows.length > 0 ||
@@ -141,7 +141,7 @@ export async function hasGlobalPermission(
 			);
 		}
 		case Global.ADMIN_ALL: {
-			const sql = `SELECT up.user_id, up.permission FROM user_permission up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`;
+			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
 			return result.rows.length > 0;
 		}

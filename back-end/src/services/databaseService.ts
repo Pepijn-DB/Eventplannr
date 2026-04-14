@@ -79,6 +79,8 @@ export async function close(): Promise<void> {
 	}
 }
 
+type Param = StrNum | StrNum[];
+
 /**
  * Prepares a SQL query and its corresponding parameters by resolving placeholders (`?`) in the query string
  * using the provided parameter list. Supports handling arrays in the parameters to dynamically generate
@@ -93,7 +95,7 @@ export async function close(): Promise<void> {
  */
 export function prepareQueryAndParams(
 	sql: string,
-	params: StrNum[] = [],
+	params: Param[] = [],
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): { sql: string; params: any[] } {
 	if (!params || params.length === 0) return { sql, params: [] };

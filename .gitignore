@@ -11,3 +11,4 @@ back-end/package-lock.json
 .env
 .idea/
 .vscode/
+back-end/coverage/
