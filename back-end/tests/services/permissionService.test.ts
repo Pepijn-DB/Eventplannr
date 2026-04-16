@@ -29,9 +29,11 @@ vi.mock("../../src/services/databaseService.js", () => {
 // import enums for permissions
 import {
 	Event,
+	EventMeta,
 	Global,
 	GlobalMeta,
 	Location,
+	LocationMeta,
 } from "../../src/models/permissions.js";
 import {
 	hasEventPermission,
@@ -61,8 +63,31 @@ async function testPermission(
 		GlobalMeta[hasPermission].sql !== undefined &&
 		GlobalMeta[hasPermission].sql !== null
 	) {
-		(database.query as any).mockResolvedValueOnce({
+		(database.query as any).mockResolvedValue({
 			rows: [{ user_id: 1, permission: GlobalMeta[hasPermission].sql }],
+		});
+	} else if (
+		succeeds &&
+		hasPermission !== undefined &&
+		isEnumValue(Global, hasPermission) &&
+		(GlobalMeta[hasPermission].sql === undefined ||
+			GlobalMeta[hasPermission].sql === null)
+	) {
+		(database.query as any).mockResolvedValue({
+			rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+		});
+	} else if (
+		succeeds &&
+		isEnumValue(Event, checkPermission) &&
+		GlobalMeta[checkPermission].sql !== undefined &&
+		GlobalMeta[checkPermission].sql !== null
+	) {
+		(database.query as any).mockResolvedValue({
+			rows: [{ user_id: 1, permission: GlobalMeta[checkPermission].sql }],
+		});
+	} else if (succeeds) {
+		(database.query as any).mockResolvedValue({
+			rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
 		});
 	}
 
@@ -83,9 +108,29 @@ describe("permissionService", () => {
 		(database.query as any).mockReset();
 	});
 
-	it("hasGlobalPermission ADMIN_ALL returns true when user_permissions exists", async () => {
-		await testPermission(true, Global.ADMIN_ALL, Global.ADMIN_ALL);
-	});
+	for (const permission of Object.values(Global)) {
+		if (typeof permission !== "string") {
+			it(`hasGlobalPermission ${GlobalMeta[permission].string} returns true when user has that permission exists`, async () => {
+				await testPermission(true, permission);
+			});
+		}
+	}
+
+	for (const permission of Object.values(Event)) {
+		if (typeof permission !== "string") {
+			it(`hasEventPermission ${EventMeta[permission].string} returns true when user has that permission exists`, async () => {
+				await testPermission(true, permission);
+			});
+		}
+	}
+
+	for (const permission of Object.values(Location)) {
+		if (typeof permission !== "string") {
+			it(`hasLocationPermission ${LocationMeta[permission].string} returns true when user has that permission exists`, async () => {
+				await testPermission(true, permission);
+			});
+		}
+	}
 
 	it("hasEventPermission VIEW returns true when invitation exists", async () => {
 		(database.query as any).mockResolvedValueOnce({

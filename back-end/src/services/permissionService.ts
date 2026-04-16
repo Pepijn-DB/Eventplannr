@@ -63,8 +63,10 @@ export async function hasEventPermission(
 				requester,
 			);
 			return (
-				resultEvent.rows.length > 0 ||
-				resultInv.rows.length > 0 ||
+				(resultEvent !== null &&
+					resultEvent !== undefined &&
+					resultEvent.rows !== null &&
+					(resultEvent.rows.length > 0 || resultInv.rows.length > 0)) ||
 				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS))
 			);
 		}
@@ -128,7 +130,11 @@ export async function hasGlobalPermission(
 			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'USER_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
 			return (
-				result.rows.length > 0 ||
+				(result !== null &&
+					result !== undefined &&
+					result.rows !== null &&
+					result.rows !== undefined &&
+					result.rows.length > 0) ||
 				(await hasGlobalPermission(user, Global.ADMIN_ALL))
 			);
 		}
@@ -136,14 +142,24 @@ export async function hasGlobalPermission(
 			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'EVENT_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
 			return (
-				result.rows.length > 0 ||
+				(result !== null &&
+					result !== undefined &&
+					result.rows !== null &&
+					result.rows !== undefined &&
+					result.rows.length > 0) ||
 				(await hasGlobalPermission(user, Global.ADMIN_ALL))
 			);
 		}
 		case Global.ADMIN_ALL: {
 			const sql = `SELECT up.user_id, up.permission FROM user_permissions up WHERE up.user_id = ? AND up.permission = 'GLOBAL_ADMIN' LIMIT 1`;
 			const result = await database.query(sql, [user], requester);
-			return result.rows.length > 0;
+			return (
+				result !== null &&
+				result !== undefined &&
+				result.rows !== null &&
+				result.rows !== undefined &&
+				result.rows.length > 0
+			);
 		}
 		default:
 			return false;

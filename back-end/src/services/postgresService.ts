@@ -27,18 +27,12 @@ export async function connect(): Promise<boolean> {
 
 		if (!pool) return false;
 
-		try {
-			const query = await pool.query("SELECT NOW()");
-			connected = query.rows.length > 0;
-		} catch (_err) {
-			connected = false;
-		}
-
-		return connected;
+		const query = await pool.query("SELECT NOW()");
+		connected = query.rows.length > 0;
 	} catch (_err) {
 		connected = false;
-		return false;
 	}
+	return connected;
 }
 
 export async function query(
@@ -47,14 +41,17 @@ export async function query(
 	executioner: number | null,
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): Promise<{ rows: any[] }> {
-	const prepared = prepareQueryAndParams(query, params);
-	const converted = convertQuestionMarksToDollarParams(prepared.sql);
-
-	const result: QueryResult = await pool.query(converted.sql, prepared.params);
-
-	const logNumber: number | null = await addLog(prepared.sql, executioner);
-
 	try {
+		const prepared = prepareQueryAndParams(query, params);
+		const converted = convertQuestionMarksToDollarParams(prepared.sql);
+
+		const result: QueryResult = await pool.query(
+			converted.sql,
+			prepared.params,
+		);
+
+		const logNumber: number | null = await addLog(prepared.sql, executioner);
+
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 		const resultRows = Array.isArray(result.rows) ? (result.rows as any[]) : [];
 		const ids = resultRows
@@ -67,27 +64,27 @@ export async function query(
 			const updateSql = `UPDATE ${tableName} SET updated_log = $1 WHERE id IN (${placeholders});`;
 			await pool.query(updateSql, [logNumber, ...ids]);
 		}
+
+		return { rows: result.rows };
 	} catch (err) {
 		let message = "Database query error";
 		if (err instanceof Error) message = err.message;
 		throw new AppError(message, 500);
 	}
-
-	return { rows: result.rows };
 }
 
 async function addLog(
 	query: string,
 	executioner: number | null,
 ): Promise<number | null> {
-	if (!(await connect()) || !pool || !query) return null;
-	if (executioner !== null && executioner < 0) return null;
-
-	const { action, table: tableName, where: whereClause } = parseQuery(query);
-	if (!action || !tableName) return null;
-	if (action === "SELECT") return null;
-
 	try {
+		if (!(await connect()) || !pool || !query) return null;
+		if (executioner !== null && executioner < 0) return null;
+
+		const { action, table: tableName, where: whereClause } = parseQuery(query);
+		if (!action || !tableName) return null;
+		if (action === "SELECT") return null;
+
 		const insertSql = `INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES ($1, $2, $3, $4, $5) RETURNING id;`;
 		const res = await pool.query(insertSql, [
 			query,
@@ -102,7 +99,7 @@ async function addLog(
 	}
 }
 
-async function close(): Promise<void> {
+export async function close(): Promise<void> {
 	try {
 		await pool.end();
 		connected = false;

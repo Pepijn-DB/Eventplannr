@@ -244,6 +244,6 @@ describe("close()", () => {
 		const mysql = await import("mysql2/promise");
 		const pool = mysql.createPool({} as any) as any;
 		await mysqlService.close();
-		expect(pool.end).toBeCalled();
+		expect(pool.end).toHaveBeenCalled();
 	});
 });
