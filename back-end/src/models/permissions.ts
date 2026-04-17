@@ -62,7 +62,7 @@ export const GlobalMeta: Record<
 		string: "Global.EDIT_ALL_RESPONSES",
 	},
 	[Global.ADMIN_EVENT]: { sql: "EVENT_ADMIN", string: "Global.ADMIN_EVENT" },
-	[Global.ADMIN_LOCATION]: { sql: null, string: "Global.ADMIN_LOCATION	" },
+	[Global.ADMIN_LOCATION]: { sql: null, string: "Global.ADMIN_LOCATION" },
 	[Global.ADMIN_USER]: { sql: "USER_ADMIN", string: "Global.ADMIN_USER" },
 	[Global.ADMIN_ALL]: { sql: "GLOBAL_ADMIN", string: "Global.ADMIN_ALL" },
 };
