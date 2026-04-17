@@ -38,13 +38,11 @@ export async function hasEventPermission(
 					requester,
 				);
 				return (
-					(
-						resultInv !== null &&
+					(resultInv !== null &&
 						resultInv !== undefined &&
 						resultInv.rows !== null &&
 						resultInv.rows !== undefined &&
-						resultInv.rows.length > 0
-					) ||
+						resultInv.rows.length > 0) ||
 					(await hasGlobalPermission(user, Global.EDIT_ALL_INVITATIONS)) ||
 					(await hasEventPermission(user, event, Event.EDIT_ALL))
 				);
@@ -54,13 +52,11 @@ export async function hasEventPermission(
 			const sql = `SELECT i.user_id, i.event_id, i.role FROM invitation i WHERE i.user_id = ? AND i.event_id = ? AND (i.role = DATE_PICKER or i.role = ORGANIZER)`;
 			const result = await database.query(sql, [user, event], requester);
 			return (
-				(
-					result !== null &&
+				(result !== null &&
 					result !== undefined &&
 					result.rows !== null &&
 					result.rows !== undefined &&
-					result.rows.length > 0
-				) ||
+					result.rows.length > 0) ||
 				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS)) ||
 				(await hasEventPermission(user, event, Event.EDIT_ALL))
 			);
@@ -189,13 +185,11 @@ export async function hasLocationPermission(
 			const sql = `SELECT event_id FROM invitation i WHERE i.user_id = ? AND i.event_id IN (SELECT el.event_id FROM event_locations el JOIN locations l ON l.id = el.location_id WHERE l.id = ?)`;
 			const result = await database.query(sql, [user, location], requester);
 			return (
-				(
-					result !== null &&
+				(result !== null &&
 					result !== undefined &&
 					result.rows !== null &&
 					result.rows !== undefined &&
-					result.rows.length > 0
-				) ||
+					result.rows.length > 0) ||
 				hasLocationPermission(user, location, Location.EDIT_ALL)
 			);
 		}
@@ -203,13 +197,11 @@ export async function hasLocationPermission(
 			const sql = `SELECT l.id, l.creator_user FROM locations l WHERE l.creator_id = ? AND l.id = ?`;
 			const result = await database.query(sql, [user, location], requester);
 			return (
-				(
-					result !== null &&
+				(result !== null &&
 					result !== undefined &&
 					result.rows !== null &&
 					result.rows !== undefined &&
-					result.rows.length > 0
-				) ||
+					result.rows.length > 0) ||
 				(await hasGlobalPermission(user, Global.ADMIN_LOCATION))
 			);
 		}
