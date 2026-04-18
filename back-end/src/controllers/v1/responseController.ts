@@ -11,6 +11,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+import {validateResult} from "../../validators/resultValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	try {
@@ -93,13 +94,7 @@ async function getInvitationId(
 	if (resultInvitation && resultInvitation.rows.length === 0) {
 		throw new AppError("Forbidden", 403);
 	}
-	if (
-		!resultInvitation ||
-		!resultInvitation.rows[0] ||
-		!resultInvitation.rows[0].id
-	) {
-		throw new AppError("Internal server error", 500);
-	}
+	validateResult(resultInvitation);
 	try {
 		return Number(resultInvitation.rows[0].id);
 	} catch (err) {
@@ -158,9 +153,7 @@ export const getDateResponse = async (
 		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
 			const sql = `SELECT dr.id, u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
 			const result = await database.query(sql, [dateId, requestedUser], userId);
-			if (!result) {
-				return res.status(500).json({ message: "Internal server error" });
-			}
+			validateResult(result);
 			await setETag(req, "date_response", result.rows[0].id, res);
 			return res.status(200).json({ result: result.rows });
 		} else {
@@ -353,9 +346,7 @@ export const getLocationResponse = async (
 			[locationId, requestedUserId],
 			userId,
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		validateResult(result);
 		await setETag(req, "location_response", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -504,7 +495,7 @@ export const getAllDateResponses = async (
 		}
 		const sql = `SELECT dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-
+		validateResult(result);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -527,7 +518,7 @@ export const getAllLocationResponses = async (
 		}
 		const sql = `SELECT l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-
+		validateResult(result);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

@@ -12,6 +12,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+import {validateResult} from "../../validators/resultValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	try {
@@ -59,6 +60,8 @@ export const getInvitations = async (
         `;
 		const result = await databaseService.query(sql, [eventId], userId);
 
+		validateResult(result);
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -87,6 +90,8 @@ export const getUserInvitations = async (
 			[userId],
 			userValidator(req),
 		);
+
+		validateResult(result);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -262,9 +267,8 @@ export const getInvitation = async (
 			[eventId, resultUser.rows[0].user_id],
 			userId,
 		);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+
+		validateResult(result);
 
 		await setETag(req, "invitation", result.rows[0].id, res);
 

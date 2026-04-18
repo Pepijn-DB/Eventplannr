@@ -12,6 +12,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+import {validateResult} from "../../validators/resultValidator.js";
 
 const SALT_ROUNDS = 10;
 
@@ -60,9 +61,7 @@ export const getUsers = async (
 	`;
 		const result = await database.query(sql, [userId], userId);
 
-		if (result.rows.length === 0) {
-			return res.status(204).json({ message: "No users found" });
-		}
+		validateResult(result);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -92,9 +91,8 @@ export const getUser = async (
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
 
-		if (result.rows.length === 0) {
-			return res.status(404).json({ message: "User not found" });
-		}
+		validateResult(result);
+
 		await setETag(req, "users", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
@@ -278,7 +276,7 @@ export const getUserPermissions = async (
 		WHERE up.user_id = ?
 	`;
 		const result = await database.query(sql, [requestedUser], userId);
-
+		validateResult(result);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);

@@ -13,6 +13,7 @@ import {
 	userValidator,
 } from "../../validators/requestValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
+import {validateResult} from "../../validators/resultValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	try {
@@ -50,6 +51,8 @@ export const getLocations = async (
 					 WHERE l.creator_user = ?`;
 		const result = await database.query(sql, [userId], userId);
 
+		validateResult(result);
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -69,9 +72,7 @@ export const getLocation = async (
 					 FROM locations l
 					 WHERE l.creator_user = ? AND l.id = ?`;
 		const result = await database.query(sql, [userId, locationId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		validateResult(result);
 		await setETag(req, "location", result.rows[0].id, res);
 
 		return res.status(200).json({ result: result.rows });
@@ -203,6 +204,8 @@ export const getEventLocations = async (
 					 WHERE el.event_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
 
+		validateResult(result);
+
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
@@ -230,9 +233,7 @@ export const getEventLocation = async (
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ? AND el.location_id = ?`;
 		const result = await database.query(sql, [eventId], userId);
-		if (!result) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
+		validateResult(result);
 		await setETag(req, "event_locations", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
