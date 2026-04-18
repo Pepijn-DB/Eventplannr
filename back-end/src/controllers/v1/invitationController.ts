@@ -11,8 +11,8 @@ import {
 	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
+import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import {validateResult} from "../../validators/resultValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsInvitationId: boolean) {
 	try {

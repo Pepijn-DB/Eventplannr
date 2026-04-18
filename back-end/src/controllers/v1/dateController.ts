@@ -10,8 +10,8 @@ import {
 	ifMatchValidator,
 	userValidator,
 } from "../../validators/requestValidator.js";
+import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import {validateResult} from "../../validators/resultValidator.js";
 
 function getRequestVariables(req: AuthRequest, needsId: boolean) {
 	try {
@@ -53,7 +53,7 @@ export const getEventDates = async (
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ? ORDER BY ed.date ASC`;
 		const result = await database.query(sql, [eventId], userId);
 
-        validateResult(result);
+		validateResult(result);
 
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {
@@ -172,7 +172,7 @@ export const getEventDate = async (
 			return res.status(500).json({ message: "Internal server error" });
 		}
 
-        validateResult(result);
+		validateResult(result);
 
 		await setETag(req, "event_dates", result.rows[0].id, res);
 
