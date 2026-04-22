@@ -15,7 +15,7 @@ function quoteIdentifier(name: string, type: string): string {
 	if (type === "postgres") {
 		return `"${name.replace(/"/g, '""')}"`;
 	}
-	return `\`${name.replace(/`/g, '``')}\``;
+	return `\`${name.replace(/`/g, "``")}\``;
 }
 
 export async function setupDatabase(): Promise<boolean | null> {
