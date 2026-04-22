@@ -11,7 +11,7 @@ if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
 database.connect().then((r) => console.log("Connected to database", r));
 
 setupDatabase().then((r) => {
-	if (r == null) return;
+	if (r === null) return;
 	console.log("Database setup", r);
 });
 
