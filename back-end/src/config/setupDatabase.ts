@@ -1,5 +1,9 @@
 import * as fs from "node:fs";
-import { connect, queryWithoutExecutioner } from "../services/databaseService.js";
+import { AppError } from "../middlewares/errorHandler.js";
+import {
+	connect,
+	queryWithoutExecutioner,
+} from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
 
 export async function setupDatabase(): Promise<boolean | null> {
@@ -12,10 +16,14 @@ export async function setupDatabase(): Promise<boolean | null> {
 		} else if (dbConfig.type === "mysql") {
 			return await setupMySQL();
 		}
-	} catch (_err) {
-		return false;
+	} catch (err) {
+		if (err instanceof Error) {
+			throw new AppError(`Error setting up database: ${err.message}`, 500);
+		} else {
+			throw new AppError("Error setting up database", 500);
+		}
 	}
-	throw new Error("Unsupported database type");
+	throw new AppError("Unsupported database type", 500);
 }
 
 async function setupPostgres(): Promise<boolean | null> {
