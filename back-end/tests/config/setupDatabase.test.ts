@@ -1,13 +1,12 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
 /** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <Tests could use unused params> */
+
+import { promises as fsp } from "node:fs";
+import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dbConfig } from "../../src/config/config.js";
-
-import { setupDatabase } from "../../src/config/setupDatabase.js";
+import { setupDatabase, setupSql } from "../../src/config/setupDatabase.js";
 import * as dbSvc from "../../src/services/databaseService.js";
-import { setupSql } from "../../src/config/setupDatabase.js";
-import * as path from "node:path";
-import { promises as fsp } from "node:fs";
 
 describe("setupDatabase", () => {
 	let originalType: string;
@@ -31,13 +30,18 @@ describe("setupDatabase", () => {
 
 		it("executes CREATE DATABASE and SQL statements from file", async () => {
 			const calls: string[] = [];
-			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(async (sql: string) => {
-				calls.push(sql);
-				return { rows: [] } as any;
-			});
+			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
+				async (sql: string) => {
+					calls.push(sql);
+					return { rows: [] } as any;
+				},
+			);
 
 			tmpFile = path.join(process.cwd(), "tests", "config", "tmp_schema.sql");
-			await fsp.writeFile(tmpFile, "CREATE TABLE t (id INT);INSERT INTO t VALUES (1);");
+			await fsp.writeFile(
+				tmpFile,
+				"CREATE TABLE t (id INT);INSERT INTO t VALUES (1);",
+			);
 
 			await setupSql(tmpFile);
 
@@ -50,11 +54,15 @@ describe("setupDatabase", () => {
 
 		it("logs and returns when file read fails", async () => {
 			const calls: string[] = [];
-			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(async (sql: string) => {
-				calls.push(sql);
-				return { rows: [] } as any;
-			});
-			const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
+				async (sql: string) => {
+					calls.push(sql);
+					return { rows: [] } as any;
+				},
+			);
+			const errSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => undefined);
 
 			await setupSql("non-existent-file.sql");
 
@@ -67,17 +75,24 @@ describe("setupDatabase", () => {
 		it("logs and returns when a query execution fails", async () => {
 			const calls: string[] = [];
 			let callIndex = 0;
-			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(async (sql: string) => {
-				calls.push(sql);
-				callIndex++;
-				if (callIndex === 3) throw new Error("exec fail");
-				return { rows: [] } as any;
-			});
+			vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
+				async (sql: string) => {
+					calls.push(sql);
+					callIndex++;
+					if (callIndex === 3) throw new Error("exec fail");
+					return { rows: [] } as any;
+				},
+			);
 
 			tmpFile = path.join(process.cwd(), "tests", "config", "tmp_schema2.sql");
-			await fsp.writeFile(tmpFile, "CREATE TABLE a (id INT);CREATE TABLE b (id INT);");
+			await fsp.writeFile(
+				tmpFile,
+				"CREATE TABLE a (id INT);CREATE TABLE b (id INT);",
+			);
 
-			const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+			const errSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => undefined);
 			await setupSql(tmpFile);
 			// @ts-expect-error
 			expect(calls[0].startsWith("CREATE DATABASE")).toBe(true);
