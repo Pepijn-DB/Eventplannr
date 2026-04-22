@@ -32,7 +32,7 @@ async function setupPostgres(): Promise<boolean | null> {
 	if (result.rows.length !== 0) {
 		return null;
 	}
-	setupSql("./src/config/default_postgres_database.sql");
+	await setupSql("./src/config/default_postgres_database.sql");
 
 	return true;
 }
@@ -43,7 +43,7 @@ async function setupMySQL(): Promise<boolean | null> {
 	if (result.rows.length !== 0) {
 		return null;
 	}
-	setupSql("./src/config/default_sql_database.sql");
+	await setupSql("./src/config/default_sql_database.sql");
 	return true;
 }
 
