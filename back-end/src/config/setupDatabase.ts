@@ -6,10 +6,25 @@ import {
 } from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
 
+function isValidDatabaseName(name: unknown): name is string {
+	if (typeof name !== "string") return false;
+	return /^[A-Za-z0-9_]{1,63}$/.test(name);
+}
+
+function quoteIdentifier(name: string, type: string): string {
+	if (type === "postgres") {
+		return `"${name.replace(/"/g, '""')}"`;
+	}
+	return `\`${name.replace(/`/g, '``')}\``;
+}
+
 export async function setupDatabase(): Promise<boolean | null> {
 	try {
 		const connected = await connect();
 		if (!connected) return false;
+		if (!isValidDatabaseName(dbConfig.database)) {
+			throw new AppError("Invalid database name in configuration", 500);
+		}
 
 		if (dbConfig.type === "postgres") {
 			return await setupPostgres();
@@ -27,8 +42,8 @@ export async function setupDatabase(): Promise<boolean | null> {
 }
 
 async function setupPostgres(): Promise<boolean | null> {
-	const sql = `SELECT 1 FROM pg_database WHERE datname = '${dbConfig.database}'`;
-	const result = await queryWithoutExecutioner(sql);
+	const sql = `SELECT 1 FROM pg_database WHERE datname = ?`;
+	const result = await queryWithoutExecutioner(sql, [dbConfig.database]);
 	if (result.rows.length !== 0) {
 		return null;
 	}
@@ -38,8 +53,8 @@ async function setupPostgres(): Promise<boolean | null> {
 }
 
 async function setupMySQL(): Promise<boolean | null> {
-	const sql = `SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${dbConfig.database}'`;
-	const result = await queryWithoutExecutioner(sql);
+	const sql = `SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`;
+	const result = await queryWithoutExecutioner(sql, [dbConfig.database]);
 	if (result.rows.length !== 0) {
 		return null;
 	}
@@ -48,7 +63,8 @@ async function setupMySQL(): Promise<boolean | null> {
 }
 
 async function setupSql(filePath: string): Promise<void> {
-	await queryWithoutExecutioner(`CREATE DATABASE ${dbConfig.database}`);
+	const quoted = quoteIdentifier(dbConfig.database, dbConfig.type);
+	await queryWithoutExecutioner(`CREATE DATABASE ${quoted}`);
 	try {
 		const data = await fs.promises.readFile(filePath, "utf-8");
 		const queries = data
