@@ -1,11 +1,10 @@
 import * as fs from "node:fs";
-import * as db from "../services/databaseService.js";
-import { queryWithoutExecutioner } from "../services/databaseService.js";
+import { connect, queryWithoutExecutioner } from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
 
 export async function setupDatabase(): Promise<boolean | null> {
 	try {
-		const connected = await db.connect();
+		const connected = await connect();
 		if (!connected) return false;
 
 		if (dbConfig.type === "postgres") {
