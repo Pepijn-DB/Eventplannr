@@ -49,22 +49,24 @@ async function setupMySQL(): Promise<boolean | null> {
 
 async function setupSql(filePath: string): Promise<void> {
 	await queryWithoutExecutioner(`CREATE DATABASE ${dbConfig.database}`);
-	fs.readFile(filePath, "utf-8", async (err, data) => {
-		if (err) {
-			console.error("Error reading schema.sql:", err);
-			return false;
-		}
-		const queries = data
-			.split(";")
-			.map((q) => q.trim())
-			.filter((q) => q.length > 0);
-		for (const query of queries) {
-			try {
-				await queryWithoutExecutioner(query);
-			} catch (err) {
-				console.error("Error executing query:", query, err);
-				return false;
-			}
-		}
-	});
+	try {
+ 		const data = await fs.promises.readFile(filePath, "utf-8");
+ 		const queries = data
+ 			.split(";")
+ 			.map((q) => q.trim())
+ 			.filter((q) => q.length > 0);
+ 		for (const query of queries) {
+ 			try {
+ 				await queryWithoutExecutioner(query);
+ 			} catch (err) {
+ 				console.error("Error executing query:", query, err);
+ 				return;
+ 			}
+ 		}
+ 	} catch (err) {
+ 		console.error("Error reading schema.sql:", err);
+ 		return;
+ 	}
 }
+
+export { setupSql };
