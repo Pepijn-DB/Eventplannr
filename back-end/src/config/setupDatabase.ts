@@ -47,9 +47,7 @@ async function setupPostgres(): Promise<boolean | null> {
 	if (result.rows.length !== 0) {
 		return null;
 	}
-	await setupSql("./src/config/default_postgres_database.sql");
-
-	return true;
+	return await setupSql("./src/config/default_postgres_database.sql");
 }
 
 async function setupMySQL(): Promise<boolean | null> {
@@ -58,11 +56,10 @@ async function setupMySQL(): Promise<boolean | null> {
 	if (result.rows.length !== 0) {
 		return null;
 	}
-	await setupSql("./src/config/default_sql_database.sql");
-	return true;
+	return await setupSql("./src/config/default_sql_database.sql");
 }
 
-async function setupSql(filePath: string): Promise<void> {
+async function setupSql(filePath: string): Promise<boolean> {
 	const quoted = quoteIdentifier(dbConfig.database, dbConfig.type);
 	await queryWithoutExecutioner(`CREATE DATABASE ${quoted}`);
 	try {
@@ -76,13 +73,14 @@ async function setupSql(filePath: string): Promise<void> {
 				await queryWithoutExecutioner(query);
 			} catch (err) {
 				console.error("Error executing query:", query, err);
-				return;
+				return false;
 			}
 		}
 	} catch (err) {
 		console.error("Error reading schema.sql:", err);
-		return;
+		return false;
 	}
+	return true;
 }
 
 export { setupSql };
