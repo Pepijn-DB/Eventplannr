@@ -3,7 +3,7 @@ import {queryWithoutExecutioner} from "../services/databaseService.js";
 import {dbConfig} from "./config.js";
 import * as fs from 'node:fs';
 
-export async function setupDatabase():Promise<boolean> {
+export async function setupDatabase():Promise<boolean | null> {
     try {
         const connected = await db.connect();
         if (!connected) return false;
@@ -19,22 +19,22 @@ export async function setupDatabase():Promise<boolean> {
     throw new Error("Unsupported database type");
 }
 
-async function setupPostgres():Promise<boolean> {
+async function setupPostgres():Promise<boolean | null> {
     const sql = `SELECT 1 FROM pg_database WHERE datname = '${dbConfig.database}'`;
     const result = await queryWithoutExecutioner(sql);
     if (result.rows.length !== 0) {
-        return true;
+        return null;
     }
     setupSql("./src/config/default_postgres_database.sql");
 
     return true;
 }
 
-async function setupMySQL():Promise<boolean> {
+async function setupMySQL():Promise<boolean | null> {
     const sql = `SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${dbConfig.database}'`;
     const result = await queryWithoutExecutioner(sql);
     if (result.rows.length !== 0) {
-        return true;
+        return null;
     }
     setupSql("./src/config/default_sql_database.sql");
     return true;
