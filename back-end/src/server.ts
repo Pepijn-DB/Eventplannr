@@ -1,9 +1,7 @@
 import app from "./app.js";
 import config from "./config/config.js";
-
+import { setupDatabase } from "./config/setupDatabase.js";
 import database from "./services/databaseService.js";
-
-import {setupDatabase} from "./config/setupDatabase.js";
 
 if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
 	console.error("\x1b[31m[ERROR] Secret not set in env\x1b[0m");
@@ -13,7 +11,7 @@ if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
 database.connect().then((r) => console.log("Connected to database", r));
 
 setupDatabase().then((r) => {
-	if(r == null) return;
+	if (r == null) return;
 	console.log("Database setup", r);
 });
 
