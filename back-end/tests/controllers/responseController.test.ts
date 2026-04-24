@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../src/validators/requestValidator.js", () => ({
 	ifMatchValidator: vi.fn(),
 	userValidator: vi.fn(),
+	eventValidator: vi.fn(),
 }));
 
 vi.mock("../../src/validators/variableValidator.js", () => ({
