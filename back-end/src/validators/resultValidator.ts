@@ -2,7 +2,7 @@ import { AppError } from "../middlewares/errorHandler.js";
 
 export function validateResult(
 	// biome-ignore lint/suspicious/noExplicitAny: < Needs result as is used in databaseService, and result uses any >
-	result: { rows: any[] },
+	result: { rows: any[] } | null | undefined,
 	needsRows: boolean = true,
 ) {
 	if (result === null || result === undefined) {
