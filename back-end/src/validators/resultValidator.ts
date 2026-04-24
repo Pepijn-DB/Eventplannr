@@ -1,8 +1,8 @@
 import { AppError } from "../middlewares/errorHandler.js";
 
-// biome-ignore lint/suspicious/noExplicitAny: < Needs result as is used in databaseService, and result uses any >
 export function validateResult(
-	result: { rows: any[] },
+	// biome-ignore lint/suspicious/noExplicitAny: < Needs result as is used in databaseService, and result uses any >
+	result: { rows: any[] } | null | undefined,
 	needsRows: boolean = true,
 ) {
 	if (result === null || result === undefined) {
