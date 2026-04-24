@@ -5,7 +5,10 @@ import { promises as fsp } from "node:fs";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dbConfig } from "../../src/config/config.js";
-import { setupDatabase, setupSql } from "../../src/config/setupDatabase.js";
+import * as setupModule from "../../src/config/setupDatabase.js";
+
+const { setupDatabase, setupSql } = setupModule;
+
 import * as dbSvc from "../../src/services/databaseService.js";
 
 describe("setupDatabase", () => {
@@ -196,6 +199,18 @@ describe("setupDatabase", () => {
 		await expect(setupDatabase()).rejects.toEqual(
 			expect.objectContaining({
 				message: "Error setting up database",
+				status: 500,
+			}),
+		);
+	});
+
+	it("throws AppError dbConfig.database is not a valid name", async () => {
+		vi.spyOn(dbSvc, "connect").mockResolvedValue(true as any);
+		// set an invalid database name so the validator fails
+		dbConfig.database = "bad;name";
+		await expect(setupDatabase()).rejects.toEqual(
+			expect.objectContaining({
+				message: expect.stringContaining("Invalid database name"),
 				status: 500,
 			}),
 		);
