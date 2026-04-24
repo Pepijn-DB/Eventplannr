@@ -15,15 +15,12 @@ describe("hash model", () => {
 	});
 
 	afterEach(() => {
-		// restore subtle.digest if it existed
 		if ((globalThis as any).crypto?.subtle) {
 			(globalThis as any).crypto.subtle.digest = originalDigest;
 		}
 	});
 
 	it("produces hex from digest (toHex)", async () => {
-		// mock digest to return bytes [0, 15, 255]
-		// replace only the subtle.digest function
 		(globalThis as any).crypto.subtle.digest = async (
 			_alg: any,
 			_data: ArrayBuffer,
@@ -42,9 +39,7 @@ describe("hash model", () => {
 			_alg: any,
 			data: ArrayBuffer,
 		) => {
-			// decode the bytes passed to digest to inspect canonical string
 			capturedCanonical = new TextDecoder().decode(data as ArrayBuffer);
-			// return deterministic bytes
 			return new Uint8Array([1, 2, 3]).buffer;
 		};
 
@@ -56,10 +51,8 @@ describe("hash model", () => {
 		};
 
 		const result = await hash(value, { algorithm: "SHA-256" });
-		// digest returned [1,2,3] so hex should be '010203'
 		expect(result).toBe("010203");
 
-		// canonical should have sorted keys: a, b, c, d
 		const expectedCanonical = JSON.stringify({
 			a: {
 				$type: "date",
