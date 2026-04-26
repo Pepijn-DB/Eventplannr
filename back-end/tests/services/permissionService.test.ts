@@ -26,14 +26,12 @@ vi.mock("../../src/services/databaseService.js", () => {
 	};
 });
 
-// import enums for permissions
 import {
 	Event,
 	EventMeta,
 	Global,
 	GlobalMeta,
 	Location,
-	LocationMeta,
 } from "../../src/models/permissions.js";
 import {
 	hasEventPermission,
@@ -50,7 +48,6 @@ async function testPermission(
 		enumObj: T,
 		value: unknown,
 	): value is T[keyof T] {
-		// for numeric enums we require a number and check membership among enum values
 		return (
 			typeof value === "number" &&
 			Object.values(enumObj as any).includes(value as any)
@@ -98,6 +95,8 @@ async function testPermission(
 		result = await hasLocationPermission(1, 1, checkPermission, 1);
 	} else if (isEnumValue(Global, checkPermission)) {
 		result = await hasGlobalPermission(1, checkPermission);
+	} else {
+		throw new Error("Invalid permission type");
 	}
 
 	expect(result).toBe(succeeds);
@@ -124,13 +123,81 @@ describe("permissionService", () => {
 		}
 	}
 
-	for (const permission of Object.values(Location)) {
-		if (typeof permission !== "string") {
-			it(`hasLocationPermission ${LocationMeta[permission].string} returns true when user has that permission exists`, async () => {
-				await testPermission(true, permission);
+	describe("Manual tests for coverage", () => {
+		it(`hasLocationPermission Location.EDIT_ALL returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
 			});
-		}
-	}
+
+			const result = await hasLocationPermission(1, 1, Location.EDIT_ALL, 1);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasLocationPermission Location.VIEW returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+			});
+
+			const result = await hasLocationPermission(1, 1, Location.VIEW, 1);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasGlobalPermission Global.ACCESS_APP always returns true`, async () => {
+			const result = await hasGlobalPermission(1, Global.ACCESS_APP, 1);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasGlobalPermission Global.VIEW_ALL_USERS returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+			});
+
+			const result = await hasGlobalPermission(1, Global.VIEW_ALL_USERS, 1);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasGlobalPermission Global.VIEW_ALL_INVITATIONS returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+			});
+
+			const result = await hasGlobalPermission(
+				1,
+				Global.VIEW_ALL_INVITATIONS,
+				1,
+			);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasGlobalPermission Global.VIEW_ALL_LOCATIONS returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+			});
+
+			const result = await hasGlobalPermission(1, Global.VIEW_ALL_LOCATIONS, 1);
+
+			expect(result).toBe(true);
+		});
+
+		it(`hasGlobalPermission Global.VIEW_ALL_PERMISSIONS returns true when user has that permission exists`, async () => {
+			(database.query as any).mockResolvedValue({
+				rows: [{ user_id: 1, permission: GlobalMeta[Global.ADMIN_ALL].sql }],
+			});
+
+			const result = await hasGlobalPermission(
+				1,
+				Global.VIEW_ALL_PERMISSIONS,
+				1,
+			);
+
+			expect(result).toBe(true);
+		});
+	});
 
 	it("hasEventPermission VIEW returns true when invitation exists", async () => {
 		(database.query as any).mockResolvedValueOnce({

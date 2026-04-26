@@ -238,7 +238,8 @@ describe("setupDatabase", () => {
 		vi.spyOn(dbSvc, "connect").mockResolvedValue(true as any);
 		await expect(setupDatabase()).rejects.toEqual(
 			expect.objectContaining({
-				message: "Error setting up database: Invalid database name in configuration",
+				message:
+					"Error setting up database: Invalid database name in configuration",
 			}),
 		);
 	});
@@ -258,7 +259,7 @@ describe("setupDatabase", () => {
 
 		calls.length = 0;
 		dbConfig.type = "mysql";
-		dbConfig.database = 'db`name';
+		dbConfig.database = "db`name";
 		vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
 			async (sql: string) => {
 				calls.push(sql);
@@ -266,6 +267,6 @@ describe("setupDatabase", () => {
 			},
 		);
 		await setupSql("non-existent-file-for-quote-test.sql");
-		expect(calls[0]).toContain('`db``name`');
+		expect(calls[0]).toContain("`db``name`");
 	});
 });
