@@ -78,8 +78,6 @@ export async function hasEventPermission(
 				(await hasGlobalPermission(user, Global.EDIT_ALL_EVENTS))
 			);
 		}
-		default:
-			return false;
 	}
 }
 
@@ -169,8 +167,6 @@ export async function hasGlobalPermission(
 				result.rows.length > 0
 			);
 		}
-		default:
-			return false;
 	}
 }
 
@@ -205,7 +201,5 @@ export async function hasLocationPermission(
 				(await hasGlobalPermission(user, Global.ADMIN_LOCATION))
 			);
 		}
-		default:
-			return false;
 	}
 }
