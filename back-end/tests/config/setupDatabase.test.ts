@@ -231,4 +231,41 @@ describe("setupDatabase", () => {
 			}),
 		);
 	});
+
+	it("throws AppError when database name is invalid", async () => {
+		dbConfig.type = "postgres";
+		dbConfig.database = "bad-name!";
+		vi.spyOn(dbSvc, "connect").mockResolvedValue(true as any);
+		await expect(setupDatabase()).rejects.toEqual(
+			expect.objectContaining({
+				message: "Error setting up database: Invalid database name in configuration",
+			}),
+		);
+	});
+
+	it("quoteIdentifier escapes identifiers for postgres and mysql when using setupSql", async () => {
+		const calls: string[] = [];
+		dbConfig.type = "postgres";
+		dbConfig.database = 'db"name';
+		vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
+			async (sql: string) => {
+				calls.push(sql);
+				return { rows: [] } as any;
+			},
+		);
+		await setupSql("non-existent-file-for-quote-test.sql");
+		expect(calls[0]).toContain('"db""name"');
+
+		calls.length = 0;
+		dbConfig.type = "mysql";
+		dbConfig.database = 'db`name';
+		vi.spyOn(dbSvc, "queryWithoutExecutioner").mockImplementation(
+			async (sql: string) => {
+				calls.push(sql);
+				return { rows: [] } as any;
+			},
+		);
+		await setupSql("non-existent-file-for-quote-test.sql");
+		expect(calls[0]).toContain('`db``name`');
+	});
 });
