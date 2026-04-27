@@ -2,11 +2,11 @@ name: Compile Backend
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
     paths:
       - 'back-end/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
     paths:
       - 'back-end/**'
   workflow_dispatch:
