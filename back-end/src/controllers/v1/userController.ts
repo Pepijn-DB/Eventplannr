@@ -55,11 +55,22 @@ export const getUsers = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		const sql = `
-		SELECT u.id, u.username, u.email, u.created_at
-		FROM users u
-	`;
-		const result = await database.query(sql, [userId], userId);
+		let sql = `
+		  SELECT u.id, u.username, u.email, u.created_at
+		  FROM users u
+	  `;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [];
+		if (typeof pagination.offset === "number") {
+			sql += ` WHERE u.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY u.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 
@@ -270,12 +281,23 @@ export const getUserPermissions = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		const sql = `
-		SELECT up.user_id, up.permission
-		FROM user_permissions up
-		WHERE up.user_id = ?
-	`;
-		const result = await database.query(sql, [requestedUser], userId);
+		let sql = `
+		  SELECT up.id, up.user_id, up.permission
+		  FROM user_permissions up
+		  WHERE up.user_id = ?
+	  `;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [requestedUser];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND up.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY up.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await database.query(sql, params, userId);
 		validateResult(result);
 		return res.status(200).json({ result: result.rows });
 	} catch (err) {

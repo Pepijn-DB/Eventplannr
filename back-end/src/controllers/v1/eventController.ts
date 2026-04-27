@@ -48,15 +48,24 @@ export const getEvents = async (
 	try {
 		const { userId } = getRequestVariables(req, false);
 
-		const sql = `
-            SELECT e.id, e.title, e.description, e.creator_user, e.status
-            FROM events e
-            INNER JOIN invitation i ON i.event_id = e.id
-            WHERE i.user_id = ? OR e.creator_user = ?
-            ORDER BY e.created_at DESC
-        `;
-
-		const result = await database.query(sql, [userId, userId], userId);
+		let sql = `
+			SELECT e.id, e.title, e.description, e.creator_user, e.status
+			FROM events e
+			INNER JOIN invitation i ON i.event_id = e.id
+			WHERE (i.user_id = ? OR e.creator_user = ?)
+		`;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [userId, userId];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND e.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY e.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 

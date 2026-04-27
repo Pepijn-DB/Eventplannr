@@ -2,6 +2,7 @@ import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event, Location } from "../../models/permissions.js";
+import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import {
@@ -46,10 +47,21 @@ export const getLocations = async (
 ) => {
 	try {
 		const { userId } = getRequestVariables(req, false);
-		const sql = `SELECT l.id, l.name
+		let sql = `SELECT l.id, l.name
 					 FROM locations l
 					 WHERE l.creator_user = ?`;
-		const result = await database.query(sql, [userId], userId);
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [userId];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND l.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY l.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 
@@ -198,11 +210,22 @@ export const getEventLocations = async (
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const sql = `SELECT l.id, l.name
+		let sql = `SELECT el.id, l.id as location_id, l.name
 					 FROM event_locations el
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ?`;
-		const result = await database.query(sql, [eventId], userId);
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [eventId];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND el.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY el.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 

@@ -53,12 +53,23 @@ export const getInvitations = async (
 		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
 			return res.status(403).json({ message: "Forbidden" });
 		}
-		const sql = `
-            SELECT i.user_id, i.event_id, i.role
-            FROM invitation i
-            WHERE i.event_id = ?
-        `;
-		const result = await databaseService.query(sql, [eventId], userId);
+		let sql = `
+			SELECT i.id, i.user_id, i.event_id, i.role
+			FROM invitation i
+			WHERE i.event_id = ?
+		`;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [eventId];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND i.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY i.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await databaseService.query(sql, params, userId);
 
 		validateResult(result);
 
@@ -80,16 +91,23 @@ export const getUserInvitations = async (
 		if (userId === -1 || Number.isNaN(userId) || userId < 0) {
 			return res.status(400).json({ message: "Missing or invalid user id" });
 		}
-		const sql = `
-            SELECT i.user_id, i.event_id, i.role
-            FROM invitation i
-            WHERE i.user_id = ?
-        `;
-		const result = await databaseService.query(
-			sql,
-			[userId],
-			userValidator(req),
-		);
+		let sql = `
+			SELECT i.id, i.user_id, i.event_id, i.role
+			FROM invitation i
+			WHERE i.user_id = ?
+		`;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [userId];
+		if (typeof pagination.offset === "number") {
+			sql += ` AND i.id > ?`;
+			params.push(pagination.offset);
+		}
+		sql += ` ORDER BY i.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		const result = await databaseService.query(sql, params, userValidator(req));
 
 		validateResult(result);
 
