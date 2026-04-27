@@ -5,11 +5,11 @@ import express from "express";
 import config from "./config/config.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
+import paginationHandler from "./middlewares/v1/paginationHandler.js";
 import {
 	authRateLimiter,
 	rateLimiter,
 } from "./middlewares/v1/rateLimitHandler.js";
-
 import type { User } from "./models/user.js";
 import adminRoutes from "./routes/v1/adminRoutes.js";
 import authRoutes from "./routes/v1/authRoutes.js";
@@ -17,12 +17,16 @@ import eventRoutes from "./routes/v1/eventRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
-import paginationHandler from "./middlewares/v1/paginationHandler.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
 	rateLimit?: { resetTime: number; remaining: number };
-	pagination?: { limit?: number; offset?: number; page?: number; per_page?: number };
+	pagination?: {
+		limit?: number;
+		offset?: number;
+		page?: number;
+		per_page?: number;
+	};
 }
 
 const app = express();
