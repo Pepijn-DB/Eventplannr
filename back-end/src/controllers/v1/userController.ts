@@ -61,14 +61,14 @@ export const getUsers = async (
 	  `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [];
-		if (typeof pagination.offset === "number") {
-			sql += ` WHERE u.id > ?`;
-			params.push(pagination.offset);
-		}
 		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await database.query(sql, params, userId);
 
@@ -288,14 +288,14 @@ export const getUserPermissions = async (
 	  `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [requestedUser];
-		if (typeof pagination.offset === "number") {
-			sql += ` AND up.id > ?`;
-			params.push(pagination.offset);
-		}
-		sql += ` ORDER BY up.id ASC`;
+		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await database.query(sql, params, userId);
 		validateResult(result);

@@ -52,14 +52,14 @@ export const getLocations = async (
 					 WHERE l.creator_user = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [userId];
-		if (typeof pagination.offset === "number") {
-			sql += ` AND l.id > ?`;
-			params.push(pagination.offset);
-		}
-		sql += ` ORDER BY l.id ASC`;
+		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await database.query(sql, params, userId);
 
@@ -216,14 +216,14 @@ export const getEventLocations = async (
 					 WHERE el.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		if (typeof pagination.offset === "number") {
-			sql += ` AND el.id > ?`;
-			params.push(pagination.offset);
-		}
-		sql += ` ORDER BY el.id ASC`;
+		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await database.query(sql, params, userId);
 

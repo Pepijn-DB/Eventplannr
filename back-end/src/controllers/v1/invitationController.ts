@@ -60,14 +60,14 @@ export const getInvitations = async (
 		`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		if (typeof pagination.offset === "number") {
-			sql += ` AND i.id > ?`;
-			params.push(pagination.offset);
-		}
-		sql += ` ORDER BY i.id ASC`;
+		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await databaseService.query(sql, params, userId);
 
@@ -98,14 +98,14 @@ export const getUserInvitations = async (
 		`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [userId];
-		if (typeof pagination.offset === "number") {
-			sql += ` AND i.id > ?`;
-			params.push(pagination.offset);
-		}
-		sql += ` ORDER BY i.id ASC`;
+		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
 		}
 		const result = await databaseService.query(sql, params, userValidator(req));
 
