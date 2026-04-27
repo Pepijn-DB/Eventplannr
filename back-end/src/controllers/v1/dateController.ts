@@ -2,6 +2,7 @@ import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
+import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import { hasEventPermission } from "../../services/permissionService.js";
@@ -50,8 +51,19 @@ export const getEventDates = async (
 			return res.status(403).json({ message: "Forbidden" });
 		}
 
-		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ? ORDER BY ed.date ASC`;
-		const result = await database.query(sql, [eventId], userId);
+		let sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ?`;
+		const pagination = req.pagination || {};
+		const params: StrNum[] = [eventId];
+		sql += ` ORDER BY u.id ASC`;
+		if (typeof pagination.limit === "number") {
+			sql += ` LIMIT ?`;
+			params.push(pagination.limit);
+		}
+		if (typeof pagination.offset === "number") {
+			sql += ` OFFSET ?`;
+			params.push(pagination.offset);
+		}
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 
