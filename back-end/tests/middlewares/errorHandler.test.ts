@@ -103,29 +103,33 @@ describe("errorHandler advanced behavior", () => {
 	});
 
 	it("bounded buffer drops oldest entries when exceeding ERRORS_MAX", async () => {
-		vi.resetModules();
-		// set small max
-		process.env.ERRORS_MAX = "2";
-		const mod = await import("../../src/middlewares/errorHandler.js");
-		const { errorHandler, getErrors, AppError } = mod as any;
-
-		const arr = getErrors();
-		arr.splice(0, arr.length);
-
-		const res: any = {
-			status: vi.fn().mockReturnThis(),
-			json: vi.fn().mockReturnThis(),
-		};
-		const req: any = { headers: {}, path: "/p" };
-
-		errorHandler(new AppError("one", 500), req, res);
-		errorHandler(new AppError("two", 500), req, res);
-		errorHandler(new AppError("three", 500), req, res);
-
-		const out = getErrors();
-		expect(out.length).toBe(2);
-		expect(out[0].err.message).toBe("two");
-		expect(out[1].err.message).toBe("three");
+		const previousErrorsMax = process.env.ERRORS_MAX;
+		try {
+			vi.resetModules();
+			process.env.ERRORS_MAX = "2";
+			const mod = await import("../../src/middlewares/errorHandler.js");
+			const { errorHandler, getErrors, AppError } = mod as any;
+			const arr = getErrors();
+			arr.splice(0, arr.length);
+			const res: any = {
+				status: vi.fn().mockReturnThis(),
+				json: vi.fn().mockReturnThis(),
+			};
+			const req: any = { headers: {}, path: "/p" };
+			errorHandler(new AppError("one", 500), req, res);
+			errorHandler(new AppError("two", 500), req, res);
+			errorHandler(new AppError("three", 500), req, res);
+			const out = getErrors();
+			expect(out.length).toBe(2);
+			expect(out[0].err.message).toBe("two");
+			expect(out[1].err.message).toBe("three");
+		} finally {
+			if (previousErrorsMax === undefined) {
+				delete process.env.ERRORS_MAX;
+			} else {
+				process.env.ERRORS_MAX = previousErrorsMax;
+			}
+		}
 	});
 
 	it("appends to ERRORS_LOG_PATH and swallows write errors", async () => {
