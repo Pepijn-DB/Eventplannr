@@ -38,8 +38,9 @@ describe("errorHandler middleware", () => {
 		expect(arr.length).toBe(1);
 		// @ts-expect-error
 		expect(arr[0].err).toBe(err);
-		// @ts-expect-error
-		expect(arr[0].req).toBe(req);
+		// biome-ignore lint/style/noNonNullAssertion: <Tests know arr[0] exists and is an object with req property>
+		const entry0: any = arr[0]!;
+		expect(entry0.req).toMatchObject({ path: "/x" });
 	});
 
 	it("errorHandler uses defaults when message/status falsy", () => {
@@ -60,5 +61,8 @@ describe("errorHandler middleware", () => {
 		expect(arr.length).toBe(1);
 		// @ts-expect-error
 		expect(arr[0].err).toBe(fake);
+		// biome-ignore lint/style/noNonNullAssertion: <Tests know arr[0] exists and is an object with req property>
+		const entry1: any = arr[0]!;
+		expect(entry1.req).toMatchObject({ path: "/y" });
 	});
 });
