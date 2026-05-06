@@ -6,7 +6,10 @@ import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import {hasGlobalPermission, needsGlobalPermission} from "../../services/permissionService.js";
+import {
+	hasGlobalPermission,
+	needsGlobalPermission,
+} from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,

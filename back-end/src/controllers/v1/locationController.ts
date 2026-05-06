@@ -6,7 +6,8 @@ import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import {
-	needsEventPermission, needsLocationPermission,
+	needsEventPermission,
+	needsLocationPermission,
 } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,

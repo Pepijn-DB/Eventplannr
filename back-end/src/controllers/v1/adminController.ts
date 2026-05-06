@@ -3,7 +3,7 @@ import type { AuthRequest } from "../../app.js";
 
 import { getErrors } from "../../middlewares/errorHandler.js";
 import { Global } from "../../models/permissions.js";
-import {hasGlobalPermission, needsGlobalPermission} from "../../services/permissionService.js";
+import { needsGlobalPermission } from "../../services/permissionService.js";
 import { userValidator } from "../../validators/requestValidator.js";
 
 export const getLogs = async (

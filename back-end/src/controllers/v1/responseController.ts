@@ -5,7 +5,10 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import {hasEventPermission, needsEventPermission} from "../../services/permissionService.js";
+import {
+	hasEventPermission,
+	needsEventPermission,
+} from "../../services/permissionService.js";
 import {
 	eventValidator,
 	ifMatchValidator,
@@ -77,7 +80,11 @@ function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	}
 }
 
-async function isUserOrCanEdit(userId: number, eventId: number, requestedUserId: number) {
+async function isUserOrCanEdit(
+	userId: number,
+	eventId: number,
+	requestedUserId: number,
+) {
 	if (
 		!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
 		requestedUserId !== userId
@@ -123,12 +130,7 @@ export const createDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const {
-			userId,
-			eventId,
-			requestedUserId,
-			id: dateId,
-		} = getRequestVariables(req, true);
+		const { userId, eventId, id: dateId } = getRequestVariables(req, true);
 
 		const invitationId = await getInvitationId(userId, eventId);
 
@@ -165,7 +167,6 @@ export const getDateResponse = async (
 		validateResult(result);
 		await setETag(req, "date_response", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });
-
 	} catch (err) {
 		next(err);
 	}

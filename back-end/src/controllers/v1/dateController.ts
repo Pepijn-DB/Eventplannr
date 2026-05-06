@@ -5,7 +5,7 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import {hasEventPermission, needsEventPermission} from "../../services/permissionService.js";
+import { needsEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
 	ifMatchValidator,

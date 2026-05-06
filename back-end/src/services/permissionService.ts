@@ -1,6 +1,6 @@
+import { AppError } from "../middlewares/errorHandler.js";
 import { Event, Global, Location } from "../models/permissions.js";
 import database from "../services/databaseService.js";
-import {AppError} from "../middlewares/errorHandler.js";
 export async function needsEventPermission(
 	user: number,
 	event: number,

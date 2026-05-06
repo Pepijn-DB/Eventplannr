@@ -6,7 +6,7 @@ import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import {hasEventPermission, needsEventPermission} from "../../services/permissionService.js";
+import { needsEventPermission } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,
@@ -134,7 +134,7 @@ export const deleteInvitation = async (
 			userId,
 			resultEvent.rows[0].id,
 			Event.EDIT_INVITATION,
-			);
+		);
 
 		await databaseService.query(
 			`DELETE FROM location_response WHERE invitation_id = ?`,
@@ -252,7 +252,6 @@ export const getInvitation = async (
 		const { userId, eventId, invitationId } = getRequestVariables(req, false);
 
 		await needsEventPermission(userId, eventId, Event.VIEW);
-
 
 		const sql = `
         SELECT i.id, i.user_id, i.event_id, i.role
