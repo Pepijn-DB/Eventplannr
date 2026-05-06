@@ -77,6 +77,15 @@ function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	}
 }
 
+async function isUserOrCanEdit(userId: number, eventId: number, requestedUserId: number) {
+	if (
+		!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+		requestedUserId !== userId
+	) {
+		throw new AppError("Forbidden", 403);
+	}
+}
+
 async function getInvitationId(
 	userId: number,
 	eventId: number,
