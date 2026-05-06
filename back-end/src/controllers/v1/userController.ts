@@ -6,7 +6,7 @@ import { Global } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { hasGlobalPermission } from "../../services/permissionService.js";
+import {hasGlobalPermission, needsGlobalPermission} from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,
@@ -58,9 +58,7 @@ export const getUsers = async (
 	try {
 		const { userId } = getRequestVariables(req, false);
 
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		let sql = `
 		  SELECT u.id, u.username, u.email, u.created_at
@@ -95,12 +93,7 @@ export const getUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		if (
-			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-			userId !== requestedUser
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrAdmin(userId, requestedUser);
 
 		const sql = `
 		SELECT u.id, u.username, u.email, u.created_at
@@ -167,12 +160,7 @@ export const updateUser = async (
 		let sql = `UPDATE users SET`;
 		const params: StrNum[] = [];
 
-		if (
-			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-			userId !== requestedUser
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrAdmin(userId, requestedUser);
 
 		if (req.body.username) {
 			sql += ` username = ?,`;
@@ -209,12 +197,7 @@ export const updateFullUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		if (
-			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-			userId !== requestedUser
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrAdmin(userId, requestedUser);
 
 		if (!req.body.username || !req.body.email || !req.body.password)
 			return res.status(400).json({ message: "Request is not complete" });
@@ -256,12 +239,7 @@ export const deleteUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		if (
-			!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-			userId !== requestedUser
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrAdmin(userId, requestedUser);
 
 		await database.query(
 			`DELETE FROM user_permissions WHERE user_id = ?`,
@@ -287,9 +265,8 @@ export const getUserPermissions = async (
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		let sql = `
 		  SELECT up.id, up.user_id, up.permission
@@ -324,9 +301,8 @@ export const updateUserPermission = async (
 		const { userId } = getRequestVariables(req, false);
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
@@ -343,9 +319,8 @@ export const updateFullUserPermission = async (
 		const { userId } = getRequestVariables(req, false);
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
@@ -365,9 +340,8 @@ export const deleteUserPermission = async (
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		if (permission === null || Array.isArray(permission))
 			return res.status(400).json({ message: "Missing or invalid permission" });
@@ -393,9 +367,8 @@ export const createUserPermission = async (
 			: null;
 
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_USER))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		if (permission === null || Array.isArray(permission))
 			return res.status(400).json({ message: "Missing or invalid permission" });
