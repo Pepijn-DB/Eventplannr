@@ -13,6 +13,6 @@ export function validateResult(
 		result.rows !== undefined &&
 		result.rows.length === 0
 	) {
-		throw new AppError("No rows returned", 404);
+		throw new AppError("Resource not found", 404);
 	}
 }
