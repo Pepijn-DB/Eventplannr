@@ -3,7 +3,7 @@ import type { AuthRequest } from "../../app.js";
 
 import { getErrors } from "../../middlewares/errorHandler.js";
 import { Global } from "../../models/permissions.js";
-import { hasGlobalPermission } from "../../services/permissionService.js";
+import {hasGlobalPermission, needsGlobalPermission} from "../../services/permissionService.js";
 import { userValidator } from "../../validators/requestValidator.js";
 
 export const getLogs = async (
@@ -13,9 +13,9 @@ export const getLogs = async (
 ) => {
 	try {
 		const userId = userValidator(req);
-		if (!(await hasGlobalPermission(userId, Global.ADMIN_ALL))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsGlobalPermission(userId, Global.ADMIN_ALL);
+
 		return res.status(200).json({ errors: getErrors() });
 	} catch (err) {
 		next(err);

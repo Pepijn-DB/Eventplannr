@@ -6,8 +6,7 @@ import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import {
-	hasEventPermission,
-	hasLocationPermission,
+	needsEventPermission, needsLocationPermission,
 } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
@@ -78,8 +77,9 @@ export const getLocation = async (
 ) => {
 	try {
 		const { userId, locationId } = getRequestVariables(req, true);
-		if (!(await hasLocationPermission(userId, locationId, Location.VIEW)))
-			return res.status(403).json({ message: "Forbidden" });
+
+		await needsLocationPermission(userId, locationId, Location.VIEW);
+
 		const sql = `SELECT l.id, l.name
 					 FROM locations l
 					 WHERE l.creator_user = ? AND l.id = ?`;
@@ -100,8 +100,8 @@ export const deleteLocation = async (
 ) => {
 	try {
 		const { userId, locationId } = getRequestVariables(req, true);
-		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
-			return res.status(403).json({ message: "Forbidden" });
+
+		await needsLocationPermission(userId, locationId, Location.EDIT_ALL);
 
 		await database.query(
 			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
@@ -153,8 +153,9 @@ export const updateLocation = async (
 ) => {
 	try {
 		const { userId, locationId } = getRequestVariables(req, true);
-		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
-			return res.status(403).json({ message: "Forbidden" });
+
+		await needsLocationPermission(userId, locationId, Location.EDIT_ALL);
+
 		const sql = `UPDATE locations SET name = ? WHERE id = ?`;
 		const locationName = variableValidator(req.body.name)
 			? req.body.name
@@ -176,8 +177,9 @@ export const updateFullLocation = async (
 ) => {
 	try {
 		const { userId, locationId } = getRequestVariables(req, true);
-		if (!(await hasLocationPermission(userId, locationId, Location.EDIT_ALL)))
-			return res.status(403).json({ message: "Forbidden" });
+
+		await needsLocationPermission(userId, locationId, Location.EDIT_ALL);
+
 		const sql = `UPDATE locations SET name = ? WHERE id = ?`;
 		const locationName = variableValidator(req.body.name)
 			? req.body.name
@@ -207,9 +209,8 @@ export const getEventLocations = async (
 		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
 			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		let sql = `SELECT el.id, l.id as location_id, l.name
 					 FROM event_locations el
 					 JOIN locations l ON el.location_id = l.id
@@ -248,9 +249,8 @@ export const getEventLocation = async (
 		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
 			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		const sql = `SELECT l.id, l.name
 					 FROM event_locations el
 					 JOIN locations l ON el.location_id = l.id
@@ -288,9 +288,8 @@ export const createEventLocation = async (
 				.status(400)
 				.json({ message: "Missing or invalid location id" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_LOCATION);
+
 		const sql = `INSERT INTO event_locations (event_id, location_id) VALUES (?, ?)`;
 		await database.query(sql, [eventId, locationId], userId);
 		return res.status(201).json({
@@ -315,9 +314,8 @@ export const deleteEventLocation = async (
 			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
 				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
-			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
-				return res.status(403).json({ message: "Forbidden" });
-			}
+
+			await needsEventPermission(userId, eventId, Event.EDIT_LOCATION);
 
 			const eventLocation = await database.query(
 				`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,
@@ -363,9 +361,8 @@ export const updateEventLocation = async (
 			if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
 				return res.status(400).json({ message: "Missing or invalid event id" });
 			}
-			if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
-				return res.status(403).json({ message: "Forbidden" });
-			}
+			await needsEventPermission(userId, eventId, Event.EDIT_LOCATION);
+
 			return res.status(405).json({ message: "Method not implemented." });
 		} catch (err) {
 			next(err);
@@ -388,9 +385,8 @@ export const updateFullEventLocation = async (
 		if (eventId === null || Number.isNaN(eventId) || eventId < 0) {
 			return res.status(400).json({ message: "Missing or invalid event id" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_LOCATION))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.EDIT_LOCATION);
 
 		const idResult = await database.query(
 			`SELECT id FROM event_locations WHERE event_id = ? AND location_id = ?`,

@@ -5,7 +5,7 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { hasEventPermission } from "../../services/permissionService.js";
+import {hasEventPermission, needsEventPermission} from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,
@@ -136,9 +136,7 @@ export const updateEvent = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_ALL);
 
 		if (req.body.title) {
 			sql += ` title = ?,`;
@@ -182,9 +180,8 @@ export const updateFullEvent = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_ALL);
+
 		if (!req.body.title || !req.body.description || !req.body.status) {
 			return res.status(400).json({ message: "Request is not complete" });
 		}
@@ -221,9 +218,7 @@ export const deleteEvent = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_ALL))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_ALL);
 
 		await database.query(
 			`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
