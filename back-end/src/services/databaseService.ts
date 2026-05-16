@@ -269,4 +269,8 @@ export function convertQuestionMarksToDollarParams(sql: string): {
 	return { sql: out, paramCount: idx };
 }
 
-export default { connect, query, queryWithoutExecutioner, parseQuery };
+export function getDb() {
+	return db;
+}
+
+export default { getDb, connect, query, queryWithoutExecutioner, parseQuery };
