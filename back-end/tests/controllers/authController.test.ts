@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 
 vi.mock("../../src/validators/variableValidator.js", () => ({
 	variableValidator: vi.fn(),
@@ -28,7 +28,6 @@ vi.mock("../../src/config/config.js", () => ({
 	default: { secret: "TEST_SECRET" },
 }));
 
-import * as bcryptMod from "bcrypt";
 import * as jwtMod from "jsonwebtoken";
 import { getToken } from "../../src/controllers/v1/authController.js";
 import { AppError } from "../../src/middlewares/errorHandler.js";
@@ -156,9 +155,9 @@ describe("authController.getToken", () => {
 		(dbSvc.queryWithoutExecutioner as any).mockResolvedValue({
 			rows: [{ id: 1, password_hash: "hash", username: "u", email: "a@b.com" }],
 		});
-		(bcryptMod.compare as any).mockResolvedValue(false);
-		if ((bcryptMod as any).default)
-			(bcryptMod as any).default.compare.mockResolvedValue(false);
+		(Bun.password.verify as any).mockResolvedValue(false);
+		if ((Bun as any).default)
+			(Bun as any).default.compare.mockResolvedValue(false);
 
 		req.body = { email: "a@b.com", password: "x" };
 
@@ -188,9 +187,9 @@ describe("authController.getToken", () => {
 			email: "a@b.com",
 		};
 		(dbSvc.queryWithoutExecutioner as any).mockResolvedValue({ rows: [user] });
-		(bcryptMod.compare as any).mockResolvedValue(true);
-		if ((bcryptMod as any).default)
-			(bcryptMod as any).default.compare.mockResolvedValue(true);
+		(Bun.password.verify as any).mockResolvedValue(true);
+		if ((Bun.password as any).default)
+			(Bun.password as any).default.compare.mockResolvedValue(true);
 		(jwtMod.sign as any).mockReturnValue("tok");
 		if ((jwtMod as any).default)
 			(jwtMod as any).default.sign.mockReturnValue("tok");

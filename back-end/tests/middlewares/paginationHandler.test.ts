@@ -1,6 +1,6 @@
 // tests/middlewares/paginationHandler.test.ts
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import paginationHandler from "../../src/middlewares/v1/paginationHandler.js";
 
 describe("paginationHandler middleware", () => {

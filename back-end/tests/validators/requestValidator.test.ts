@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import { AppError } from "../../src/middlewares/errorHandler.js";
 import {
 	eventValidator,

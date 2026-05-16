@@ -3,7 +3,7 @@
 
 import { promises as fsp } from "node:fs";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { dbConfig } from "../../src/config/config.js";
 import { setupDatabase, setupSql } from "../../src/config/setupDatabase.js";
 import * as dbSvc from "../../src/services/databaseService.js";

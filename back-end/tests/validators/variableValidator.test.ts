@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import {
 	arrayValidator,
 	variableValidator,

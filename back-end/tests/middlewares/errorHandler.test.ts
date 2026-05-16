@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 
 // we'll spy on fs.promises.appendFile inside the specific test instead of mocking at top-level
 
@@ -71,7 +71,7 @@ describe("errorHandler middleware", () => {
 
 describe("errorHandler advanced behavior", () => {
 	it("stores sanitized headers and returns them via getErrors", async () => {
-		vi.resetModules();
+		vi.resetAllMocks();
 		// import fresh module
 		const mod = await import("../../src/middlewares/errorHandler.js");
 		const { errorHandler, getErrors, AppError } = mod as any;
@@ -105,7 +105,7 @@ describe("errorHandler advanced behavior", () => {
 	it("bounded buffer drops oldest entries when exceeding ERRORS_MAX", async () => {
 		const previousErrorsMax = process.env.ERRORS_MAX;
 		try {
-			vi.resetModules();
+			vi.resetAllMocks();
 			process.env.ERRORS_MAX = "2";
 			const mod = await import("../../src/middlewares/errorHandler.js");
 			const { errorHandler, getErrors, AppError } = mod as any;
@@ -133,7 +133,7 @@ describe("errorHandler advanced behavior", () => {
 	});
 
 	it("appends to ERRORS_LOG_PATH and swallows write errors", async () => {
-		vi.resetModules();
+		vi.resetAllMocks();
 		// spy on fs.promises.appendFile to simulate disk error
 		const fs = await import("node:fs");
 		const spy = vi
@@ -164,7 +164,7 @@ describe("errorHandler advanced behavior", () => {
 		spy.mockRestore();
 	});
 	it("sanitizes request even when header getter throws", async () => {
-		vi.resetModules();
+		vi.resetAllMocks();
 		const mod = await import("../../src/middlewares/errorHandler.js");
 		const { errorHandler, getErrors, AppError } = mod as any;
 

@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 
 // This test ensures that each module can be imported without throwing.
 // It is intentionally light-weight: it only checks module loadability so we can
@@ -12,7 +12,6 @@ const MODULES = [
 	"../../src/models/maybepromise",
 	"../../src/models/user",
 	"../../src/models/strnum",
-	"../../src/models/sqlTables",
 	"../../src/models/permissions",
 	"../../src/validators/variableValidator",
 	"../../src/validators/requestValidator",
@@ -36,6 +35,7 @@ const MODULES = [
 	"../../src/controllers/v1/dateController",
 	"../../src/controllers/v1/authController",
 	"../../src/controllers/v1/adminController",
+	"bun"
 ];
 
 describe("module load smoke tests", () => {

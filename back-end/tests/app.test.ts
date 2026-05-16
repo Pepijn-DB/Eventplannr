@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
 /** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <Tests> */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 
 vi.mock("../src/middlewares/v1/authHandler.js", () => ({
 	checkToken: (req: any, res: any, next: any) => next(),

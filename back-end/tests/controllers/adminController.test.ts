@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 
 vi.mock("../../src/services/permissionService.js", () => ({
 	hasGlobalPermission: vi.fn(),

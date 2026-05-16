@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { AppError } from "../../src/middlewares/errorHandler.js";
 import { validateResult } from "../../src/validators/resultValidator.js";
 
