@@ -1,7 +1,7 @@
 import { dbConfig } from "../config/config.js";
 //dbConfig from the .env file
 
-import { Pool, type QueryResult } from "pg";
+import { SQL } from "bun";
 import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
 import {
@@ -10,14 +10,7 @@ import {
 	prepareQueryAndParams,
 } from "./databaseService.js";
 
-const pool = new Pool({
-	user: dbConfig.username,
-	host: dbConfig.host,
-	database: dbConfig.database,
-	password: dbConfig.password,
-	port: dbConfig.port,
-	idleTimeoutMillis: 30000,
-});
+export const db = new SQL(`postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
 
 let connected: boolean = false;
 
@@ -25,9 +18,11 @@ export async function connect(): Promise<boolean> {
 	try {
 		if (connected) return true;
 
-		if (!pool) return false;
+		if (!db) return false;
 
-		const query = await pool.query("SELECT NOW()");
+		await db.connect();
+
+		const query = await db`SELECT NOW() `;
 		connected = query.rows.length > 0;
 	} catch (_err) {
 		connected = false;
@@ -45,10 +40,7 @@ export async function query(
 		const prepared = prepareQueryAndParams(query, params);
 		const converted = convertQuestionMarksToDollarParams(prepared.sql);
 
-		const result: QueryResult = await pool.query(
-			converted.sql,
-			prepared.params,
-		);
+		const result = await db.unsafe(converted.sql, prepared.params);
 
 		const logNumber: number | null = await addLog(prepared.sql, executioner);
 
@@ -62,7 +54,7 @@ export async function query(
 			const placeholders = ids.map((_, i) => `$${i + 2}`).join(",");
 			const tableName = parseQuery(query).table || "table";
 			const updateSql = `UPDATE ${tableName} SET updated_log = $1 WHERE id IN (${placeholders});`;
-			await pool.query(updateSql, [logNumber, ...ids]);
+			await db.unsafe(updateSql, [logNumber, ...ids]);
 		}
 
 		return { rows: result.rows };
@@ -78,7 +70,7 @@ async function addLog(
 	executioner: number | null,
 ): Promise<number | null> {
 	try {
-		if (!(await connect()) || !pool || !query) return null;
+		if (!(await connect()) || !db || !query) return null;
 		if (executioner !== null && executioner < 0) return null;
 
 		const { action, table: tableName, where: whereClause } = parseQuery(query);
@@ -86,7 +78,7 @@ async function addLog(
 		if (action === "SELECT") return null;
 
 		const insertSql = `INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES ($1, $2, $3, $4, $5) RETURNING id;`;
-		const res = await pool.query(insertSql, [
+		const res = await db.unsafe(insertSql, [
 			query,
 			executioner,
 			tableName,
@@ -101,7 +93,7 @@ async function addLog(
 
 export async function close(): Promise<void> {
 	try {
-		await pool.end();
+		await db.end();
 		connected = false;
 	} catch (_err) {}
 }

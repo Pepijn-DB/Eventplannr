@@ -5,6 +5,7 @@ import {
 	queryWithoutExecutioner,
 } from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
+import { db as pgDb } from "../services/postgresService.js";
 
 function isValidDatabaseName(name: unknown): name is string {
 	if (typeof name !== "string") return false;
@@ -42,12 +43,14 @@ export async function setupDatabase(): Promise<boolean | null> {
 }
 
 async function setupPostgres(): Promise<boolean | null> {
-	const sql = `SELECT 1 FROM pg_database WHERE datname = ?`;
-	const result = await queryWithoutExecutioner(sql, [dbConfig.database]);
-	if (result.rows.length !== 0) {
-		return null;
-	}
-	return await setupSql("./src/config/default_postgres_database.sql");
+	const result = pgDb`SELECT 1 FROM pg_database WHERE datname = ${dbConfig.database}`;
+
+	pgDb`CREATE DATABASE ${dbConfig.database}`;
+	pgDb`SELECT ${dbConfig.database}`
+
+	await pgDb.file("./src/config/default_postgres_database.sql")
+
+	return true;
 }
 
 async function setupMySQL(): Promise<boolean | null> {
