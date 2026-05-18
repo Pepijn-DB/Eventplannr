@@ -1,3 +1,4 @@
+import { password } from "bun";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
@@ -12,7 +13,6 @@ import {
 } from "../../validators/requestValidator.js";
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-import { password } from "bun";
 
 function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 	try {
@@ -122,7 +122,7 @@ export const createUser = async (
 		const password_hash = variableValidator(req.body.password)
 			? await password.hash(req.body.password as string, {
 					algorithm: "bcrypt",
-			})
+				})
 			: null;
 		const email = (
 			variableValidator(req.body.email) ? req.body.email : null
@@ -177,7 +177,7 @@ export const updateUser = async (
 			sql += ` password_hash = ?,`;
 			const newHash = await password.hash(req.body.password as string, {
 				algorithm: "bcrypt",
-			})
+			});
 			params.push(newHash);
 		}
 		if (!req.body.username && !req.body.email && !req.body.password)
@@ -219,8 +219,8 @@ export const updateFullUser = async (
 			: null;
 		const password_hash = variableValidator(req.body.password)
 			? await password.hash(req.body.password as string, {
-				algorithm: "bcrypt",
-			})
+					algorithm: "bcrypt",
+				})
 			: null;
 		if (username === null || email === null || password_hash === null)
 			return res.status(400).json({ message: "Missing required fields" });

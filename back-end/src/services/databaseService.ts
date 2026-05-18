@@ -1,7 +1,7 @@
+import { SQL } from "bun";
 import { dbConfig } from "../config/config.js";
 import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
-import {SQL} from "bun";
 
 let connected: boolean = false;
 
@@ -9,12 +9,18 @@ let db: SQL;
 
 switch (dbConfig.type) {
 	case "mysql": {
-		db = new SQL(`mysql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+		db = new SQL(
+			`mysql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
+		);
 		break;
-	} case "postgres": {
-		db = new SQL(`postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+	}
+	case "postgres": {
+		db = new SQL(
+			`postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
+		);
 		break;
-	} default: {
+	}
+	default: {
 		throw new AppError("Unknown database connection", 500);
 	}
 }

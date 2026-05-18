@@ -1,11 +1,10 @@
-import * as fs from "node:fs";
 import { AppError } from "../middlewares/errorHandler.js";
 import {
 	connect,
+	getDb,
 	queryWithoutExecutioner,
 } from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
-import { getDb } from "../services/databaseService.js";
 
 const db = getDb();
 
@@ -45,7 +44,8 @@ export async function setupDatabase(): Promise<boolean | null> {
 }
 
 async function setupPostgres(): Promise<boolean | null> {
-	const [result] = await db`SELECT 1 FROM pg_database WHERE datname = ${dbConfig.database}`;
+	const [result] =
+		await db`SELECT 1 FROM pg_database WHERE datname = ${dbConfig.database}`;
 	if (result.length !== 0) {
 		return null;
 	}
@@ -57,7 +57,8 @@ async function setupPostgres(): Promise<boolean | null> {
 }
 
 async function setupMySQL(): Promise<boolean | null> {
-	const [result] = await db`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`;
+	const [result] =
+		await db`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`;
 	if (result.length !== 0) {
 		return null;
 	}

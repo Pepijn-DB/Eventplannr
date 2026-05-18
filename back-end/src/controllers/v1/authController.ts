@@ -1,5 +1,5 @@
-import type { NextFunction, Response } from "express";
 import * as Bun from "bun";
+import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../../app.js";
 import Config from "../../config/config.js";
@@ -58,7 +58,11 @@ export const getToken = async (
 		}
 		const user = queryResult.rows[0];
 
-		const passwordMatch = await Bun.password.verify(password as string, user.password_hash, "bcrypt");
+		const passwordMatch = await Bun.password.verify(
+			password as string,
+			user.password_hash,
+			"bcrypt",
+		);
 
 		if (!passwordMatch) {
 			return res.status(401).json({

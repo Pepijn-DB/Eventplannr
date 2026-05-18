@@ -1,9 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
 /** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <Tests could use unused params> */
 
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { promises as fsp } from "node:fs";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { dbConfig } from "../../src/config/config.js";
 import { setupDatabase, setupSql } from "../../src/config/setupDatabase.js";
 import * as dbSvc from "../../src/services/databaseService.js";

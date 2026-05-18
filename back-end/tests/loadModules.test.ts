@@ -35,7 +35,7 @@ const MODULES = [
 	"../../src/controllers/v1/dateController",
 	"../../src/controllers/v1/authController",
 	"../../src/controllers/v1/adminController",
-	"bun"
+	"bun",
 ];
 
 describe("module load smoke tests", () => {
