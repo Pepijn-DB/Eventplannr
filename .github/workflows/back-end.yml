@@ -14,30 +14,28 @@ on:
 jobs:
   compile:
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: ./back-end
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
       with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: back-end/package-lock.json
-    
+        bun-version: latest
+
     - name: Install dependencies
-      run: npm ci
-    
+      run: bun install
+
     - name: Compile TypeScript
-      run: npx tsc --noEmit
+      run: bunx tsc --noEmit
 
     - name: Run tests
-      run: npm test
-    
+      run: bun test
+
     - name: Run linter (Biome)
-      run: npx biome check .
+      run: bunx biome check .
