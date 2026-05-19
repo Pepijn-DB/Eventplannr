@@ -1,30 +1,26 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
 import { beforeEach, describe, expect, it, vi } from "bun:test";
 
-// Mock express-rate-limit to return the options object so we can inspect it
 vi.mock("express-rate-limit", () => ({
 	default: (opts: any) => opts,
 }));
 
-import {
-	authRateLimiter,
-	rateLimiter,
-} from "../../src/middlewares/v1/rateLimitHandler.js";
+let authRateLimiter: any;
+let rateLimiter: any;
 
 describe("rateLimitHandler", () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks();
+		const mod = await import("../../src/middlewares/v1/rateLimitHandler.js");
+		rateLimiter = mod.rateLimiter;
+		authRateLimiter = mod.authRateLimiter;
 	});
 
 	it("exports rateLimiter with expected configuration and handler works when req.rateLimit present", () => {
 		expect(rateLimiter).toBeTruthy();
-		// @ts-expect-error
 		expect(rateLimiter.windowMs).toBe(15 * 60 * 1000);
-		// @ts-expect-error
 		expect(rateLimiter.limit).toBe(100);
-		// @ts-expect-error
 		expect(rateLimiter.message).toHaveProperty("error");
-		// @ts-expect-error
 		expect(typeof rateLimiter.handler).toBe("function");
 
 		// call handler with a req that has rateLimit.resetTime
@@ -34,7 +30,6 @@ describe("rateLimitHandler", () => {
 			json: vi.fn().mockReturnThis(),
 		};
 
-		// @ts-expect-error
 		rateLimiter.handler(req, res);
 
 		expect(res.status).toHaveBeenCalledWith(429);
@@ -54,7 +49,6 @@ describe("rateLimitHandler", () => {
 			json: vi.fn().mockReturnThis(),
 		};
 
-		// @ts-expect-error
 		rateLimiter.handler(req, res);
 
 		expect(res.status).toHaveBeenCalledWith(429);
@@ -66,16 +60,12 @@ describe("rateLimitHandler", () => {
 
 	it("exports authRateLimiter with expected configuration", () => {
 		expect(authRateLimiter).toBeTruthy();
-		// @ts-expect-error
 		expect(authRateLimiter.windowMs).toBe(10 * 60 * 1000);
-		// @ts-expect-error
 		expect(authRateLimiter.limit).toBe(5);
-		// @ts-expect-error
 		expect(authRateLimiter.message).toHaveProperty(
 			"error",
 			"Too many authentication attempts",
 		);
-		// @ts-expect-error
 		expect(authRateLimiter.skipSuccessfulRequests).toBe(true);
 	});
 });
