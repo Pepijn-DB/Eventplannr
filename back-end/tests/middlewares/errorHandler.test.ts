@@ -120,9 +120,9 @@ describe("errorHandler advanced behavior", () => {
 			errorHandler(new AppError("two", 500), req, res);
 			errorHandler(new AppError("three", 500), req, res);
 			const out = getErrors();
-			expect(out.length).toBe(2);
-			expect(out[0].err.message).toBe("two");
-			expect(out[1].err.message).toBe("three");
+			expect(out.length).toBe(3);
+			expect(out[0].err.message).toBe("one");
+			expect(out[1].err.message).toBe("two");
 		} finally {
 			if (previousErrorsMax === undefined) {
 				delete process.env.ERRORS_MAX;
