@@ -14,10 +14,29 @@ vi.mock("../../src/services/databaseService.js", () => ({
 	queryWithoutExecutioner: vi.fn(),
 }));
 
-vi.mock("bcrypt", () => ({
-	default: { compare: vi.fn() },
-	compare: vi.fn(),
-}));
+try {
+  const g = (globalThis as any) as any;
+  if (!g.Bun) {
+	// safe to create if it doesn't exist
+	g.Bun = {
+	  password: { verify: vi.fn(), compare: vi.fn(), default: { compare: vi.fn() } },
+	  default: { compare: vi.fn() },
+	};
+  } else {
+	// mutate nested properties where possible
+	if (!g.Bun.password) g.Bun.password = {};
+	// Replace or add the mocked functions
+	try {
+	  g.Bun.password.verify = vi.fn();
+	  g.Bun.password.compare = vi.fn();
+	  g.Bun.password.default = { compare: vi.fn() };
+	} catch (e) {
+	  // ignore if properties are non-writable
+	}
+	if (!g.Bun.default) g.Bun.default = { compare: vi.fn() };
+  }
+} catch (ignored) {
+}
 
 vi.mock("jsonwebtoken", () => ({
 	default: { sign: vi.fn() },
@@ -155,7 +174,7 @@ describe("authController.getToken", () => {
 		(dbSvc.queryWithoutExecutioner as any).mockResolvedValue({
 			rows: [{ id: 1, password_hash: "hash", username: "u", email: "a@b.com" }],
 		});
-		(Bun.password.verify as any).mockResolvedValue(false);
+		(Bun.password as any).verify.mockResolvedValue(false);
 		if ((Bun as any).default)
 			(Bun as any).default.compare.mockResolvedValue(false);
 
