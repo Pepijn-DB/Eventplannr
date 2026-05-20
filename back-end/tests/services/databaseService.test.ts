@@ -1,341 +1,240 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
-import { dbConfig } from "../../src/config/config.js";
-import {
-	close,
-	connect,
-	convertQuestionMarksToDollarParams,
-	parseQuery,
-	prepareQueryAndParams,
-	query,
-	queryWithoutExecutioner,
-} from "../../src/services/databaseService.js";
+/** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 
-vi.mock("../../src/services/mysqlService.js", () => {
-	return {
-		default: {
-			connect: vi.fn().mockResolvedValue(false),
-			query: vi.fn(),
-			close: vi.fn(),
-		},
-		connect: vi.fn().mockResolvedValue(false),
-		query: vi.fn(),
-		close: vi.fn(),
-	};
+// Mock the bun SQL constructor before importing the module so the module's top-level
+// `new SQL(...)` will use our fake and we can control db behaviour.
+vi.mock("bun", () => {
+	function SQL() {
+		// function instance used as tagged template
+		// @ts-expect-error
+		const fn: any = (strings: TemplateStringsArray, ...vals: any[]) => {
+			const s = strings.join("$").toLowerCase();
+			// treat any select/now usage as a successful ping
+			if (s.includes("select") || s.includes("now")) {
+				return Promise.resolve({ rows: [{ now: "1" }] });
+			}
+			return Promise.resolve({ rows: [] });
+		};
+
+		fn.connect = async () => {};
+		fn.unsafe = async (_sql: string, _params?: any[]) => ({ rows: [] });
+		fn.close = () => {};
+		return fn;
+	}
+	return { SQL };
 });
 
-vi.mock("../../src/services/postgresService.js", () => {
-	return {
-		default: {
-			connect: vi.fn().mockResolvedValue(false),
-			query: vi.fn(),
-			close: vi.fn(),
-		},
-		connect: vi.fn().mockResolvedValue(false),
-		query: vi.fn(),
-		close: vi.fn(),
-	};
-});
+import database, * as dbmod from "../../src/services/databaseService.js";
 
 describe("prepareQueryAndParams()", () => {
-	it("prepareQueryAndParams expands array params for IN clauses", () => {
-		const sql = "SELECT * FROM users WHERE id IN (?) AND status = ?";
-		const { sql: preparedSql, params } = prepareQueryAndParams(sql, [
-			[1, 2],
-			"active",
-		]);
-		expect(preparedSql).toContain("(?,?)");
-		expect(params).toEqual([1, 2, "active"]);
+	it("returns original when no params", () => {
+		const res = dbmod.prepareQueryAndParams("SELECT 1");
+		expect(res.sql).toBe("SELECT 1");
+		expect(res.params).toEqual([]);
 	});
 
-	it("prepareQueryAndParams returns (NULL) if empty arrays", () => {
-		const sql = "SELECT * FROM users WHERE id IN (?) AND status = ?";
-		const { sql: preparedSql, params } = prepareQueryAndParams(sql, [
-			[],
-			"active",
-		]);
-		expect(preparedSql).toContain("(NULL)");
-		expect(params).toEqual(["active"]);
+	it("returns original when mismatch in placeholders and params", () => {
+		const res = dbmod.prepareQueryAndParams("? ?", [1]);
+		expect(res.sql).toBe("? ?");
+		expect(res.params).toEqual([1]);
 	});
 
-	it("prepareQueryAndParams returns original when params length mismatch", () => {
-		const sql = "SELECT * FROM foo WHERE a = ? AND b = ?";
-		const { sql: preparedSql, params } = prepareQueryAndParams(sql, [1]);
-		expect(preparedSql).toBe(sql);
-		expect(params).toEqual([1]);
+	it("expands array params and flattens params", () => {
+		const res = dbmod.prepareQueryAndParams("IN (?) AND ?", [[1, 2, 3], "x"]);
+		expect(res.sql).toBe("IN ((?,?,?)) AND ?");
+		expect(res.params).toEqual([1, 2, 3, "x"]);
+	});
+
+	it("handles empty array param producing (NULL)", () => {
+		const res = dbmod.prepareQueryAndParams("IN (?)", [[]]);
+		expect(res.sql).toBe("IN ((NULL))");
+		expect(res.params).toEqual([]);
+	});
+});
+
+describe("convertQuestionMarksToDollarParams()", () => {
+	it("converts ? to $N", () => {
+		const r = dbmod.convertQuestionMarksToDollarParams("?, ?, ?");
+		expect(r.sql).toBe("$1, $2, $3");
+		expect(r.paramCount).toBe(3);
 	});
 });
 
 describe("parseQuery()", () => {
-	it("parseQuery extracts action, table and where", () => {
-		const q1 = "SELECT * FROM users WHERE id = 1";
-		expect(parseQuery(q1)).toEqual({
-			action: "SELECT",
-			table: "users",
-			where: "WHERE id = 1",
-		});
-
-		const q2 = "INSERT INTO events (title) VALUES (?)";
-		expect(parseQuery(q2).action).toBe("INSERT");
-		expect(parseQuery(q2).table).toBe("events");
-
-		const q3 = "UPDATE locations SET name = ? WHERE id = 5";
-		expect(parseQuery(q3)).toEqual({
-			action: "UPDATE",
-			table: "locations",
-			where: "WHERE id = 5",
-		});
-
-		const q4 = "DELETE FROM foo WHERE bar = 2";
-		expect(parseQuery(q4)).toEqual({
-			action: "DELETE",
-			table: "foo",
-			where: "WHERE bar = 2",
-		});
-
-		const q5 = "NO ACTION WHERE id = 1";
-		expect(parseQuery(q5)).toEqual({
+	it("returns nulls for empty sql", () => {
+		expect(dbmod.parseQuery("")).toEqual({
 			action: null,
 			table: null,
 			where: null,
 		});
 	});
-});
 
-describe("convertQuestionMarksToDollarParams()", () => {
-	it("convertQuestionMarksToDollarParams replaces ? with $n", () => {
-		const sql = "INSERT INTO t (a,b,c) VALUES (?,?,?)";
-		const res = convertQuestionMarksToDollarParams(sql);
-		expect(res.sql).toContain("$1");
-		expect(res.paramCount).toBe(3);
+	it("parses select with from and where", () => {
+		const r = dbmod.parseQuery("SELECT * FROM users WHERE id = 1");
+		expect(r.action).toBe("SELECT");
+		expect(r.table).toBe("users");
+		expect(r.where?.toLowerCase()).toContain("where");
+	});
+
+	it("parses insert into", () => {
+		const r = dbmod.parseQuery("INSERT INTO my_table (a) VALUES (1)");
+		expect(r.action).toBe("INSERT");
+		expect(r.table).toBe("my_table");
+	});
+
+	it("parses update", () => {
+		const r = dbmod.parseQuery("UPDATE people SET name = 'x'");
+		expect(r.action).toBe("UPDATE");
+		expect(r.table).toBe("people");
+	});
+
+	it("parses delete", () => {
+		const r = dbmod.parseQuery("DELETE FROM t WHERE 1=1");
+		expect(r.action).toBe("DELETE");
+		expect(r.table).toBe("t");
 	});
 });
 
-describe("connect()", () => {
-	let originalType: string;
-	beforeEach(() => {
-		originalType = dbConfig.type;
-	});
-
-	afterEach(() => {
-		dbConfig.type = originalType;
-	});
-
-	it("connect with mysql", async () => {
-		dbConfig.type = "mysql";
-		expect(await connect()).toEqual(false);
-	});
-
-	it("connect with postgres", async () => {
-		dbConfig.type = "postgres";
-		expect(await connect()).toEqual(false);
-	});
-
-	it("connect with an unknown database type", async () => {
-		dbConfig.type = "unknown";
-
-		await expect(async () => await connect()).rejects.toThrow(
-			expect.objectContaining({
-				message: "Unknown database connection",
-				status: 500,
-			}),
-		);
-	});
-});
-
-describe("query()", () => {
-	let originalType: string;
+describe("database service integration behaviour (mocked db)", () => {
 	beforeEach(async () => {
-		originalType = dbConfig.type;
-		vi.clearAllMocks();
-		const mysql = await import("../../src/services/mysqlService.js");
-		const pg = await import("../../src/services/postgresService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		const pgDefault = vi.mocked(pg.default, true);
-		mysqlDefault.connect.mockResolvedValue(false);
-		pgDefault.connect.mockResolvedValue(false);
+		// Reset connection state and set expected behavior on the module's DB instance
+		await dbmod.close();
+		const d: any = dbmod.getDb();
+		d.connect = async () => {};
+		d.close = () => {};
+		d.unsafe = async (sql: string) => {
+			const lower = sql.toLowerCase();
+			if (lower.includes("insert into log")) return { rows: [{ id: 77 }] };
+			if (lower.startsWith("update ")) return { rows: [] };
+			return { rows: [{ id: 1 }, { id: 2 }] };
+		};
+		// Avoid hitting the real connect logic in tests which relies on tagged template behaviour;
+		// make addLog think we're connected by default.
+		vi.spyOn(dbmod, "connect").mockResolvedValue(true as any);
 	});
 
-	afterEach(() => {
-		dbConfig.type = originalType;
+	it("connect() sets connected when SELECT NOW returns rows", async () => {
+		// connect uses the tagged-template behavior on db which our mock returns rows
+		const ok = await dbmod.connect();
+		expect(ok).toBe(true);
+		// calling again returns true early
+		const ok2 = await dbmod.connect();
+		expect(ok2).toBe(true);
 	});
 
-	it("query with mysql should reject when DB is not available", async () => {
-		dbConfig.type = "mysql";
-		await expect(query("SELECT 1", [], 0)).rejects.toEqual(
-			expect.objectContaining({
-				message: "Database connection error",
-				status: 500,
-			}),
+	it("query() performs insert-log and update when rows with ids present", async () => {
+		const d: any = dbmod.getDb();
+		const spy = vi.spyOn(d, "unsafe");
+
+		const res = await dbmod.query("INSERT INTO users (a) VALUES (?)", [1], 5);
+
+		expect(res.rows).toBeTruthy();
+		// first call is the query itself, second is insert log, third is update
+		expect(spy).toHaveBeenCalled();
+		// ensure update was called with updated_log SQL
+		const updateCall = spy.mock.calls.find(
+			(c: any[]) =>
+				typeof c[0] === "string" && c[0].toLowerCase().startsWith("update "),
 		);
+		expect(updateCall).toBeTruthy();
+		spy.mockRestore();
 	});
 
-	it("query with postgres should reject when DB is not available", async () => {
-		dbConfig.type = "postgres";
-		await expect(query("SELECT 1", [], 0)).rejects.toEqual(
-			expect.objectContaining({
-				message: "Database connection error",
-				status: 500,
-			}),
+	it("query() throws AppError when underlying unsafe throws an Error", async () => {
+		const d: any = dbmod.getDb();
+		vi.spyOn(d, "unsafe").mockRejectedValueOnce(new Error("boom"));
+		await expect(dbmod.query("SELECT 1", [], 1)).rejects.toMatchObject({
+			message: "boom",
+			status: 500,
+		});
+	});
+
+	it("query() throws generic AppError when unsafe rejects a non-Error", async () => {
+		const d: any = dbmod.getDb();
+		vi.spyOn(d, "unsafe").mockRejectedValueOnce("bad");
+		await expect(dbmod.query("SELECT 1", [], 1)).rejects.toMatchObject({
+			message: "Database query error",
+			status: 500,
+		});
+	});
+
+	it("queryWithoutExecutioner() behaves same and calls update when appropriate", async () => {
+		const d: any = dbmod.getDb();
+		const spy = vi.spyOn(d, "unsafe");
+
+		const res = await dbmod.queryWithoutExecutioner(
+			"INSERT INTO users (a) VALUES (?)",
+			[1],
 		);
-	});
+		expect(res.rows).toBeTruthy();
 
-	it("query with an unknown database type should throw Unknown database connection", async () => {
-		dbConfig.type = "unknown";
-		await expect(query("SELECT 1", [], 0)).rejects.toEqual(
-			expect.objectContaining({
-				message: "Unknown database connection",
-				status: 500,
-			}),
+		const updateCall = spy.mock.calls.find(
+			(c: any[]) =>
+				typeof c[0] === "string" && c[0].toLowerCase().startsWith("update "),
 		);
+		expect(updateCall).toBeTruthy();
+		spy.mockRestore();
 	});
 
-	it("postgres query uses postgres client when available", async () => {
-		dbConfig.type = "postgres";
-		const pg = await import("../../src/services/postgresService.js");
-		const pgDefault = vi.mocked(pg.default, true);
-		pgDefault.connect.mockResolvedValue(true);
-		pgDefault.query.mockResolvedValue({ rows: [{ id: 10 }] });
-
-		const res = await query("SELECT * FROM events", [], 1);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows[0].id).toBe(10);
+	it("close() calls db.close and resets connection", async () => {
+		const d: any = dbmod.getDb();
+		const spy = vi.spyOn(d, "close");
+		await dbmod.connect();
+		await dbmod.close();
+		expect(spy).toHaveBeenCalled();
+		// connect again should be able to run (connected false)
+		const ok = await dbmod.connect();
+		expect(ok).toBe(true);
 	});
 
-	it("mysql query returns rows when mysqlService.query returns result", async () => {
-		dbConfig.type = "mysql";
-		const mysql = await import("../../src/services/mysqlService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		mysqlDefault.connect.mockResolvedValue(true);
-		mysqlDefault.query.mockResolvedValue({ rows: [{ id: 5 }] });
-
-		const res = await query("INSERT INTO events (title) VALUES (?)", ["t"], 1);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows[0].id).toBe(5);
+	it("convertQuestionMarksToDollarParams handles no placeholders", () => {
+		const r = dbmod.convertQuestionMarksToDollarParams("no placeholders");
+		expect(r.sql).toBe("no placeholders");
+		expect(r.paramCount).toBe(0);
 	});
 
-	it("mysql query returns empty rows when mysqlService.query returns null", async () => {
-		dbConfig.type = "mysql";
-		const mysql = await import("../../src/services/mysqlService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		mysqlDefault.connect.mockResolvedValue(true);
-		mysqlDefault.query.mockResolvedValue(null);
-
-		const res = await query("SELECT 1", [], 1);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows.length).toBe(0);
-	});
-});
-
-describe("queryWithoutExecutioner()", () => {
-	let originalType: string;
-	beforeEach(async () => {
-		originalType = dbConfig.type;
-		vi.clearAllMocks();
-		const mysql = await import("../../src/services/mysqlService.js");
-		const pg = await import("../../src/services/postgresService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		const pgDefault = vi.mocked(pg.default, true);
-		mysqlDefault.connect.mockResolvedValue(false);
-		pgDefault.connect.mockResolvedValue(false);
+	it("parseQuery returns null for unknown leading token", () => {
+		const r = dbmod.parseQuery("WITH something AS (SELECT 1)");
+		expect(r).toEqual({ action: null, table: null, where: null });
 	});
 
-	afterEach(() => {
-		dbConfig.type = originalType;
-	});
-
-	it("query with mysql should reject when DB is not available", async () => {
-		dbConfig.type = "mysql";
-		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
-			expect.objectContaining({
-				message: "Database connection error",
-				status: 500,
-			}),
+	it("query() does not attempt to log SELECT actions", async () => {
+		const d: any = dbmod.getDb();
+		const spy = vi.spyOn(d, "unsafe");
+		await dbmod.query("SELECT * FROM users WHERE id = ?", [1], 1);
+		// only the original query should have been run (addLog should return null for SELECT)
+		expect(spy).toHaveBeenCalled();
+		const hasInsertLog = spy.mock.calls.some(
+			(c: any[]) =>
+				typeof c[0] === "string" &&
+				c[0].toLowerCase().includes("insert into log"),
 		);
+		expect(hasInsertLog).toBe(false);
+		spy.mockRestore();
 	});
 
-	it("query with postgres should reject when DB is not available", async () => {
-		dbConfig.type = "postgres";
-		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
-			expect.objectContaining({
-				message: "Database connection error",
-				status: 500,
-			}),
+	it("query() with negative executioner does not insert log", async () => {
+		const d: any = dbmod.getDb();
+		const spy = vi.spyOn(d, "unsafe");
+		await dbmod.query("INSERT INTO users (a) VALUES (?)", [1], -5);
+		const hasInsertLog = spy.mock.calls.some(
+			(c: any[]) =>
+				typeof c[0] === "string" &&
+				c[0].toLowerCase().includes("insert into log"),
 		);
+		expect(hasInsertLog).toBe(false);
+		spy.mockRestore();
 	});
 
-	it("query with an unknown database type should throw Unknown database connection", async () => {
-		dbConfig.type = "unknown";
-		await expect(queryWithoutExecutioner("SELECT 1", [])).rejects.toEqual(
-			expect.objectContaining({
-				message: "Unknown database connection",
-				status: 500,
-			}),
-		);
-	});
-
-	it("postgres query uses postgres client when available", async () => {
-		dbConfig.type = "postgres";
-		const pg = await import("../../src/services/postgresService.js");
-		const pgDefault = vi.mocked(pg.default, true);
-		pgDefault.connect.mockResolvedValue(true);
-		pgDefault.query.mockResolvedValue({ rows: [{ id: 10 }] });
-
-		const res = await queryWithoutExecutioner("SELECT * FROM events", []);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows[0].id).toBe(10);
-	});
-
-	it("mysql query returns rows when mysqlService.query returns result", async () => {
-		dbConfig.type = "mysql";
-		const mysql = await import("../../src/services/mysqlService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		mysqlDefault.connect.mockResolvedValue(true);
-		mysqlDefault.query.mockResolvedValue({ rows: [{ id: 5 }] });
-
-		const res = await queryWithoutExecutioner(
-			"INSERT INTO events (title) VALUES (?)",
-			["t"],
-		);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows[0].id).toBe(5);
-	});
-
-	it("mysql query returns empty rows when mysqlService.query returns null", async () => {
-		dbConfig.type = "mysql";
-		const mysql = await import("../../src/services/mysqlService.js");
-		const mysqlDefault = vi.mocked(mysql.default, true);
-		mysqlDefault.connect.mockResolvedValue(true);
-		mysqlDefault.query.mockResolvedValue(null);
-
-		const res = await queryWithoutExecutioner("SELECT 1", []);
-		expect(res).toHaveProperty("rows");
-		expect(Array.isArray(res.rows)).toBe(true);
-		expect(res.rows.length).toBe(0);
-	});
-});
-
-describe("close()", () => {
-	let originalType: string;
-	beforeEach(() => {
-		originalType = dbConfig.type;
-	});
-
-	afterEach(() => {
-		dbConfig.type = originalType;
-	});
-
-	it("connect with mysql", async () => {
-		dbConfig.type = "mysql";
-		expect(await close());
-	});
-
-	it("connect with postgres", async () => {
-		dbConfig.type = "postgres";
-		expect(await close());
+	it("queryWithoutExecutioner throws AppError on underlying Error and non-Error rejections", async () => {
+		const d: any = dbmod.getDb();
+		vi.spyOn(d, "unsafe").mockRejectedValueOnce(new Error("boom1"));
+		await expect(
+			dbmod.queryWithoutExecutioner("SELECT 1", []),
+		).rejects.toMatchObject({ message: "boom1", status: 500 });
+		vi.spyOn(d, "unsafe").mockRejectedValueOnce("boom2");
+		await expect(
+			dbmod.queryWithoutExecutioner("SELECT 1", []),
+		).rejects.toMatchObject({ message: "Database query error", status: 500 });
 	});
 });

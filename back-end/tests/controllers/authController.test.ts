@@ -15,28 +15,31 @@ vi.mock("../../src/services/databaseService.js", () => ({
 }));
 
 try {
-  const g = (globalThis as any) as any;
-  if (!g.Bun) {
-	// safe to create if it doesn't exist
-	g.Bun = {
-	  password: { verify: vi.fn(), compare: vi.fn(), default: { compare: vi.fn() } },
-	  default: { compare: vi.fn() },
-	};
-  } else {
-	// mutate nested properties where possible
-	if (!g.Bun.password) g.Bun.password = {};
-	// Replace or add the mocked functions
-	try {
-	  g.Bun.password.verify = vi.fn();
-	  g.Bun.password.compare = vi.fn();
-	  g.Bun.password.default = { compare: vi.fn() };
-	} catch (e) {
-	  // ignore if properties are non-writable
+	const g = globalThis as any as any;
+	if (!g.Bun) {
+		// safe to create if it doesn't exist
+		g.Bun = {
+			password: {
+				verify: vi.fn(),
+				compare: vi.fn(),
+				default: { compare: vi.fn() },
+			},
+			default: { compare: vi.fn() },
+		};
+	} else {
+		// mutate nested properties where possible
+		if (!g.Bun.password) g.Bun.password = {};
+		// Replace or add the mocked functions
+		try {
+			g.Bun.password.verify = vi.fn();
+			g.Bun.password.compare = vi.fn();
+			g.Bun.password.default = { compare: vi.fn() };
+		} catch (e) {
+			// ignore if properties are non-writable
+		}
+		if (!g.Bun.default) g.Bun.default = { compare: vi.fn() };
 	}
-	if (!g.Bun.default) g.Bun.default = { compare: vi.fn() };
-  }
-} catch (ignored) {
-}
+} catch (ignored) {}
 
 vi.mock("jsonwebtoken", () => ({
 	default: { sign: vi.fn() },
