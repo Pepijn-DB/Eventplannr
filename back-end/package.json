@@ -13,10 +13,8 @@
 		"express-rate-limit": "^8.5.2"
 	},
 	"scripts": {
-		"start": "bun run build && bun run serve",
-		"build": "tsc",
-		"serve": "bun ./src/server.js",
-		"dev": "bun run build && bun run serve"
+		"start": "bun run serve",
+		"serve": "bun ./src/server.ts"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
