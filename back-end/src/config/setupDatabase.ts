@@ -70,7 +70,7 @@ async function setupSql(filePath: string): Promise<boolean> {
 	const quoted = quoteIdentifier(dbConfig.database, dbConfig.type);
 	await queryWithoutExecutioner(`CREATE DATABASE ${quoted}`);
 	try {
-		db.file(filePath);
+		await db.file(filePath);
 	} catch (err) {
 		console.error("Error reading schema.sql:", err);
 		return false;
