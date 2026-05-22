@@ -12,6 +12,12 @@
 		"dotenv": "^17.4.2",
 		"express-rate-limit": "^8.5.2"
 	},
+	"scripts": {
+		"start": "bun run build && bun run serve",
+		"build": "tsc",
+		"serve": "bun ./src/server.js",
+		"dev": "bun run build && bun run serve"
+	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
