@@ -465,9 +465,9 @@ export const getAllDateResponses = async (
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
 
-        await needsEventPermission(userId, eventId, Event.VIEW);
+		await needsEventPermission(userId, eventId, Event.VIEW);
 
-        let sql = `SELECT dr.id, dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
+		let sql = `SELECT dr.id, dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
 		sql += ` ORDER BY u.id ASC`;
@@ -499,9 +499,9 @@ export const getAllLocationResponses = async (
 			return res.status(400).json({ message: "Missing event id" });
 		}
 
-        await needsEventPermission(userId, eventId, Event.VIEW);
+		await needsEventPermission(userId, eventId, Event.VIEW);
 
-        let sql = `SELECT lr.id, l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
+		let sql = `SELECT lr.id, l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
 		sql += ` ORDER BY u.id ASC`;
