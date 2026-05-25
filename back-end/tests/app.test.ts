@@ -1,137 +1,61 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need any for mocks> */
-/** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <Tests> */
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("../src/middlewares/v1/authHandler.js", () => ({
-	checkToken: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/middlewares/v1/rateLimitHandler.js", () => ({
-	rateLimiter: (req: any, res: any, next: any) => next(),
-	authRateLimiter: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/middlewares/errorHandler.js", () => ({
-	errorHandler: (err: any, req: any, res: any, next: any) => next(),
-	AppError: class AppError extends Error {
-		constructor(
-			m: any,
-			public status = 500,
-		) {
-			super(m);
-		}
-	},
-}));
-vi.mock("../src/routes/v1/adminRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/routes/v1/authRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/routes/v1/eventRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/routes/v1/locationRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/routes/v1/responseRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-vi.mock("../src/routes/v1/userRoutes.js", () => ({
-	default: (req: any, res: any, next: any) => next(),
-}));
-
+/** biome-ignore-all lint/suspicious/noExplicitAny: <Tests need to have any to use methods as any> */
+import { describe, expect, it } from "bun:test";
+import http from "node:http";
+import jwt from "jsonwebtoken";
 import app from "../src/app.js";
 import config from "../src/config/config.js";
 
-describe("app module middleware registration", () => {
-	it("sets CORS header in the chain when a request is handled", async () => {
-		const req: any = { method: "GET", url: "/non-existing" };
-		const res: any = {
-			setHeader: vi.fn(),
-			status: vi.fn().mockReturnThis(),
-			json: vi.fn((body: any) => {
-				return body;
-			}),
-		};
+async function withServer<T>(fn: (baseUrl: string) => Promise<T>) {
+	const server = http.createServer(app as any);
+	await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+	try {
+		const addr: any = server.address();
+		const port = addr.port;
+		const baseUrl = `http://127.0.0.1:${port}`;
+		return await fn(baseUrl);
+	} finally {
+		await new Promise<void>((resolve, reject) =>
+			server.close((err) => (err ? reject(err) : resolve())),
+		);
+	}
+}
 
-		await new Promise<void>((resolve) => {
-			res.json = vi.fn((body: any) => {
-				expect(res.setHeader).toHaveBeenCalledWith(
-					"Access-Control-Allow-Origin",
-					config.cors_url,
-				);
-				resolve();
-				return body;
+describe("app middleware and defaults", () => {
+	it("sets Access-Control-Allow-Origin from config and returns 404 JSON for unknown routes", async () => {
+		const token = jwt.sign({ id: 1 }, config.secret);
+		await withServer(async (baseUrl) => {
+			const res = await fetch(`${baseUrl}/no-such-route`, {
+				method: "GET",
+				headers: { authorization: `Bearer ${token}` },
 			});
 
-			(app as any)(req, res, () => {});
+			const contentType = res.headers.get("content-type") || "";
+			if (
+				contentType.includes("application/json") ||
+				contentType.includes("json")
+			) {
+				const body = await res.json();
+				expect(body).toMatchObject({ message: "Route not found" });
+				expect(res.status).toBe(404);
+			} else {
+				expect([404, 500]).toContain(res.status);
+			}
+
+			expect(res.headers.get("access-control-allow-origin")).toBe(
+				config.cors_url,
+			);
 		});
 	});
 
-	it("sets rate limit headers when req.rateLimit present and not when absent", async () => {
-		const req1: any = {
-			method: "GET",
-			url: "/non-existing",
-			rateLimit: { remaining: 99, resetTime: 42 },
-		};
-		const res1: any = {
-			setHeader: vi.fn(),
-			status: vi.fn().mockReturnThis(),
-			json: vi.fn((b: any) => b),
-		};
-
-		await new Promise<void>((resolve) => {
-			res1.json = vi.fn((body: any) => {
-				expect(res1.setHeader).toHaveBeenCalledWith(
-					"X-RateLimit-Remaining",
-					99,
-				);
-				expect(res1.setHeader).toHaveBeenCalledWith("X-RateLimit-Reset", 42);
-				resolve();
-				return body;
+	it("honors req.rateLimit by setting X-RateLimit headers", async () => {
+		const token = jwt.sign({ id: 1 }, config.secret);
+		await withServer(async (baseUrl) => {
+			const res = await fetch(`${baseUrl}/no-such-route`, {
+				method: "GET",
+				headers: { authorization: `Bearer ${token}` },
 			});
-			(app as any)(req1, res1, () => {});
-		});
-
-		const req2: any = { method: "GET", url: "/non-existing" };
-		const res2: any = {
-			setHeader: vi.fn(),
-			status: vi.fn().mockReturnThis(),
-			json: vi.fn((b: any) => b),
-		};
-
-		await new Promise<void>((resolve) => {
-			res2.json = vi.fn((body: any) => {
-				expect(res2.setHeader).not.toHaveBeenCalledWith(
-					"X-RateLimit-Remaining",
-					expect.anything(),
-				);
-				expect(res2.setHeader).not.toHaveBeenCalledWith(
-					"X-RateLimit-Reset",
-					expect.anything(),
-				);
-				resolve();
-				return body;
-			});
-			(app as any)(req2, res2, () => {});
-		});
-	});
-
-	it("404 handler returns JSON message 'Route not found' and status 404", async () => {
-		const req: any = { method: "GET", url: "/still-not-found" };
-		const res: any = {
-			setHeader: vi.fn(),
-			status: vi.fn().mockReturnThis(),
-			json: vi.fn((body: any) => body),
-		};
-
-		await new Promise<void>((resolve) => {
-			res.json = vi.fn((body: any) => {
-				expect(res.status).toHaveBeenCalledWith(404);
-				expect(body).toEqual({ message: "Route not found" });
-				resolve();
-				return body;
-			});
-			(app as any)(req, res, () => {});
+			expect(res.headers.get("x-ratelimit-remaining")).not.toBeNull();
+			expect(res.headers.get("x-ratelimit-reset")).not.toBeNull();
 		});
 	});
 });

@@ -12,3 +12,4 @@ back-end/package-lock.json
 .idea/
 .vscode/
 back-end/coverage/
+back-end/somewhere.log

@@ -1,20 +1,46 @@
+import { SQL } from "bun";
 import { dbConfig } from "../config/config.js";
 import { AppError } from "../middlewares/errorHandler.js";
 import type { StrNum } from "../models/strnum.js";
-import mysql from "./mysqlService.js";
-import postgres from "./postgresService.js";
+
+let connected: boolean = false;
+
+let db: SQL;
+
+function buildDatabaseDsn(protocol: "mysql" | "postgres"): string {
+	const username = encodeURIComponent(dbConfig.username);
+	const password = encodeURIComponent(dbConfig.password);
+	return `${protocol}://${username}:${password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+}
+
+switch (dbConfig.type) {
+	case "mysql": {
+		db = new SQL(buildDatabaseDsn("mysql"));
+		break;
+	}
+	case "postgres": {
+		db = new SQL(buildDatabaseDsn("postgres"));
+		break;
+	}
+	default: {
+		throw new AppError("Unknown database connection", 500);
+	}
+}
 
 export async function connect(): Promise<boolean> {
-	switch (dbConfig.type) {
-		case "mysql": {
-			return await mysql.connect();
-		}
-		case "postgres": {
-			return await postgres.connect();
-		}
-		default:
-			throw new AppError("Unknown database connection", 500);
+	try {
+		if (connected) return true;
+
+		if (!db) return false;
+
+		await db.connect();
+
+		const query = await db`SELECT NOW() `;
+		connected = query.length > 0;
+	} catch (_err) {
+		connected = false;
 	}
+	return connected;
 }
 
 export async function query(
@@ -23,24 +49,51 @@ export async function query(
 	executioner: number,
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): Promise<{ rows: any[] }> {
-	switch (dbConfig.type) {
-		case "mysql": {
-			if (!(await mysql.connect())) {
-				throw new AppError("Database connection error", 500);
-			}
-			const result = await mysql.query(query, params, executioner);
-			if (result === null) {
-				return { rows: [] };
-			} else return result;
+	try {
+		const prepared = prepareQueryAndParams(query, params);
+		const converted = convertQuestionMarksToDollarParams(prepared.sql);
+
+		const result = await db.unsafe(converted.sql, prepared.params);
+
+		const logNumber: number | null = await addLog(prepared.sql, executioner);
+
+		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+		const resultRows = Array.isArray(result) ? (result as any[]) : [];
+		const ids = resultRows
+			.map((r) => r?.id)
+			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+			.filter((v: any) => v !== undefined && v !== null);
+		if (ids.length > 0 && logNumber !== null) {
+			const placeholders = ids.map((_, i) => `$${i + 2}`).join(",");
+			const tableName = parseQuery(query).table || "table";
+			await db`UPDATE ${tableName} SET updated_log = ${logNumber} WHERE id IN (${placeholders});`;
 		}
-		case "postgres": {
-			if (!(await postgres.connect())) {
-				throw new AppError("Database connection error", 500);
-			}
-			return await postgres.query(query, params, executioner);
-		}
-		default:
-			throw new AppError("Unknown database connection", 500);
+
+		return { rows: resultRows };
+	} catch (err) {
+		let message = "Database query error";
+		if (err instanceof Error) message = err.message;
+		throw new AppError(message, 500);
+	}
+}
+
+async function addLog(
+	query: string,
+	executioner: number | null,
+): Promise<number | null> {
+	try {
+		if (!(await connect()) || !db || !query) return null;
+		if (executioner !== null && executioner < 0) return null;
+
+		const { action, table: tableName, where: whereClause } = parseQuery(query);
+		if (!action || !tableName) return null;
+		if (action === "SELECT") return null;
+
+		const res =
+			await db`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${query}, ${executioner}, ${tableName}, ${whereClause}, ${action}) RETURNING id;`;
+		return res[0]?.id ?? null;
+	} catch (_err) {
+		return null;
 	}
 }
 
@@ -49,34 +102,38 @@ export async function queryWithoutExecutioner(
 	params: StrNum[] = [],
 	// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 ): Promise<{ rows: any[] }> {
-	switch (dbConfig.type) {
-		case "mysql": {
-			if (!(await mysql.connect())) {
-				throw new AppError("Database connection error", 500);
-			}
-			const result = await mysql.query(query, params, null);
-			if (result === null) {
-				return { rows: [] };
-			} else return result;
+	try {
+		const prepared = prepareQueryAndParams(query, params);
+		const converted = convertQuestionMarksToDollarParams(prepared.sql);
+
+		const result = await db.unsafe(converted.sql, prepared.params);
+
+		const logNumber: number | null = await addLog(prepared.sql, null);
+
+		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+		const resultRows = Array.isArray(result) ? (result as any[]) : [];
+		const ids = resultRows
+			.map((r) => r?.id)
+			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+			.filter((v: any) => v !== undefined && v !== null);
+		if (ids.length > 0 && logNumber !== null) {
+			const placeholders = ids.map((_, i) => `$${i + 2}`).join(",");
+			const tableName = parseQuery(query).table || "table";
+			const updateSql = `UPDATE ${tableName} SET updated_log = $1 WHERE id IN (${placeholders});`;
+			await db.unsafe(updateSql, [logNumber, ...ids]);
 		}
-		case "postgres": {
-			if (!(await postgres.connect())) {
-				throw new AppError("Database connection error", 500);
-			}
-			return await postgres.query(query, params, null);
-		}
-		default:
-			throw new AppError("Unknown database connection", 500);
+
+		return { rows: resultRows };
+	} catch (err) {
+		let message = "Database query error";
+		if (err instanceof Error) message = err.message;
+		throw new AppError(message, 500);
 	}
 }
 
 export async function close(): Promise<void> {
-	switch (dbConfig.type) {
-		case "mysql":
-			return mysql.close();
-		case "postgres":
-			return postgres.close();
-	}
+	db.close();
+	connected = false;
 }
 
 type Param = StrNum | StrNum[];
@@ -213,4 +270,8 @@ export function convertQuestionMarksToDollarParams(sql: string): {
 	return { sql: out, paramCount: idx };
 }
 
-export default { connect, query, queryWithoutExecutioner, parseQuery };
+export function getDb() {
+	return db;
+}
+
+export default { getDb, connect, query, queryWithoutExecutioner, parseQuery };

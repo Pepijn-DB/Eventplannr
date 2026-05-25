@@ -27,8 +27,6 @@ interface ErrorEntry {
 const ERRORS_MAX = Number(process.env.ERRORS_MAX) || 100;
 const listErrors: ErrorEntry[] = [];
 
-const ERRORS_LOG_PATH = process.env.ERRORS_LOG_PATH || "";
-
 function sanitizeRequest(req: AuthRequest): SanitizedRequest {
 	const headers: Record<string, string | undefined> = {};
 	if (req && typeof req === "object" && req.headers) {
@@ -60,6 +58,7 @@ export const errorHandler = (
 	listErrors.push(entry);
 	if (listErrors.length > ERRORS_MAX) listErrors.shift();
 
+	const ERRORS_LOG_PATH = process.env.ERRORS_LOG_PATH || "";
 	if (ERRORS_LOG_PATH) {
 		const line = JSON.stringify({
 			ts: entry.ts,
