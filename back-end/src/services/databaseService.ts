@@ -96,7 +96,7 @@ async function addLog(
 			whereClause,
 			action,
 		]);
-		return res.rows[0]?.id ?? null;
+		return res[0]?.id ?? null;
 	} catch (_err) {
 		return null;
 	}
