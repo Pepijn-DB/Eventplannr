@@ -34,7 +34,7 @@ export async function connect(): Promise<boolean> {
 		await db.connect();
 
 		const query = await db`SELECT NOW() `;
-		connected = query.rows.length > 0;
+		connected = query.length > 0;
 	} catch (_err) {
 		connected = false;
 	}
