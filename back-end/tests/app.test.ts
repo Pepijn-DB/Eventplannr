@@ -14,7 +14,9 @@ async function withServer<T>(fn: (baseUrl: string) => Promise<T>) {
 		const baseUrl = `http://127.0.0.1:${port}`;
 		return await fn(baseUrl);
 	} finally {
-		server.close();
+		await new Promise<void>((resolve, reject) =>
+			server.close((err) => (err ? reject(err) : resolve())),
+		);
 	}
 }
 
