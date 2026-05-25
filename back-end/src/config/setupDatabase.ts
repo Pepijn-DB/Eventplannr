@@ -58,7 +58,7 @@ async function setupPostgres(): Promise<boolean | null> {
 
 async function setupMySQL(): Promise<boolean | null> {
 	const [result] =
-		await db`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`;
+		await db`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ${dbConfig.database}`;
 	if (result.length !== 0) {
 		return null;
 	}
