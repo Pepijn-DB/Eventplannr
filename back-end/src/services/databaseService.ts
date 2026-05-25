@@ -66,8 +66,7 @@ export async function query(
 		if (ids.length > 0 && logNumber !== null) {
 			const placeholders = ids.map((_, i) => `$${i + 2}`).join(",");
 			const tableName = parseQuery(query).table || "table";
-			const updateSql = `UPDATE ${tableName} SET updated_log = $1 WHERE id IN (${placeholders});`;
-			await db.unsafe(updateSql, [logNumber, ...ids]);
+			await db`UPDATE ${tableName} SET updated_log = {$logNumber} WHERE id IN (${placeholders});`;
 		}
 
 		return { rows: resultRows };
@@ -90,14 +89,7 @@ async function addLog(
 		if (!action || !tableName) return null;
 		if (action === "SELECT") return null;
 
-		const insertSql = `INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES ($1, $2, $3, $4, $5) RETURNING id;`;
-		const res = await db.unsafe(insertSql, [
-			query,
-			executioner,
-			tableName,
-			whereClause,
-			action,
-		]);
+		const res = await db`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${query}, ${executioner}, ${tableName}, ${whereClause}, ${action}) RETURNING id;`;
 		return res[0]?.id ?? null;
 	} catch (_err) {
 		return null;
