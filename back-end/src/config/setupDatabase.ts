@@ -63,12 +63,13 @@ async function setupMySQL(): Promise<boolean | null> {
 		return null;
 	}
 
+	await db`CREATE DATABASE ${dbConfig.database}`;
+	await db`SELECT ${dbConfig.database}`;
+
 	return await setupSql("./src/config/default_sql_database.sql");
 }
 
 async function setupSql(filePath: string): Promise<boolean> {
-	const quoted = quoteIdentifier(dbConfig.database, dbConfig.type);
-	await queryWithoutExecutioner(`CREATE DATABASE ${quoted}`);
 	try {
 		await db.file(filePath);
 	} catch (err) {
