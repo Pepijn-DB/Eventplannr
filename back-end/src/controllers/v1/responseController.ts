@@ -326,9 +326,9 @@ export const getLocationResponse = async (
 			requestedUserId,
 			id: locationId,
 		} = getRequestVariables(req, true);
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		const sql = `SELECT lr.id, u.username, lr.state, l.name FROM location_response lr INNER JOIN event_locations el ON lr.location_id = el.id INNER JOIN locations l ON l.id = el.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
 		const result = await database.query(
 			sql,
