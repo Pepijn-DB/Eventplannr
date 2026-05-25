@@ -89,7 +89,8 @@ async function addLog(
 		if (!action || !tableName) return null;
 		if (action === "SELECT") return null;
 
-		const res = await db`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${query}, ${executioner}, ${tableName}, ${whereClause}, ${action}) RETURNING id;`;
+		const res =
+			await db`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${query}, ${executioner}, ${tableName}, ${whereClause}, ${action}) RETURNING id;`;
 		return res[0]?.id ?? null;
 	} catch (_err) {
 		return null;

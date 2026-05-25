@@ -1,9 +1,5 @@
 import { AppError } from "../middlewares/errorHandler.js";
-import {
-	connect,
-	getDb,
-	queryWithoutExecutioner,
-} from "../services/databaseService.js";
+import { connect, getDb } from "../services/databaseService.js";
 import { dbConfig } from "./config.js";
 
 const db = getDb();
@@ -11,13 +7,6 @@ const db = getDb();
 function isValidDatabaseName(name: unknown): name is string {
 	if (typeof name !== "string") return false;
 	return /^[A-Za-z0-9_]{1,63}$/.test(name);
-}
-
-function quoteIdentifier(name: string, type: string): string {
-	if (type === "postgres") {
-		return `"${name.replace(/"/g, '""')}"`;
-	}
-	return `\`${name.replace(/`/g, "``")}\``;
 }
 
 export async function setupDatabase(): Promise<boolean | null> {
