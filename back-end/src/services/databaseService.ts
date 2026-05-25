@@ -7,17 +7,19 @@ let connected: boolean = false;
 
 let db: SQL;
 
+function buildDatabaseDsn(protocol: "mysql" | "postgres"): string {
+	const username = encodeURIComponent(dbConfig.username);
+	const password = encodeURIComponent(dbConfig.password);
+	return `${protocol}://${username}:${password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+}
+
 switch (dbConfig.type) {
 	case "mysql": {
-		db = new SQL(
-			`mysql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
-		);
+		db = new SQL(buildDatabaseDsn("mysql"));
 		break;
 	}
 	case "postgres": {
-		db = new SQL(
-			`postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`,
-		);
+		db = new SQL(buildDatabaseDsn("postgres"));
 		break;
 	}
 	default: {
