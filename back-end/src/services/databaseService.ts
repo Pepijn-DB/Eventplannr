@@ -66,7 +66,7 @@ export async function query(
 		if (ids.length > 0 && logNumber !== null) {
 			const placeholders = ids.map((_, i) => `$${i + 2}`).join(",");
 			const tableName = parseQuery(query).table || "table";
-			await db`UPDATE ${tableName} SET updated_log = {$logNumber} WHERE id IN (${placeholders});`;
+			await db`UPDATE ${tableName} SET updated_log = ${logNumber} WHERE id IN (${placeholders});`;
 		}
 
 		return { rows: resultRows };
