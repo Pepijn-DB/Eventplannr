@@ -56,7 +56,7 @@ export async function query(
 		const logNumber: number | null = await addLog(prepared.sql, executioner);
 
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-		const resultRows = Array.isArray(result.rows) ? (result.rows as any[]) : [];
+		const resultRows = Array.isArray(result) ? (result as any[]) : [];
 		const ids = resultRows
 			.map((r) => r?.id)
 			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
@@ -68,7 +68,7 @@ export async function query(
 			await db.unsafe(updateSql, [logNumber, ...ids]);
 		}
 
-		return { rows: result.rows };
+		return { rows: resultRows };
 	} catch (err) {
 		let message = "Database query error";
 		if (err instanceof Error) message = err.message;
@@ -116,7 +116,7 @@ export async function queryWithoutExecutioner(
 		const logNumber: number | null = await addLog(prepared.sql, null);
 
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-		const resultRows = Array.isArray(result.rows) ? (result.rows as any[]) : [];
+		const resultRows = Array.isArray(result) ? (result as any[]) : [];
 		const ids = resultRows
 			.map((r) => r?.id)
 			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
@@ -128,7 +128,7 @@ export async function queryWithoutExecutioner(
 			await db.unsafe(updateSql, [logNumber, ...ids]);
 		}
 
-		return { rows: result.rows };
+		return { rows: resultRows };
 	} catch (err) {
 		let message = "Database query error";
 		if (err instanceof Error) message = err.message;
