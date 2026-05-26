@@ -1,5 +1,37 @@
+import { AppError } from "../middlewares/errorHandler.js";
 import { Event, Global, Location } from "../models/permissions.js";
 import database from "../services/databaseService.js";
+export async function needsEventPermission(
+	user: number,
+	event: number,
+	permission: Event,
+	requester: number = user,
+): Promise<void> {
+	if (!(await hasEventPermission(user, event, permission, requester))) {
+		throw new AppError("Forbidden", 403);
+	}
+}
+
+export async function needsGlobalPermission(
+	user: number,
+	permission: Global,
+	requester: number = user,
+): Promise<void> {
+	if (!(await hasGlobalPermission(user, permission, requester))) {
+		throw new AppError("Forbidden", 403);
+	}
+}
+
+export async function needsLocationPermission(
+	user: number,
+	location: number,
+	permission: Location,
+	requester: number = user,
+): Promise<void> {
+	if (!(await hasLocationPermission(user, location, permission, requester))) {
+		throw new AppError("Forbidden", 403);
+	}
+}
 
 export async function hasEventPermission(
 	user: number,

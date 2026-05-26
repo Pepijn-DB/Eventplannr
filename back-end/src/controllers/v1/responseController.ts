@@ -5,7 +5,10 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { hasEventPermission } from "../../services/permissionService.js";
+import {
+	hasEventPermission,
+	needsEventPermission,
+} from "../../services/permissionService.js";
 import {
 	eventValidator,
 	ifMatchValidator,
@@ -14,7 +17,25 @@ import {
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
-function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
+/**
+ * Extracts and validates request variables such as user ID, event ID, requested user ID,
+ * and optionally an additional ID (e.g., date ID or location ID) based on the request path.
+ *
+ * @param {AuthRequest} req - The authenticated request object containing parameters and body data.
+ * @param {boolean} [needsId=false] - Indicates whether an additional ID (e.g., date ID or location ID) is required.
+ * @return {{ id: number, userId: number, eventId: number, requestedUserId: number }}
+ * An object containing the extracted and validated variables.
+ * @throws {AppError} If any required variable is missing, invalid, or if an internal error occurs.
+ */
+function getRequestVariables(
+	req: AuthRequest,
+	needsId: boolean = false,
+): {
+	id: number;
+	userId: number;
+	eventId: number;
+	requestedUserId: number;
+} {
 	try {
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
@@ -77,19 +98,51 @@ function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
 	}
 }
 
-async function getInvitationId(
+/**
+ * Determines if a user has permission to edit an event or matches the requested user ID.
+ *
+ * @param {number} userId - The ID of the user making the request.
+ * @param {number} eventId - The ID of the event being accessed.
+ * @param {number} requestedUserId - The ID of the user whose data is being accessed.
+ * @return {Promise<void>} Resolves if the user has permission or matches the requested user ID; otherwise, throws an error.
+ */
+async function isUserOrCanEdit(
 	userId: number,
+	eventId: number,
+	requestedUserId: number,
+) {
+	if (
+		!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
+		requestedUserId !== userId
+	) {
+		throw new AppError("Forbidden", 403);
+	}
+}
+
+/**
+ * Retrieves the invitation ID for a specified user and event, ensuring the requester has the necessary permissions.
+ *
+ * @param {number} invitedUser - The ID of the user associated with the invitation.
+ * @param {number} eventId - The ID of the event associated with the invitation.
+ * @param {number} [requester=-1] - The ID of the requester. Defaults to -1 (the same as `userId` if not provided).
+ * @return {Promise<number>} A promise that resolves to the ID of the invitation.
+ * @throws {AppError} Throws an error if the requester does not have permission or if the invitation is not found.
+ */
+async function getInvitationId(
+	invitedUser: number,
 	eventId: number,
 	requester: number = -1,
 ): Promise<number> {
 	if (requester === -1) {
-		requester = userId;
+		requester = invitedUser;
 	}
+
+	await isUserOrCanEdit(requester, eventId, invitedUser);
 
 	const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
 	const resultInvitation = await database.query(
 		sqlInvitation,
-		[userId, eventId],
+		[invitedUser, eventId],
 		requester,
 	);
 	if (resultInvitation && resultInvitation.rows.length === 0) {
@@ -112,19 +165,9 @@ export const createDateResponse = async (
 	next: NextFunction,
 ) => {
 	try {
-		const {
-			userId,
-			eventId,
-			requestedUserId,
-			id: dateId,
-		} = getRequestVariables(req, true);
+		const { userId, eventId, id: dateId } = getRequestVariables(req, true);
+
 		const invitationId = await getInvitationId(userId, eventId);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
@@ -151,15 +194,14 @@ export const getDateResponse = async (
 			requestedUserId: requestedUser,
 			id: dateId,
 		} = getRequestVariables(req, true);
-		if (await hasEventPermission(userId, eventId, Event.VIEW)) {
-			const sql = `SELECT dr.id, u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
-			const result = await database.query(sql, [dateId, requestedUser], userId);
-			validateResult(result);
-			await setETag(req, "date_response", result.rows[0].id, res);
-			return res.status(200).json({ result: result.rows });
-		} else {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
+		const sql = `SELECT dr.id, u.username, dr.state, ed.date FROM date_response dr INNER JOIN event_dates ed ON ed.id = dr.date_id INNER JOIN invitation i ON i.id = dr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE dr.date_id = ? AND i.user_id = ?`;
+		const result = await database.query(sql, [dateId, requestedUser], userId);
+		validateResult(result);
+		await setETag(req, "date_response", result.rows[0].id, res);
+		return res.status(200).json({ result: result.rows });
 	} catch (err) {
 		next(err);
 	}
@@ -182,12 +224,8 @@ export const updateDateResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
@@ -220,12 +258,7 @@ export const updateFullDateResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
@@ -277,12 +310,7 @@ export const deleteDateResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 
 		const sql = `DELETE FROM date_response WHERE invitation_id = ? AND date_id = ?`;
 		await database.query(sql, [invitationId, dateId], userId);
@@ -305,13 +333,8 @@ export const createLocationResponse = async (
 			requestedUserId,
 			id: locationId,
 		} = getRequestVariables(req, true);
-		const invitationId = await getInvitationId(userId, eventId, userId);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		const invitationId = await getInvitationId(userId, eventId);
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -338,9 +361,9 @@ export const getLocationResponse = async (
 			requestedUserId,
 			id: locationId,
 		} = getRequestVariables(req, true);
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		const sql = `SELECT lr.id, u.username, lr.state, l.name FROM location_response lr INNER JOIN event_locations el ON lr.location_id = el.id INNER JOIN locations l ON l.id = el.location_id INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN users u ON i.user_id = u.id WHERE lr.location_id = ? AND i.user_id = ?`;
 		const result = await database.query(
 			sql,
@@ -372,12 +395,7 @@ export const deleteLocationResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 		const sql = `DELETE FROM location_response WHERE invitation_id = ? AND location_id = ?`;
 		await database.query(sql, [invitationId, locationId], userId);
 
@@ -404,12 +422,7 @@ export const updateLocationResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -440,12 +453,7 @@ export const updateFullLocationResponse = async (
 			eventId,
 			userId,
 		);
-		if (
-			!(await hasEventPermission(userId, eventId, Event.EDIT_ALL)) &&
-			requestedUserId !== userId
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await isUserOrCanEdit(userId, eventId, requestedUserId);
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
 			return res.status(400).json({ message: "Missing or invalid state" });
@@ -475,7 +483,6 @@ export const updateFullLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		await database.query(sql, [state, invitationId, locationId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
@@ -491,13 +498,13 @@ export const getAllDateResponses = async (
 	try {
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		let sql = `SELECT dr.id, dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.user_id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
@@ -525,13 +532,13 @@ export const getAllLocationResponses = async (
 		if (!eventId) {
 			return res.status(400).json({ message: "Missing event id" });
 		}
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		let sql = `SELECT lr.id, l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.user_id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);

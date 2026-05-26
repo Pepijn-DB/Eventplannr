@@ -6,7 +6,7 @@ import type { StrNum } from "../../models/strnum.js";
 import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { hasEventPermission } from "../../services/permissionService.js";
+import { needsEventPermission } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,
@@ -50,14 +50,13 @@ export const getInvitations = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, false);
 
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		let sql = `
-			SELECT i.id, i.user_id, i.event_id, i.role
-			FROM invitation i
-			WHERE i.event_id = ?
-		`;
+            SELECT i.id, i.user_id, i.event_id, i.role
+            FROM invitation i
+            WHERE i.event_id = ?
+        `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
 		sql += ` ORDER BY u.id ASC`;
@@ -131,15 +130,11 @@ export const deleteInvitation = async (
 			[invitationId],
 			userId,
 		);
-		if (
-			!(await hasEventPermission(
-				userId,
-				resultEvent.rows[0].id,
-				Event.EDIT_INVITATION,
-			))
-		) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(
+			userId,
+			resultEvent.rows[0].id,
+			Event.EDIT_INVITATION,
+		);
 
 		await databaseService.query(
 			`DELETE FROM location_response WHERE invitation_id = ?`,
@@ -173,9 +168,7 @@ export const createInvitation = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, false);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_INVITATION);
 
 		const invitedUserId = variableValidator(req.body.userId)
 			? req.body.userId
@@ -201,9 +194,7 @@ export const updateInvitation = async (
 	try {
 		const { userId, eventId, invitationId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_INVITATION);
 
 		let sql = `UPDATE invitation SET`;
 		const params: StrNum[] = [];
@@ -234,9 +225,7 @@ export const updateFullInvitation = async (
 	try {
 		const { userId, eventId, invitationId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_INVITATION))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_INVITATION);
 
 		const sql = `UPDATE invitation SET role = ? WHERE id = ?`;
 
@@ -262,14 +251,13 @@ export const getInvitation = async (
 	try {
 		const { userId, eventId, invitationId } = getRequestVariables(req, false);
 
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
+
 		const sql = `
         SELECT i.id, i.user_id, i.event_id, i.role
         FROM invitation i
         WHERE i.event_id = ? AND i.user_id = ?
-    `;
+    	`;
 
 		const resultUser = await database.query(
 			`SELECT i.user_id FROM invitation i WHERE i.id = ?`,

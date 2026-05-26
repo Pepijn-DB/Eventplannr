@@ -5,7 +5,7 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { hasEventPermission } from "../../services/permissionService.js";
+import { needsEventPermission } from "../../services/permissionService.js";
 import {
 	eventValidator,
 	ifMatchValidator,
@@ -47,9 +47,7 @@ export const getEventDates = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, false);
 
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
 
 		let sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ?`;
 		const pagination = req.pagination || {};
@@ -81,9 +79,7 @@ export const createEventDate = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, false);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_DATE);
 
 		const date = variableValidator(req.body.date)
 			? new Date(req.body.date)
@@ -109,9 +105,7 @@ export const deleteEventDate = async (
 	try {
 		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_DATE);
 
 		await database.query(
 			`DELETE FROM date_response WHERE date_id = ?`,
@@ -136,9 +130,7 @@ export const updateEventDate = async (
 	try {
 		const { userId, eventId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_DATE);
 
 		return res.status(405).json({ message: "Method not implemented." });
 	} catch (err) {
@@ -154,9 +146,7 @@ export const updateFullEventDate = async (
 	try {
 		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.EDIT_DATE))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.EDIT_DATE);
 
 		await ifMatchValidator(req, `event_dates`, dateId);
 
@@ -174,15 +164,10 @@ export const getEventDate = async (
 	try {
 		const { userId, eventId, dateId } = getRequestVariables(req, true);
 
-		if (!(await hasEventPermission(userId, eventId, Event.VIEW))) {
-			return res.status(403).json({ message: "Forbidden" });
-		}
+		await needsEventPermission(userId, eventId, Event.VIEW);
 
 		const sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.id = ?`;
 		const result = await database.query(sql, [dateId], userId);
-		if (!result || result.rows.length === 0) {
-			return res.status(500).json({ message: "Internal server error" });
-		}
 
 		validateResult(result);
 
