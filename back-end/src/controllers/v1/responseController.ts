@@ -17,6 +17,16 @@ import {
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
+/**
+ * Extracts and validates request variables such as user ID, event ID, requested user ID,
+ * and optionally an additional ID (e.g., date ID or location ID) based on the request path.
+ *
+ * @param {AuthRequest} req - The authenticated request object containing parameters and body data.
+ * @param {boolean} [needsId=false] - Indicates whether an additional ID (e.g., date ID or location ID) is required.
+ * @return {{ id: number, userId: number, eventId: number, requestedUserId: number }}
+ * An object containing the extracted and validated variables.
+ * @throws {AppError} If any required variable is missing, invalid, or if an internal error occurs.
+ */
 function getRequestVariables(
 	req: AuthRequest,
 	needsId: boolean = false,
@@ -88,6 +98,14 @@ function getRequestVariables(
 	}
 }
 
+/**
+ * Determines if a user has permission to edit an event or matches the requested user ID.
+ *
+ * @param {number} userId - The ID of the user making the request.
+ * @param {number} eventId - The ID of the event being accessed.
+ * @param {number} requestedUserId - The ID of the user whose data is being accessed.
+ * @return {Promise<void>} Resolves if the user has permission or matches the requested user ID; otherwise, throws an error.
+ */
 async function isUserOrCanEdit(
 	userId: number,
 	eventId: number,
@@ -101,6 +119,15 @@ async function isUserOrCanEdit(
 	}
 }
 
+/**
+ * Retrieves the invitation ID for a specified user and event, ensuring the requester has the necessary permissions.
+ *
+ * @param {number} userId - The ID of the user associated with the invitation.
+ * @param {number} eventId - The ID of the event associated with the invitation.
+ * @param {number} [requester=-1] - The ID of the requester. Defaults to -1 (the same as `userId` if not provided).
+ * @return {Promise<number>} A promise that resolves to the ID of the invitation.
+ * @throws {AppError} Throws an error if the requester does not have permission or if the invitation is not found.
+ */
 async function getInvitationId(
 	userId: number,
 	eventId: number,
