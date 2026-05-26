@@ -17,7 +17,12 @@ import {
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
-function getRequestVariables(req: AuthRequest, needsId: boolean = false) {
+function getRequestVariables(req: AuthRequest, needsId: boolean = false): {
+	id: number,
+	userId: number,
+	eventId: number,
+	requestedUserId: number,
+} {
 	try {
 		const userId = userValidator(req);
 		const eventId = eventValidator(req);
@@ -102,7 +107,7 @@ async function getInvitationId(
 		requester = userId;
 	}
 
-	await isUserOrCanEdit(userId, eventId, requester);
+	await isUserOrCanEdit(requester, eventId, userId);
 
 	const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
 	const resultInvitation = await database.query(
