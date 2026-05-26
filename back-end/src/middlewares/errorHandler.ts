@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import type { Response } from "express";
+import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../app.js";
 
 export class AppError extends Error {
@@ -53,6 +53,7 @@ export const errorHandler = (
 	err: AppError | Error,
 	req: AuthRequest,
 	res: Response,
+	_next: NextFunction,
 ) => {
 	const entry: ErrorEntry = { err, req: sanitizeRequest(req), ts: Date.now() };
 	listErrors.push(entry);
