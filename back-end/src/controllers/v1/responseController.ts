@@ -17,11 +17,14 @@ import {
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
-function getRequestVariables(req: AuthRequest, needsId: boolean = false): {
-	id: number,
-	userId: number,
-	eventId: number,
-	requestedUserId: number,
+function getRequestVariables(
+	req: AuthRequest,
+	needsId: boolean = false,
+): {
+	id: number;
+	userId: number;
+	eventId: number;
+	requestedUserId: number;
 } {
 	try {
 		const userId = userValidator(req);
