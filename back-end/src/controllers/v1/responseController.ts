@@ -122,27 +122,27 @@ async function isUserOrCanEdit(
 /**
  * Retrieves the invitation ID for a specified user and event, ensuring the requester has the necessary permissions.
  *
- * @param {number} userId - The ID of the user associated with the invitation.
+ * @param {number} invitedUser - The ID of the user associated with the invitation.
  * @param {number} eventId - The ID of the event associated with the invitation.
  * @param {number} [requester=-1] - The ID of the requester. Defaults to -1 (the same as `userId` if not provided).
  * @return {Promise<number>} A promise that resolves to the ID of the invitation.
  * @throws {AppError} Throws an error if the requester does not have permission or if the invitation is not found.
  */
 async function getInvitationId(
-	userId: number,
+	invitedUser: number,
 	eventId: number,
 	requester: number = -1,
 ): Promise<number> {
 	if (requester === -1) {
-		requester = userId;
+		requester = invitedUser;
 	}
 
-	await isUserOrCanEdit(requester, eventId, userId);
+	await isUserOrCanEdit(requester, eventId, invitedUser);
 
 	const sqlInvitation = `SELECT i.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.user_id = ? AND e.id = ?`;
 	const resultInvitation = await database.query(
 		sqlInvitation,
-		[userId, eventId],
+		[invitedUser, eventId],
 		requester,
 	);
 	if (resultInvitation && resultInvitation.rows.length === 0) {
