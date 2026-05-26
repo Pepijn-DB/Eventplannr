@@ -53,7 +53,7 @@ export const getInvitations = async (
 		await needsEventPermission(userId, eventId, Event.VIEW);
 
 		let sql = `
-            SELECT i.user_id, i.event_id, i.role
+            SELECT i.id, i.user_id, i.event_id, i.role
             FROM invitation i
             WHERE i.event_id = ?
         `;
