@@ -477,7 +477,7 @@ export const getAllDateResponses = async (
 		let sql = `SELECT dr.id, dr.date_id, dr.state, i.user_id FROM date_response dr INNER JOIN invitation i ON i.id = dr.invitation_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.user_id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
@@ -511,7 +511,7 @@ export const getAllLocationResponses = async (
 		let sql = `SELECT lr.id, l.name, lr.state, i.user_id FROM location_response lr INNER JOIN invitation i ON i.id = lr.invitation_id INNER JOIN event_locations el ON el.id = lr.location_id INNER JOIN locations l ON l.id = el.location_id WHERE i.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.user_id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
