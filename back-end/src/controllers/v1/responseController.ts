@@ -333,7 +333,7 @@ export const createLocationResponse = async (
 			requestedUserId,
 			id: locationId,
 		} = getRequestVariables(req, true);
-		const invitationId = await getInvitationId(userId, eventId, userId);
+		const invitationId = await getInvitationId(userId, eventId);
 		await isUserOrCanEdit(userId, eventId, requestedUserId);
 		const state = variableValidator(req.body.state) ? req.body.state : null;
 		if (!state) {
