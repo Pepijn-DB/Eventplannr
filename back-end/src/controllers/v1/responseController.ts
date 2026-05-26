@@ -456,7 +456,6 @@ export const updateFullLocationResponse = async (
 		if (!result) {
 			return res.status(500).json({ message: "Internal server error" });
 		}
-		await database.query(sql, [state, invitationId, locationId], userId);
 
 		return res.status(204).json();
 	} catch (err) {
