@@ -138,9 +138,7 @@ export const deleteInvitation = async (
 			await txQuery(`DELETE FROM date_response WHERE invitation_id = ?`, [
 				invitationId,
 			]);
-			await txQuery(`DELETE FROM invitation WHERE invitation_id = ?`, [
-				invitationId,
-			]);
+			await txQuery(`DELETE FROM invitation WHERE id = ?`, [invitationId]);
 		});
 
 		return res.status(204).json();
