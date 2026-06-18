@@ -13,21 +13,32 @@ import {
 	updateUser,
 	updateUserPermission,
 } from "../../controllers/v1/userController.js";
+import { validateBody } from "../../middlewares/validateRequest.js";
+import {
+	createUserPermissionSchema,
+	createUserSchema,
+	updateFullUserSchema,
+	updateUserSchema,
+} from "../../schemas/index.js";
 
 const router = Router();
 
 router.get("/", getUsers);
 
-router.post("/", createUser);
+router.post("/", validateBody(createUserSchema), createUser);
 router.delete("/:id", deleteUser);
 router.get("/:id", getUser);
-router.patch("/:id", updateUser);
-router.put("/:id", updateFullUser);
+router.patch("/:id", validateBody(updateUserSchema), updateUser);
+router.put("/:id", validateBody(updateFullUserSchema), updateFullUser);
 
 router.get("/:id/invitations", getUserInvitations);
 
 router.get("/:id/permissions", getUserPermissions);
-router.post("/:id/permissions", createUserPermission);
+router.post(
+	"/:id/permissions",
+	validateBody(createUserPermissionSchema),
+	createUserPermission,
+);
 router.delete("/:id/permissions/:permission", deleteUserPermission);
 router.patch("/:id/permissions/:permission", updateUserPermission);
 router.put("/:id/permissions/:permission", updateFullUserPermission);
