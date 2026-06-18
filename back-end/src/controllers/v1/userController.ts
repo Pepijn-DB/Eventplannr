@@ -244,14 +244,12 @@ export const deleteUser = async (
 
 		await isUserOrAdmin(userId, requestedUser);
 
-		await database.query(
-			`DELETE FROM user_permissions WHERE user_id = ?`,
-			[requestedUser],
-			userId,
-		);
-
-		const sql = `DELETE FROM users WHERE id = ?`;
-		await database.query(sql, [requestedUser], userId);
+		await database.transaction(userId, async (txQuery) => {
+			await txQuery(`DELETE FROM user_permissions WHERE user_id = ?`, [
+				requestedUser,
+			]);
+			await txQuery(`DELETE FROM users WHERE id = ?`, [requestedUser]);
+		});
 
 		return res.status(204).json();
 	} catch (err) {

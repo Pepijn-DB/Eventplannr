@@ -131,6 +131,40 @@ export async function queryWithoutExecutioner(
 	}
 }
 
+export async function transaction<T>(
+	executioner: number,
+	callback: (
+		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+		txQuery: (sql: string, params?: StrNum[]) => Promise<{ rows: any[] }>,
+	) => Promise<T>,
+): Promise<T> {
+	if (!(await connect()) || !db) {
+		throw new Error("Database connection is not available");
+	}
+
+	return db.begin(async (tx) => {
+		const txQuery = async (sql: string, params: StrNum[] = []) => {
+			const prepared = prepareQueryAndParams(sql, params);
+			const converted = convertQuestionMarksToDollarParams(prepared.sql);
+			const result = await tx.unsafe(converted.sql, prepared.params);
+			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
+			const resultRows = Array.isArray(result) ? (result as any[]) : [];
+			try {
+				const {
+					action,
+					table: tableName,
+					where: whereClause,
+				} = parseQuery(prepared.sql);
+				if (action && tableName && action !== "SELECT" && executioner >= 0) {
+					await tx`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${prepared.sql}, ${executioner}, ${tableName}, ${whereClause}, ${action});`;
+				}
+			} catch (_err) {}
+			return { rows: resultRows };
+		};
+		return callback(txQuery);
+	});
+}
+
 export async function close(): Promise<void> {
 	db.close();
 	connected = false;
@@ -274,4 +308,11 @@ export function getDb() {
 	return db;
 }
 
-export default { getDb, connect, query, queryWithoutExecutioner, parseQuery };
+export default {
+	getDb,
+	connect,
+	query,
+	queryWithoutExecutioner,
+	transaction,
+	parseQuery,
+};

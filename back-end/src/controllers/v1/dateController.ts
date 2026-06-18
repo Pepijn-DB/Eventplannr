@@ -107,14 +107,10 @@ export const deleteEventDate = async (
 
 		await needsEventPermission(userId, eventId, Event.EDIT_DATE);
 
-		await database.query(
-			`DELETE FROM date_response WHERE date_id = ?`,
-			[dateId],
-			userId,
-		);
-
-		const sql = `DELETE FROM event_dates WHERE id = ?`;
-		await database.query(sql, [dateId], userId);
+		await database.transaction(userId, async (txQuery) => {
+			await txQuery(`DELETE FROM date_response WHERE date_id = ?`, [dateId]);
+			await txQuery(`DELETE FROM event_dates WHERE id = ?`, [dateId]);
+		});
 
 		return res.status(204).json();
 	} catch (err) {
