@@ -111,4 +111,49 @@ export const updateEventDateSchema = z.object({
 export const responseStateSchema = z.object({
 	state: responseState,
 });
+
+// Query parameter schemas
+export const getUsersQuerySchema = z.object({
+	username: z.string().min(1).optional(),
+	email: z.string().min(1).optional(),
+});
+
+export const getEventsQuerySchema = z.object({
+	title: z.string().min(1).optional(),
+	status: eventStatus.optional(),
+});
+
+export const getInvitationsQuerySchema = z.object({
+	role: invitationRole.optional(),
+	user_id: z.coerce.number().int().positive().optional(),
+});
+
+export const getUserInvitationsQuerySchema = z.object({
+	role: invitationRole.optional(),
+	event_id: z.coerce.number().int().positive().optional(),
+});
+
+export const getLocationsQuerySchema = z.object({
+	name: z.string().min(1).optional(),
+});
+
+export const getEventLocationsQuerySchema = z.object({
+	name: z.string().min(1).optional(),
+});
+
+export const getEventDatesQuerySchema = z.object({
+	from: dateString.optional(),
+	to: dateString.optional(),
+});
+
+export const getDateResponsesQuerySchema = z.object({
+	state: responseState.optional(),
+	user_id: z.coerce.number().int().positive().optional(),
+	date_id: z.coerce.number().int().positive().optional(),
+});
+
+export const getLocationResponsesQuerySchema = z.object({
+	state: responseState.optional(),
+	user_id: z.coerce.number().int().positive().optional(),
+	location_id: z.coerce.number().int().positive().optional(),
 });
