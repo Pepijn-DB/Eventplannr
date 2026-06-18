@@ -138,6 +138,10 @@ export async function transaction<T>(
 		txQuery: (sql: string, params: StrNum[]) => Promise<{ rows: any[] }>,
 	) => Promise<T>,
 ): Promise<T> {
+	if (!(await connect()) || !db) {
+		throw new Error("Database connection is not available");
+	}
+
 	return db.begin(async (tx) => {
 		const txQuery = async (sql: string, params: StrNum[] = []) => {
 			const prepared = prepareQueryAndParams(sql, params);
