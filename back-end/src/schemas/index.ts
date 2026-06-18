@@ -60,7 +60,9 @@ export const updateFullEventSchema = z.object({
 
 export const createInvitationSchema = z.object({
 	userId: z.number().int().positive(),
-	role: z.enum(["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"]).optional(),
+	role: z
+		.enum(["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"])
+		.optional(),
 });
 
 export const updateInvitationSchema = z.object({
@@ -87,24 +89,30 @@ export const createEventDateSchema = z.object({
 	date: z
 		.string()
 		.regex(/^\d{4}-\d{2}-\d{2}$/)
-		.refine((s) => {
-			const d = new Date(`${s}T00:00:00Z`);
-			return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-		}, {
-			message: "Invalid date",
-		}),
+		.refine(
+			(s) => {
+				const d = new Date(`${s}T00:00:00Z`);
+				return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+			},
+			{
+				message: "Invalid date",
+			},
+		),
 });
 
 export const updateEventDateSchema = z.object({
 	date: z
 		.string()
 		.regex(/^\d{4}-\d{2}-\d{2}$/)
-		.refine((s) => {
-			const d = new Date(`${s}T00:00:00Z`);
-			return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-		}, {
-			message: "Invalid date",
-		}),
+		.refine(
+			(s) => {
+				const d = new Date(`${s}T00:00:00Z`);
+				return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+			},
+			{
+				message: "Invalid date",
+			},
+		),
 });
 
 export const responseStateSchema = z.object({

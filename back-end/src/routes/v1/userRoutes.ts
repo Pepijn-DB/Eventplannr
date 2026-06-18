@@ -41,7 +41,15 @@ router.post(
 	createUserPermission,
 );
 router.delete("/:id/permissions/:permission", deleteUserPermission);
-router.patch("/:id/permissions", validateBody(updateUserPermissionSchema), updateUserPermission);
-router.put("/:id/permissions", validateBody(updateUserPermissionSchema), updateFullUserPermission);
+router.patch(
+	"/:id/permissions",
+	validateBody(updateUserPermissionSchema),
+	updateUserPermission,
+);
+router.put(
+	"/:id/permissions",
+	validateBody(updateUserPermissionSchema),
+	updateFullUserPermission,
+);
 
 export default router;
