@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodSchema } from "zod";
+import * as z from "zod";
 
 export function validateBody(schema: ZodSchema) {
 	return (req: Request, res: Response, next: NextFunction) => {
@@ -8,7 +9,7 @@ export function validateBody(schema: ZodSchema) {
 			const firstError = result.error.issues[0];
 			return res.status(400).json({
 				message: firstError?.message ?? "Validation error",
-				errors: result.error.flatten().fieldErrors,
+				errors: z.flattenError(result.error),
 			});
 		}
 		req.body = result.data;
