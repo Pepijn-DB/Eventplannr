@@ -104,19 +104,16 @@ export const deleteLocation = async (
 
 		await needsLocationPermission(userId, locationId, Location.EDIT_ALL);
 
-		await database.query(
-			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
-			[locationId],
-			userId,
-		);
-		await database.query(
-			`DELETE FROM event_locations WHERE location_id = ?`,
-			[locationId],
-			userId,
-		);
-
-		const sql = `DELETE FROM locations WHERE id = ?`;
-		await database.query(sql, [locationId], userId);
+		await database.transaction(userId, async (txQuery) => {
+			await txQuery(
+				`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE location_id = ?)`,
+				[locationId],
+			);
+			await txQuery(`DELETE FROM event_locations WHERE location_id = ?`, [
+				locationId,
+			]);
+			await txQuery(`DELETE FROM locations WHERE id = ?`, [locationId]);
+		});
 
 		return res.status(204).json();
 	} catch (err) {
@@ -330,14 +327,15 @@ export const deleteEventLocation = async (
 
 			const eventLocationId = eventLocation.rows[0].id;
 
-			await database.query(
-				`DELETE FROM location_response WHERE location_id = ?`,
-				[eventLocationId],
-				userId,
-			);
-
-			const sql = `DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`;
-			await database.query(sql, [eventId, locationId], userId);
+			await database.transaction(userId, async (txQuery) => {
+				await txQuery(`DELETE FROM location_response WHERE location_id = ?`, [
+					eventLocationId,
+				]);
+				await txQuery(
+					`DELETE FROM event_locations WHERE event_id = ? AND location_id = ?`,
+					[eventId, locationId],
+				);
+			});
 
 			return res.status(204).json();
 		} catch (err) {

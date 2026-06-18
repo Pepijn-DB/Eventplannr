@@ -3,7 +3,6 @@ import type { AuthRequest } from "../../app.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
-import databaseService from "../../services/databaseService.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import { needsEventPermission } from "../../services/permissionService.js";
@@ -68,7 +67,7 @@ export const getInvitations = async (
 			sql += ` OFFSET ?`;
 			params.push(pagination.offset);
 		}
-		const result = await databaseService.query(sql, params, userId);
+		const result = await database.query(sql, params, userId);
 
 		validateResult(result);
 
@@ -106,7 +105,7 @@ export const getUserInvitations = async (
 			sql += ` OFFSET ?`;
 			params.push(pagination.offset);
 		}
-		const result = await databaseService.query(sql, params, userValidator(req));
+		const result = await database.query(sql, params, userValidator(req));
 
 		validateResult(result);
 
@@ -125,34 +124,24 @@ export const deleteInvitation = async (
 		const { userId, invitationId } = getRequestVariables(req, true);
 
 		const sqlEvent = `SELECT e.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.invitation_id = ?`;
-		const resultEvent = await databaseService.query(
-			sqlEvent,
-			[invitationId],
-			userId,
-		);
+		const resultEvent = await database.query(sqlEvent, [invitationId], userId);
 		await needsEventPermission(
 			userId,
 			resultEvent.rows[0].id,
 			Event.EDIT_INVITATION,
 		);
 
-		await databaseService.query(
-			`DELETE FROM location_response WHERE invitation_id = ?`,
-			[invitationId],
-			userId,
-		);
-		await databaseService.query(
-			`DELETE FROM date_response WHERE invitation_id = ?`,
-			[invitationId],
-			userId,
-		);
-
-		const sql = `
-            DELETE FROM invitation 
-            WHERE invitation_id = ?
-        `;
-
-		await databaseService.query(sql, [invitationId], userId);
+		await database.transaction(userId, async (txQuery) => {
+			await txQuery(`DELETE FROM location_response WHERE invitation_id = ?`, [
+				invitationId,
+			]);
+			await txQuery(`DELETE FROM date_response WHERE invitation_id = ?`, [
+				invitationId,
+			]);
+			await txQuery(`DELETE FROM invitation WHERE invitation_id = ?`, [
+				invitationId,
+			]);
+		});
 
 		return res.status(204).json();
 	} catch (err) {
@@ -179,7 +168,7 @@ export const createInvitation = async (
             INSERT INTO invitation (event_id, user_id, role)
             VALUES (?, ?, ?)
         `;
-		await databaseService.query(sql, [eventId, invitedUserId, role], userId);
+		await database.query(sql, [eventId, invitedUserId, role], userId);
 		return res.status(201).json({ message: "Invitation created" });
 	} catch (err) {
 		next(err);
@@ -268,7 +257,7 @@ export const getInvitation = async (
 			return res.status(400).json({ message: "Invitation not found" });
 		}
 
-		const result = await databaseService.query(
+		const result = await database.query(
 			sql,
 			[eventId, resultUser.rows[0].user_id],
 			userId,

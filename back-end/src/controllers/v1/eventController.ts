@@ -220,34 +220,22 @@ export const deleteEvent = async (
 
 		await needsEventPermission(userId, eventId, Event.EDIT_ALL);
 
-		await database.query(
-			`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
-			[eventId],
-			userId,
-		);
-		await database.query(
-			`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE event_id = ?)`,
-			[eventId],
-			userId,
-		);
-		await database.query(
-			`DELETE FROM event_dates WHERE event_id = ?`,
-			[eventId],
-			userId,
-		);
-		await database.query(
-			`DELETE FROM event_locations WHERE event_id = ?`,
-			[eventId],
-			userId,
-		);
-		await database.query(
-			`DELETE FROM invitation WHERE event_id = ?`,
-			[eventId],
-			userId,
-		);
-
-		const sqlDelete = `DELETE FROM events WHERE id = ?`;
-		await database.query(sqlDelete, [eventId], userId);
+		await database.transaction(userId, async (txQuery) => {
+			await txQuery(
+				`DELETE FROM date_response WHERE date_id IN (SELECT id FROM event_dates WHERE event_id = ?)`,
+				[eventId],
+			);
+			await txQuery(
+				`DELETE FROM location_response WHERE location_id IN (SELECT id FROM event_locations WHERE event_id = ?)`,
+				[eventId],
+			);
+			await txQuery(`DELETE FROM event_dates WHERE event_id = ?`, [eventId]);
+			await txQuery(`DELETE FROM event_locations WHERE event_id = ?`, [
+				eventId,
+			]);
+			await txQuery(`DELETE FROM invitation WHERE event_id = ?`, [eventId]);
+			await txQuery(`DELETE FROM events WHERE id = ?`, [eventId]);
+		});
 
 		return res.status(204).json();
 	} catch (err) {
