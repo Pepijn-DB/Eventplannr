@@ -202,6 +202,18 @@ export async function hasGlobalPermission(
 	}
 }
 
+export async function needsSelfOrAdmin(
+	requesterId: number,
+	targetUserId: number,
+): Promise<void> {
+	if (
+		requesterId !== targetUserId &&
+		!(await hasGlobalPermission(requesterId, Global.ADMIN_USER))
+	) {
+		throw new AppError("Forbidden", 403);
+	}
+}
+
 export async function hasLocationPermission(
 	user: number,
 	location: number,

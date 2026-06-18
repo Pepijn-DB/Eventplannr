@@ -7,8 +7,8 @@ import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
 import {
-	hasGlobalPermission,
 	needsGlobalPermission,
+	needsSelfOrAdmin,
 } from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
@@ -16,15 +16,6 @@ import {
 } from "../../validators/requestValidator.js";
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
-
-async function isUserOrAdmin(userId: number, requestedUser: number) {
-	if (
-		!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-		userId !== requestedUser
-	) {
-		throw new AppError("Forbidden", 403);
-	}
-}
 
 function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 	try {
@@ -96,7 +87,7 @@ export const getUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		await isUserOrAdmin(userId, requestedUser);
+		await needsSelfOrAdmin(userId, requestedUser);
 
 		const sql = `
 		SELECT u.id, u.username, u.email, u.created_at
@@ -163,7 +154,7 @@ export const updateUser = async (
 		let sql = `UPDATE users SET`;
 		const params: StrNum[] = [];
 
-		await isUserOrAdmin(userId, requestedUser);
+		await needsSelfOrAdmin(userId, requestedUser);
 
 		if (req.body.username) {
 			sql += ` username = ?,`;
@@ -200,7 +191,7 @@ export const updateFullUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		await isUserOrAdmin(userId, requestedUser);
+		await needsSelfOrAdmin(userId, requestedUser);
 
 		if (!req.body.username || !req.body.email || !req.body.password)
 			return res.status(400).json({ message: "Request is not complete" });
@@ -242,7 +233,7 @@ export const deleteUser = async (
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
 
-		await isUserOrAdmin(userId, requestedUser);
+		await needsSelfOrAdmin(userId, requestedUser);
 
 		await database.transaction(userId, async (txQuery) => {
 			await txQuery(`DELETE FROM user_permissions WHERE user_id = ?`, [
@@ -264,8 +255,6 @@ export const getUserPermissions = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
@@ -301,8 +290,6 @@ export const updateUserPermission = async (
 	try {
 		const { userId } = getRequestVariables(req, false);
 
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		return res.status(405).json({ message: "Method not implemented." });
@@ -319,8 +306,6 @@ export const updateFullUserPermission = async (
 	try {
 		const { userId } = getRequestVariables(req, false);
 
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
 		return res.status(405).json({ message: "Method not implemented." });
@@ -336,11 +321,16 @@ export const deleteUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
-		const { permission } = req.body;
+		const permission =
+			variableValidator(req.body.permission) &&
+			typeof req.body.permission === "string"
+				? (req.body.permission as string)
+				: null;
+		if (permission === null)
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
 		await database.query(sql, [requestedUser, permission], userId);
@@ -358,15 +348,15 @@ export const createUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permission = variableValidator(req.body.permission)
-			? req.body.permission
-			: null;
-
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
-		if (permission === null || Array.isArray(permission))
+		const permission =
+			variableValidator(req.body.permission) &&
+			typeof req.body.permission === "string"
+				? (req.body.permission as string)
+				: null;
+		if (permission === null)
 			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
