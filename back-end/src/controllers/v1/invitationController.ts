@@ -58,7 +58,7 @@ export const getInvitations = async (
         `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
@@ -96,7 +96,7 @@ export const getUserInvitations = async (
 		`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [userId];
-		sql += ` ORDER BY u.id ASC`;
+		sql += ` ORDER BY i.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
