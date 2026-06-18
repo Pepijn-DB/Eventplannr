@@ -1,6 +1,23 @@
 import { z } from "zod";
 
 const eventStatus = z.enum(["OPEN", "CLOSED", "CANCELLED", "DRAFT"]);
+const invitationRole = z.enum([
+	"GUEST",
+	"DATE_PICKER",
+	"LOCATION_PICKER",
+	"ORGANIZER",
+]);
+const responseState = z.enum(["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"]);
+const dateString = z
+	.string()
+	.regex(/^\d{4}-\d{2}-\d{2}$/)
+	.refine(
+		(s) => {
+			const d = new Date(`${s}T00:00:00Z`);
+			return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+		},
+		{ message: "Invalid date" },
+	);
 
 export const authTokenSchema = z.object({
 	email: z.string().email(),
@@ -60,16 +77,18 @@ export const updateFullEventSchema = z.object({
 
 export const createInvitationSchema = z.object({
 	userId: z.number().int().positive(),
-	role: z
-		.enum(["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"])
-		.optional(),
+	role: invitationRole.optional(),
 });
 
 export const updateInvitationSchema = z.object({
-	role: z.enum(["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"]),
+	role: invitationRole,
 });
 
 export const createEventLocationSchema = z.object({
+	location_id: z.coerce.number().int().positive(),
+});
+
+export const updateEventLocationSchema = z.object({
 	location_id: z.coerce.number().int().positive(),
 });
 
@@ -81,40 +100,15 @@ export const updateLocationSchema = z.object({
 	name: z.string().min(1),
 });
 
-export const updateEventLocationSchema = z.object({
-	location_id: z.coerce.number().int().positive(),
-});
-
 export const createEventDateSchema = z.object({
-	date: z
-		.string()
-		.regex(/^\d{4}-\d{2}-\d{2}$/)
-		.refine(
-			(s) => {
-				const d = new Date(`${s}T00:00:00Z`);
-				return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-			},
-			{
-				message: "Invalid date",
-			},
-		),
+	date: dateString,
 });
 
 export const updateEventDateSchema = z.object({
-	date: z
-		.string()
-		.regex(/^\d{4}-\d{2}-\d{2}$/)
-		.refine(
-			(s) => {
-				const d = new Date(`${s}T00:00:00Z`);
-				return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-			},
-			{
-				message: "Invalid date",
-			},
-		),
+	date: dateString,
 });
 
 export const responseStateSchema = z.object({
-	state: z.enum(["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"]),
+	state: responseState,
+});
 });
