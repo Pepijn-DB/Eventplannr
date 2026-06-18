@@ -125,6 +125,9 @@ export const deleteInvitation = async (
 
 		const sqlEvent = `SELECT e.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.id = ?`;
 		const resultEvent = await database.query(sqlEvent, [invitationId], userId);
+
+		validateResult(resultEvent, true);
+
 		await needsEventPermission(
 			userId,
 			resultEvent.rows[0].id,
