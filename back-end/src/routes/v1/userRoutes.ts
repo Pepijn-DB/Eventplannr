@@ -18,6 +18,7 @@ import {
 	createUserPermissionSchema,
 	createUserSchema,
 	updateFullUserSchema,
+	updateUserPermissionSchema,
 	updateUserSchema,
 } from "../../schemas/index.js";
 
@@ -40,7 +41,7 @@ router.post(
 	createUserPermission,
 );
 router.delete("/:id/permissions/:permission", deleteUserPermission);
-router.patch("/:id/permissions/:permission", updateUserPermission);
-router.put("/:id/permissions/:permission", updateFullUserPermission);
+router.patch("/:id/permissions", validateBody(updateUserPermissionSchema), updateUserPermission);
+router.put("/:id/permissions", validateBody(updateUserPermissionSchema), updateFullUserPermission);
 
 export default router;

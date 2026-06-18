@@ -37,6 +37,8 @@ import {
 	createEventLocationSchema,
 	createEventSchema,
 	createInvitationSchema,
+	updateEventDateSchema,
+	updateEventLocationSchema,
 	updateEventSchema,
 	updateFullEventSchema,
 	updateInvitationSchema,
@@ -81,8 +83,8 @@ router.post(
 
 router.get("/:event_id/location/:location_id", getEventLocation);
 router.delete("/:event_id/location/:location_id", deleteEventLocation);
-router.patch("/:event_id/location/:location_id", updateEventLocation);
-router.put("/:event_id/location/:location_id", updateFullEventLocation);
+router.patch("/:event_id/location/:location_id", validateBody(updateEventLocationSchema), updateEventLocation);
+router.put("/:event_id/location/:location_id", validateBody(updateEventLocationSchema), updateFullEventLocation);
 
 router.get("/:event_id/date", getEventDates);
 router.post(
@@ -93,7 +95,7 @@ router.post(
 
 router.get("/:event_id/date/:date_id", getEventDate);
 router.delete("/:event_id/date/:date_id", deleteEventDate);
-router.patch("/:event_id/date/:date_id", updateEventDate);
-router.put("/:event_id/date/:date_id", updateFullEventDate);
+router.patch("/:event_id/date/:date_id", validateBody(updateEventDateSchema), updateEventDate);
+router.put("/:event_id/date/:date_id", validateBody(updateEventDateSchema), updateFullEventDate);
 
 export default router;
