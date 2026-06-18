@@ -123,7 +123,7 @@ export const deleteInvitation = async (
 	try {
 		const { userId, invitationId } = getRequestVariables(req, true);
 
-		const sqlEvent = `SELECT e.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.invitation_id = ?`;
+		const sqlEvent = `SELECT e.id FROM invitation i JOIN events e ON e.id = i.event_id WHERE i.id = ?`;
 		const resultEvent = await database.query(sqlEvent, [invitationId], userId);
 		await needsEventPermission(
 			userId,
