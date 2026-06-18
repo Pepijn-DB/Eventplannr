@@ -61,6 +61,14 @@ export const getInvitations = async (
         `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
+		if (req.query.role) {
+			sql += ` AND i.role = ?`;
+			params.push(req.query.role as string);
+		}
+		if (req.query.user_id) {
+			sql += ` AND i.user_id = ?`;
+			params.push(Number(req.query.user_id));
+		}
 		sql += ` ORDER BY i.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
@@ -105,6 +113,14 @@ export const getUserInvitations = async (
 		`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [requestedUserId];
+		if (req.query.role) {
+			sql += ` AND i.role = ?`;
+			params.push(req.query.role as string);
+		}
+		if (req.query.event_id) {
+			sql += ` AND i.event_id = ?`;
+			params.push(Number(req.query.event_id));
+		}
 		sql += ` ORDER BY i.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;

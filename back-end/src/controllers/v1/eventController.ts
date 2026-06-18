@@ -56,7 +56,15 @@ export const getEvents = async (
 		`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [userId, userId];
-		sql += ` ORDER BY u.id ASC`;
+		if (req.query.title) {
+			sql += ` AND e.title LIKE ?`;
+			params.push(`%${req.query.title}%`);
+		}
+		if (req.query.status) {
+			sql += ` AND e.status = ?`;
+			params.push(req.query.status as string);
+		}
+		sql += ` ORDER BY e.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
