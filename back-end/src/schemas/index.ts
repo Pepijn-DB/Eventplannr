@@ -76,9 +76,15 @@ export const updateLocationSchema = z.object({
 });
 
 export const createEventDateSchema = z.object({
-	date: z.string().refine((s) => !Number.isNaN(new Date(s).getTime()), {
-		message: "Invalid date",
-	}),
+	date: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.refine((s) => {
+			const d = new Date(`${s}T00:00:00Z`);
+			return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+		}, {
+			message: "Invalid date",
+		}),
 });
 
 export const responseStateSchema = z.object({
