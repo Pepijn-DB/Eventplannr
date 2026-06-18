@@ -17,15 +17,6 @@ import {
 import { validateResult } from "../../validators/resultValidator.js";
 import { variableValidator } from "../../validators/variableValidator.js";
 
-async function isUserOrAdmin(userId: number, requestedUser: number) {
-	if (
-		!(await hasGlobalPermission(userId, Global.ADMIN_USER)) &&
-		userId !== requestedUser
-	) {
-		throw new AppError("Forbidden", 403);
-	}
-}
-
 function getRequestVariables(req: AuthRequest, needsReqUser: boolean) {
 	try {
 		const userId = userValidator(req);
