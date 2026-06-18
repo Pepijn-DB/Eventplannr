@@ -21,8 +21,8 @@ const saved = {
 	transaction: database.transaction,
 };
 
-const mockQuery = mock(async () => ({ rows: [{ id: 1, name: "Paris", creator_user: 1, role: "ORGANIZER", permission: "GLOBAL_ADMIN", event_id: 1, location_id: 1 }] }));
-const mockTx = mock(async (_: number, cb: any) => cb(async () => ({ rows: [] })));
+const mockQuery = mock(async () => ({ rows: [{ id: 1, name: "Paris", creator_user: 1, role: "ORGANIZER", permission: "GLOBAL_ADMIN", event_id: 1, location_id: 1 }] as any[] }));
+const mockTx = mock(async (_: number, cb: any) => cb(async () => ({ rows: [] as any[] })));
 
 beforeEach(() => {
 	(database as any).query = mockQuery;

@@ -14,9 +14,9 @@ await mock.module("../../src/services/databaseService.js", () => ({
 	query: mockDbQuery,
 }));
 
+import { AppError } from "../../src/middlewares/errorHandler.js";
 const { userValidator, eventValidator, invitationValidator, ifMatchValidator } =
 	await import("../../src/validators/requestValidator.js");
-const { AppError } = await import("../../src/middlewares/errorHandler.js");
 
 describe("userValidator", () => {
 	it("returns user id when req.user is set", () => {

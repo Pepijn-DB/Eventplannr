@@ -2,7 +2,7 @@
 import { describe, expect, it, mock } from "bun:test";
 
 const mockDbQuery = mock(async () => ({
-	rows: [{ title: "Event", description: "Desc", creator_user: 1 }],
+	rows: [{ title: "Event", description: "Desc", creator_user: 1 }] as any[],
 }));
 
 await mock.module("../../src/services/databaseService.js", () => ({
@@ -16,8 +16,8 @@ await mock.module("../../src/services/databaseService.js", () => ({
 	query: mockDbQuery,
 }));
 
+import { AppError } from "../../src/middlewares/errorHandler.js";
 const { getETag, setETag } = await import("../../src/services/eTagService.js");
-const { AppError } = await import("../../src/middlewares/errorHandler.js");
 const { hash } = await import("../../src/models/hash.js");
 
 function makeReq(userId = 1): any {

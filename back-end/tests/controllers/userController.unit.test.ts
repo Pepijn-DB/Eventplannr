@@ -22,9 +22,9 @@ const saved = {
 	transaction: database.transaction,
 };
 
-const mockQuery = mock(async () => ({ rows: [] }));
-const mockQWE = mock(async () => ({ rows: [] }));
-const mockTx = mock(async (_: number, cb: any) => cb(async () => ({ rows: [] })));
+const mockQuery = mock(async () => ({ rows: [] as any[] }));
+const mockQWE = mock(async () => ({ rows: [] as any[] }));
+const mockTx = mock(async (_: number, cb: any) => cb(async () => ({ rows: [] as any[] })));
 
 beforeEach(() => {
 	(database as any).query = mockQuery;

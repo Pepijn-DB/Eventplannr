@@ -23,7 +23,7 @@ const saved = {
 
 // Default mock: returns rows that grant EDIT_ALL and give an invitation id
 const mockQuery = mock(async () => ({
-	rows: [{ id: 1, role: "ORGANIZER", state: "YES", date: "2024-01-01", permission: "GLOBAL_ADMIN", user_id: 1, event_id: 1 }],
+	rows: [{ id: 1, role: "ORGANIZER", state: "YES", date: "2024-01-01", permission: "GLOBAL_ADMIN", user_id: 1, event_id: 1 }] as any[],
 }));
 
 beforeEach(() => {

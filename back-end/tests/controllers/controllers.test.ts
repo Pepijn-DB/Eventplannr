@@ -4,7 +4,7 @@ import http from "node:http";
 import jwt from "jsonwebtoken";
 import config from "../../src/config/config.js";
 
-const mockQuery = mock(async () => ({ rows: [] }));
+const mockQuery = mock(async () => ({ rows: [] as any[] }));
 
 // Include real implementations of pure functions so they remain available
 // after this mock overwrites the module registry for subsequent test files.

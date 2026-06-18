@@ -2,7 +2,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Global, Event, Location } from "../../src/models/permissions.js";
 
-const mockQuery = mock(async (_sql: string, _params: unknown[], _exec: number) => ({ rows: [] }));
+const mockQuery = mock(async (_sql: string, _params: unknown[], _exec: number) => ({ rows: [] as any[] }));
 
 await mock.module("../../src/services/databaseService.js", () => ({
 	default: {
@@ -15,6 +15,7 @@ await mock.module("../../src/services/databaseService.js", () => ({
 	query: mockQuery,
 }));
 
+import { AppError } from "../../src/middlewares/errorHandler.js";
 const {
 	hasGlobalPermission,
 	needsGlobalPermission,
@@ -24,7 +25,6 @@ const {
 	needsLocationPermission,
 	needsSelfOrAdmin,
 } = await import("../../src/services/permissionService.js");
-const { AppError } = await import("../../src/middlewares/errorHandler.js");
 
 function setQueryResult(rows: unknown[]) {
 	mockQuery.mockImplementation(async () => ({ rows }));
