@@ -5,6 +5,6 @@ import { authTokenSchema } from "../../schemas/index.js";
 
 const router = Router();
 
-router.get("/token", validateBody(authTokenSchema), getToken);
+router.post("/token", validateBody(authTokenSchema), getToken);
 
 export default router;
