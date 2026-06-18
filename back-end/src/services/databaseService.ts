@@ -135,7 +135,7 @@ export async function transaction<T>(
 	executioner: number,
 	callback: (
 		// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
-		txQuery: (sql: string, params: StrNum[]) => Promise<{ rows: any[] }>,
+		txQuery: (sql: string, params?: StrNum[]) => Promise<{ rows: any[] }>,
 	) => Promise<T>,
 ): Promise<T> {
 	if (!(await connect()) || !db) {
