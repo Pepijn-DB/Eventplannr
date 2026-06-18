@@ -14,12 +14,23 @@ import {
 	updateFullLocationResponse,
 	updateLocationResponse,
 } from "../../controllers/v1/responseController.js";
-import { validateBody } from "../../middlewares/validateRequest.js";
-import { responseStateSchema } from "../../schemas/index.js";
+import {
+	validateBody,
+	validateQuery,
+} from "../../middlewares/validateRequest.js";
+import {
+	getDateResponsesQuerySchema,
+	getLocationResponsesQuerySchema,
+	responseStateSchema,
+} from "../../schemas/index.js";
 
 const router = Router();
 
-router.get("/:event_id/date", getAllDateResponses);
+router.get(
+	"/:event_id/date",
+	validateQuery(getDateResponsesQuerySchema),
+	getAllDateResponses,
+);
 router.post(
 	"/:event_id/date/:date_id",
 	validateBody(responseStateSchema),
@@ -39,7 +50,11 @@ router.put(
 	updateFullDateResponse,
 );
 
-router.get("/:event_id/location", getAllLocationResponses);
+router.get(
+	"/:event_id/location",
+	validateQuery(getLocationResponsesQuerySchema),
+	getAllLocationResponses,
+);
 router.post(
 	"/:event_id/location/:location_id",
 	validateBody(responseStateSchema),

@@ -52,7 +52,15 @@ export const getEventDates = async (
 		let sql = `SELECT ed.id, ed.date FROM event_dates ed WHERE ed.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		if (req.query.from) {
+			sql += ` AND ed.date >= ?`;
+			params.push(req.query.from as string);
+		}
+		if (req.query.to) {
+			sql += ` AND ed.date <= ?`;
+			params.push(req.query.to as string);
+		}
+		sql += ` ORDER BY ed.date ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);

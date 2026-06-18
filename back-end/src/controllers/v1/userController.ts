@@ -57,9 +57,18 @@ export const getUsers = async (
 		let sql = `
 		  SELECT u.id, u.username, u.email, u.created_at
 		  FROM users u
+		  WHERE 1=1
 	  `;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [];
+		if (req.query.username) {
+			sql += ` AND u.username LIKE ?`;
+			params.push(`%${req.query.username}%`);
+		}
+		if (req.query.email) {
+			sql += ` AND u.email LIKE ?`;
+			params.push(`%${req.query.email}%`);
+		}
 		sql += ` ORDER BY u.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;

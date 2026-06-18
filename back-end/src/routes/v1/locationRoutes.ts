@@ -8,15 +8,19 @@ import {
 	updateFullLocation,
 	updateLocation,
 } from "../../controllers/v1/locationController.js";
-import { validateBody } from "../../middlewares/validateRequest.js";
+import {
+	validateBody,
+	validateQuery,
+} from "../../middlewares/validateRequest.js";
 import {
 	createLocationSchema,
+	getLocationsQuerySchema,
 	updateLocationSchema,
 } from "../../schemas/index.js";
 
 const router = Router();
 
-router.get("/", getLocations);
+router.get("/", validateQuery(getLocationsQuerySchema), getLocations);
 router.post("/", validateBody(createLocationSchema), createLocation);
 
 router.get("/:location_id", getLocation);

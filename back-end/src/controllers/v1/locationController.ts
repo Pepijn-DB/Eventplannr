@@ -52,7 +52,11 @@ export const getLocations = async (
 					 WHERE l.creator_user = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [userId];
-		sql += ` ORDER BY u.id ASC`;
+		if (req.query.name) {
+			sql += ` AND l.name LIKE ?`;
+			params.push(`%${req.query.name}%`);
+		}
+		sql += ` ORDER BY l.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
@@ -215,7 +219,11 @@ export const getEventLocations = async (
 					 WHERE el.event_id = ?`;
 		const pagination = req.pagination || {};
 		const params: StrNum[] = [eventId];
-		sql += ` ORDER BY u.id ASC`;
+		if (req.query.name) {
+			sql += ` AND l.name LIKE ?`;
+			params.push(`%${req.query.name}%`);
+		}
+		sql += ` ORDER BY el.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
 			params.push(pagination.limit);
