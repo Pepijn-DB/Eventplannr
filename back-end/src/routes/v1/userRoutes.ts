@@ -40,7 +40,11 @@ router.post(
 	validateBody(createUserPermissionSchema),
 	createUserPermission,
 );
-router.delete("/:id/permissions/:permission", deleteUserPermission);
+router.delete(
+	"/:id/permissions",
+	validateBody(createUserPermissionSchema),
+	deleteUserPermission,
+);
 router.patch(
 	"/:id/permissions",
 	validateBody(updateUserPermissionSchema),

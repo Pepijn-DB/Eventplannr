@@ -338,16 +338,11 @@ export const deleteUserPermission = async (
 ) => {
 	try {
 		const { userId, requestedUser } = getRequestVariables(req, true);
-		const permission = variableValidator(req.params.permission)
-			? req.params.permission
-			: null;
-
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
-		if (permission === null || Array.isArray(permission))
-			return res.status(400).json({ message: "Missing or invalid permission" });
+		const { permission } = req.body;
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
 		await database.query(sql, [requestedUser, permission], userId);
