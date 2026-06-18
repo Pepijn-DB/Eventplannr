@@ -145,7 +145,16 @@ export async function transaction<T>(
 			const result = await tx.unsafe(converted.sql, prepared.params);
 			// biome-ignore lint/suspicious/noExplicitAny: <Result from SQL can return any>
 			const resultRows = Array.isArray(result) ? (result as any[]) : [];
-			await addLog(prepared.sql, executioner);
+			try {
+				const {
+					action,
+					table: tableName,
+					where: whereClause,
+				} = parseQuery(prepared.sql);
+				if (action && tableName && action !== "SELECT" && executioner >= 0) {
+					await tx`INSERT INTO log (query, executioner, table_name, where_clause, action) VALUES (${prepared.sql}, ${executioner}, ${tableName}, ${whereClause}, ${action});`;
+				}
+			} catch (_err) {}
 			return { rows: resultRows };
 		};
 		return callback(txQuery);
