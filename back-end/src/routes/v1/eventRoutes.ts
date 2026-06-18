@@ -31,12 +31,19 @@ import {
 	updateEventLocation,
 	updateFullEventLocation,
 } from "../../controllers/v1/locationController.js";
-import { validateBody } from "../../middlewares/validateRequest.js";
+import {
+	validateBody,
+	validateQuery,
+} from "../../middlewares/validateRequest.js";
 import {
 	createEventDateSchema,
 	createEventLocationSchema,
 	createEventSchema,
 	createInvitationSchema,
+	getEventDatesQuerySchema,
+	getEventLocationsQuerySchema,
+	getEventsQuerySchema,
+	getInvitationsQuerySchema,
 	updateEventDateSchema,
 	updateEventLocationSchema,
 	updateEventSchema,
@@ -46,7 +53,7 @@ import {
 
 const router = Router();
 
-router.get("/", getEvents);
+router.get("/", validateQuery(getEventsQuerySchema), getEvents);
 router.post("/", validateBody(createEventSchema), createEvent);
 
 router.get("/:event_id", getEvent);
@@ -54,7 +61,11 @@ router.delete("/:event_id", deleteEvent);
 router.patch("/:event_id", validateBody(updateEventSchema), updateEvent);
 router.put("/:event_id", validateBody(updateFullEventSchema), updateFullEvent);
 
-router.get("/:event_id/invitation", getInvitations);
+router.get(
+	"/:event_id/invitation",
+	validateQuery(getInvitationsQuerySchema),
+	getInvitations,
+);
 router.post(
 	"/:event_id/invitation",
 	validateBody(createInvitationSchema),
@@ -74,7 +85,11 @@ router.put(
 	updateFullInvitation,
 );
 
-router.get("/:event_id/location", getEventLocations);
+router.get(
+	"/:event_id/location",
+	validateQuery(getEventLocationsQuerySchema),
+	getEventLocations,
+);
 router.post(
 	"/:event_id/location",
 	validateBody(createEventLocationSchema),
@@ -94,7 +109,11 @@ router.put(
 	updateFullEventLocation,
 );
 
-router.get("/:event_id/date", getEventDates);
+router.get(
+	"/:event_id/date",
+	validateQuery(getEventDatesQuerySchema),
+	getEventDates,
+);
 router.post(
 	"/:event_id/date",
 	validateBody(createEventDateSchema),
