@@ -324,7 +324,13 @@ export const deleteUserPermission = async (
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
-		const { permission } = req.body;
+		const permission =
+			variableValidator(req.body.permission) &&
+			typeof req.body.permission === "string"
+				? (req.body.permission as string)
+				: null;
+		if (permission === null)
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`;
 		await database.query(sql, [requestedUser, permission], userId);
@@ -345,7 +351,13 @@ export const createUserPermission = async (
 
 		await needsGlobalPermission(userId, Global.ADMIN_USER);
 
-		const { permission } = req.body;
+		const permission =
+			variableValidator(req.body.permission) &&
+			typeof req.body.permission === "string"
+				? (req.body.permission as string)
+				: null;
+		if (permission === null)
+			return res.status(400).json({ message: "Missing or invalid permission" });
 
 		const sql = `INSERT INTO user_permissions (user_id, permission) VALUES (?, ?)`;
 		await database.query(sql, [requestedUser, permission], userId);
