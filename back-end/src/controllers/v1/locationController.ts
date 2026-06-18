@@ -240,7 +240,7 @@ export const getEventLocation = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { userId } = getRequestVariables(req, true);
+		const { userId, locationId } = getRequestVariables(req, true);
 		const eventId = variableValidator(req.params.event_id)
 			? Number(req.params.event_id)
 			: null;
@@ -253,7 +253,7 @@ export const getEventLocation = async (
 					 FROM event_locations el
 					 JOIN locations l ON el.location_id = l.id
 					 WHERE el.event_id = ? AND el.location_id = ?`;
-		const result = await database.query(sql, [eventId], userId);
+		const result = await database.query(sql, [eventId, locationId], userId);
 		validateResult(result);
 		await setETag(req, "event_locations", result.rows[0].id, res);
 		return res.status(200).json({ result: result.rows });

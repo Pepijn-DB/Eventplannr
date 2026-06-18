@@ -5,7 +5,10 @@ import { Event } from "../../models/permissions.js";
 import type { StrNum } from "../../models/strnum.js";
 import database from "../../services/databaseService.js";
 import { setETag } from "../../services/eTagService.js";
-import { needsEventPermission } from "../../services/permissionService.js";
+import {
+	needsEventPermission,
+	needsSelfOrAdmin,
+} from "../../services/permissionService.js";
 import {
 	ifMatchValidator,
 	userValidator,
@@ -83,19 +86,25 @@ export const getUserInvitations = async (
 	next: NextFunction,
 ) => {
 	try {
-		const userId = Number(
+		const requesterId = userValidator(req);
+		const requestedUserId = Number(
 			variableValidator(req.params.id) ? req.params.id : -1,
 		);
-		if (userId === -1 || Number.isNaN(userId) || userId < 0) {
+		if (
+			requestedUserId === -1 ||
+			Number.isNaN(requestedUserId) ||
+			requestedUserId < 0
+		) {
 			return res.status(400).json({ message: "Missing or invalid user id" });
 		}
+		await needsSelfOrAdmin(requesterId, requestedUserId);
 		let sql = `
 			SELECT i.id, i.user_id, i.event_id, i.role
 			FROM invitation i
 			WHERE i.user_id = ?
 		`;
 		const pagination = req.pagination || {};
-		const params: StrNum[] = [userId];
+		const params: StrNum[] = [requestedUserId];
 		sql += ` ORDER BY i.id ASC`;
 		if (typeof pagination.limit === "number") {
 			sql += ` LIMIT ?`;
@@ -105,7 +114,7 @@ export const getUserInvitations = async (
 			sql += ` OFFSET ?`;
 			params.push(pagination.offset);
 		}
-		const result = await database.query(sql, params, userValidator(req));
+		const result = await database.query(sql, params, requesterId);
 
 		validateResult(result);
 
