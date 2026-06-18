@@ -5,7 +5,7 @@ import Config from "../../config/config.js";
 import type { User } from "../../models/user.js";
 
 const noAuthRequired: { [key: string]: string } = {
-	"/api/v1/auth/token": "GET",
+	"/api/v1/auth/token": "POST",
 	"/api/v1/user": "POST",
 };
 
