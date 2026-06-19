@@ -12,7 +12,12 @@ export function validateQuery(schema: ZodSchema) {
 				errors: z.flattenError(result.error),
 			});
 		}
-		req.query = result.data as typeof req.query;
+		Object.defineProperty(req, "query", {
+			value: result.data,
+			writable: true,
+			enumerable: true,
+			configurable: true,
+		});
 		next();
 	};
 }
