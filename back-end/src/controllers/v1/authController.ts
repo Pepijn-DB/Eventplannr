@@ -26,7 +26,7 @@ export const getToken = async (
 			return;
 		}
 
-		if (variableValidator(req.body))
+		if (!variableValidator(req.body))
 			return res.status(400).json({
 				message: "Missing body",
 				remainingAttempts: remainingAttempts,
