@@ -161,8 +161,8 @@ describe("updateFullEventDate", () => {
 		const res = makeRes();
 		let nextErr: any = null;
 		await updateFullEventDate(req, res, (e) => { nextErr = e; });
-		if (nextErr) expect((nextErr as any).status).toBe(428);
-		else expect(res.statusCode).toBe(405);
+		expect(nextErr).toBeDefined();
+		expect(nextErr.status).toBe(428);
 	});
 });
 

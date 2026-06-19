@@ -18,12 +18,11 @@ describe("emailValidator", () => {
 		expect(emailValidator("nodomain")).toBe(false);
 	});
 
-	it("returns true for multiple @ signs (split gives 3 parts, length !== 2, but dot check passes)", () => {
-		// "a@b@c" split('@') => ['a','b','c'] length 3 (not 2), but split('.') => ['a@b@c'] length 1 < 2
+	it("returns false for multiple @ signs", () => {
 		expect(emailValidator("a@b@c")).toBe(false);
 	});
 
-	it("returns true for empty string with dot", () => {
+	it("returns true for a string with a dot but no @", () => {
 		expect(emailValidator("no.at")).toBe(true);
 	});
 });

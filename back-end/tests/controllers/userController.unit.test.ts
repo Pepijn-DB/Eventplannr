@@ -132,7 +132,7 @@ describe("getUser", () => {
 		const req = makeReq({ params: { id: "1" } });
 		const res = makeRes();
 		await getUser(req, res, noop);
-		expect([200, 500]).toContain(res.statusCode);
+		expect(res.statusCode).toBe(200);
 	});
 
 	it("returns 400 when user id is invalid", async () => {

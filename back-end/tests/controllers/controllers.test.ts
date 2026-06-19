@@ -163,7 +163,7 @@ describe("User controller", () => {
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify({ username: "alice", email: "alice@example.com", password: "password123" }),
 			});
-			expect([201, 500]).toContain(res.status);
+			expect(res.status).toBe(201);
 		});
 	});
 
@@ -180,7 +180,7 @@ describe("User controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/user`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -190,7 +190,7 @@ describe("User controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/user/99`, {
 				headers: authHeaders(makeToken({ id: 1 })),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -202,7 +202,7 @@ describe("User controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/user/1`, {
 				headers: authHeaders(makeToken({ id: 1 })),
 			});
-			expect([200, 500]).toContain(res.status);
+			expect(res.status).toBe(200);
 		});
 	});
 
@@ -213,7 +213,7 @@ describe("User controller", () => {
 				method: "DELETE",
 				headers: authHeaders(makeToken({ id: 1 })),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -272,7 +272,7 @@ describe("Event controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/event/1`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 404, 500]).toContain(res.status);
+			expect([403, 404]).toContain(res.status);
 		});
 	});
 
@@ -283,7 +283,7 @@ describe("Event controller", () => {
 				method: "DELETE",
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -317,7 +317,7 @@ describe("Invitation controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/event/1/invitation`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -327,7 +327,7 @@ describe("Invitation controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/user/99/invitations`, {
 				headers: authHeaders(makeToken({ id: 1 })),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 });
@@ -368,7 +368,7 @@ describe("Location controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/location/1`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 404, 500]).toContain(res.status);
+			expect([403, 404]).toContain(res.status);
 		});
 	});
 
@@ -413,7 +413,7 @@ describe("Date controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/event/1/date`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -456,7 +456,7 @@ describe("Admin controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/admin/logs`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -468,12 +468,10 @@ describe("Admin controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/admin/logs`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([200, 500]).toContain(res.status);
-			if (res.status === 200) {
-				const body = await res.json();
-				expect(body).toHaveProperty("errors");
-				expect(Array.isArray(body.errors)).toBe(true);
-			}
+			expect(res.status).toBe(200);
+			const body = await res.json();
+			expect(body).toHaveProperty("errors");
+			expect(Array.isArray(body.errors)).toBe(true);
 		});
 	});
 });
@@ -485,7 +483,7 @@ describe("Response controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/response/1/date`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
@@ -495,7 +493,7 @@ describe("Response controller", () => {
 			const res = await fetch(`${baseUrl}/api/v1/response/1/location`, {
 				headers: authHeaders(makeToken()),
 			});
-			expect([403, 500]).toContain(res.status);
+			expect(res.status).toBe(403);
 		});
 	});
 
