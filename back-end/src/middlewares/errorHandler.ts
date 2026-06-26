@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import type { NextFunction, Response } from "express";
 import type { AuthRequest } from "../app.js";
+import logger from "../services/loggerService.js";
 
 export class AppError extends Error {
 	constructor(message: string, status?: number, ErrorOptions?: ErrorOptions) {
@@ -59,6 +60,16 @@ export const errorHandler = (
 	listErrors.push(entry);
 	if (listErrors.length > ERRORS_MAX) listErrors.shift();
 
+	// biome-ignore lint/suspicious/noExplicitAny: <AppError and Error may not have message/status properties>
+	const status = (err as any).status || 500;
+	logger.error((err as any).message || "Internal Server Error", {
+		requestId: req.requestId,
+		status,
+		method: req.method,
+		path: req.path,
+		stack: err.stack,
+	});
+
 	const ERRORS_LOG_PATH = process.env.ERRORS_LOG_PATH || "";
 	if (ERRORS_LOG_PATH) {
 		const line = JSON.stringify({
@@ -71,8 +82,7 @@ export const errorHandler = (
 		});
 		fs.promises.appendFile(ERRORS_LOG_PATH, `${line}\n`).catch(() => {});
 	}
-	// biome-ignore lint/suspicious/noExplicitAny: <AppError and Error may not have message/status properties>
-	res.status((err as any).status || 500).json({
+	res.status(status).json({
 		// biome-ignore lint/suspicious/noExplicitAny: <AppError and Error may not have message/status properties>
 		message: (err as any).message || "Internal Server Error",
 	});
