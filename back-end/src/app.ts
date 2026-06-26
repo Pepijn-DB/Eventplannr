@@ -4,6 +4,7 @@ import express from "express";
 
 import config from "./config/config.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import requestLogger from "./middlewares/requestLogger.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
 import paginationHandler from "./middlewares/v1/paginationHandler.js";
 import {
@@ -32,6 +33,8 @@ export interface AuthRequest extends Request {
 const app = express();
 
 app.use(express.json());
+
+app.use(requestLogger);
 
 app.use((_req: AuthRequest, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", config.cors_url);
