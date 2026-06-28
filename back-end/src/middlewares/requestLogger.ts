@@ -6,11 +6,7 @@ function generateRequestId(): string {
 	return crypto.randomUUID();
 }
 
-const requestLogger = (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
-) => {
+const requestLogger = (req: AuthRequest, res: Response, next: NextFunction) => {
 	const requestId = generateRequestId();
 	req.requestId = requestId;
 	res.setHeader("X-Request-ID", requestId);
@@ -25,7 +21,8 @@ const requestLogger = (
 
 	res.on("finish", () => {
 		const duration = Date.now() - start;
-		const level = res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
+		const level =
+			res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
 
 		logger[level](`← ${req.method} ${req.path}`, {
 			requestId,
