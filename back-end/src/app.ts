@@ -33,9 +33,9 @@ export interface AuthRequest extends Request {
 
 const app = express();
 
-app.use(express.json());
-
 app.use(requestLogger);
+
+app.use(express.json());
 
 app.use((_req: AuthRequest, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", config.cors_url);
