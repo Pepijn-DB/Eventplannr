@@ -17,6 +17,24 @@ const options: swaggerJsdoc.Options = {
 					bearerFormat: "JWT",
 				},
 			},
+			responses: {
+				Unauthorized: {
+					description: "Unauthorized – missing or invalid JWT",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/Error" },
+						},
+					},
+				},
+				Forbidden: {
+					description: "Forbidden – insufficient permissions",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/Error" },
+						},
+					},
+				},
+			},
 			schemas: {
 				Pagination: {
 					type: "object",
@@ -215,14 +233,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
-						"401": {
-							description: "Unauthorized",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 				post: {
@@ -294,6 +305,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -339,6 +351,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -385,6 +398,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -400,6 +414,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete user",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -458,6 +473,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -493,6 +509,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -545,6 +562,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "User not found",
 							content: {
@@ -597,6 +615,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -649,6 +668,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -664,6 +684,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete user permission",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -716,6 +737,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 				post: {
@@ -753,6 +775,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 			},
@@ -777,6 +800,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -825,6 +849,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -874,6 +899,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -889,6 +915,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete event",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -949,6 +976,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Event not found",
 							content: {
@@ -1002,6 +1030,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1040,6 +1069,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1092,6 +1122,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1144,6 +1175,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1159,6 +1191,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete invitation",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1213,6 +1246,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 				post: {
@@ -1247,6 +1281,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1285,6 +1320,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1327,6 +1363,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1369,6 +1406,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1384,6 +1422,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Remove location from event",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1445,6 +1484,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 				post: {
@@ -1485,6 +1525,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1523,6 +1564,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1571,6 +1613,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1619,6 +1662,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1634,6 +1678,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Remove date from event",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1678,6 +1723,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 				post: {
@@ -1712,6 +1758,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 			},
@@ -1736,6 +1783,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1778,6 +1826,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1820,6 +1869,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1835,6 +1885,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete location",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1898,6 +1949,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 			},
@@ -1953,6 +2005,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -1997,6 +2050,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2044,6 +2098,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2091,6 +2146,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2106,6 +2162,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete date response",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2169,6 +2226,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 			},
@@ -2224,6 +2282,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2268,6 +2327,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2315,6 +2375,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2362,6 +2423,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2377,6 +2439,7 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete location response",
 					responses: {
 						"204": { description: "Deleted" },
+						"401": { $ref: "#/components/responses/Unauthorized" },
 						"404": {
 							description: "Not found",
 							content: {
@@ -2431,14 +2494,8 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
-						"403": {
-							description: "Forbidden",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
+						"403": { $ref: "#/components/responses/Forbidden" },
 					},
 				},
 			},
