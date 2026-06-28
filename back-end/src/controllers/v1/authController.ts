@@ -1,5 +1,5 @@
-import * as Bun from "bun";
 import { createHash, randomBytes } from "node:crypto";
+import * as Bun from "bun";
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../../app.js";
@@ -136,18 +136,24 @@ export const refreshToken = async (
 		);
 
 		if (!result || result.rows.length === 0) {
-			return res.status(401).json({ message: "Invalid or expired refresh token" });
+			return res
+				.status(401)
+				.json({ message: "Invalid or expired refresh token" });
 		}
 
 		const row = result.rows[0];
 
 		if (new Date(row.expires_at) < new Date()) {
-			await queryWithoutExecutioner("DELETE FROM refresh_tokens WHERE id = ?", [row.id]);
+			await queryWithoutExecutioner("DELETE FROM refresh_tokens WHERE id = ?", [
+				row.id,
+			]);
 			return res.status(401).json({ message: "Refresh token expired" });
 		}
 
 		// Rotate: delete old token and issue a new one
-		await queryWithoutExecutioner("DELETE FROM refresh_tokens WHERE id = ?", [row.id]);
+		await queryWithoutExecutioner("DELETE FROM refresh_tokens WHERE id = ?", [
+			row.id,
+		]);
 
 		const payload: User = {
 			id: row.user_id,
@@ -179,7 +185,10 @@ export const logout = async (
 		}
 
 		const hash = hashToken(raw);
-		await queryWithoutExecutioner("DELETE FROM refresh_tokens WHERE token_hash = ?", [hash]);
+		await queryWithoutExecutioner(
+			"DELETE FROM refresh_tokens WHERE token_hash = ?",
+			[hash],
+		);
 
 		return res.status(204).send();
 	} catch (err) {
