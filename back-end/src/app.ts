@@ -21,6 +21,7 @@ import userRoutes from "./routes/v1/userRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
+	requestId?: string;
 	rateLimit?: { resetTime: number; remaining: number };
 	pagination?: {
 		limit?: number;
