@@ -13,10 +13,16 @@ const minLevel: Level = (process.env.LOG_LEVEL as Level) ?? "info";
 const minRank = LEVELS[minLevel] ?? LEVELS.info;
 const isTTY = process.stdout.isTTY;
 
+function sanitizeMsg(msg: string): string {
+	// Prevent CR/LF injection in TTY output
+	return msg.replace(/[\r\n]/g, " ");
+}
+
 function write(level: Level, msg: string, meta?: Record<string, unknown>) {
 	if (LEVELS[level] < minRank) return;
 
 	const ts = new Date().toISOString();
+	msg = sanitizeMsg(msg);
 
 	if (isTTY) {
 		const color = COLOR[level];
