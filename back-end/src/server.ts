@@ -2,27 +2,31 @@ import app from "./app.js";
 import config from "./config/config.js";
 import { setupDatabase } from "./config/setupDatabase.js";
 import database from "./services/databaseService.js";
+import logger from "./services/loggerService.js";
 
 if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
-	console.error("\x1b[31m[ERROR] Secret not set in env\x1b[0m");
+	logger.error("Secret not set in env");
 	process.exit(1);
 }
 
-database.connect().then((r) => console.log("Connected to database", r));
-
-setupDatabase()
+database
+	.connect()
 	.then((r) => {
-		if (r === null) return;
-		console.log("Database setup", r);
+		logger.info("Connected to database", { result: String(r) });
+		return setupDatabase();
+	})
+	.then((r) => {
+		if (r !== null && r !== undefined) {
+			logger.info("Database setup complete", { result: String(r) });
+		}
+		app.listen(config.port, () => {
+			logger.info(`Server running on port ${config.port}`);
+		});
 	})
 	.catch((err) => {
-		console.error("\x1b[31m[ERROR] Error setting up database");
-		console.error(err);
-		console.error(
-			"Be aware that the database might not be set up correctly.\x1b[0m",
-		);
+		logger.error("Startup failed", {
+			message: err?.message,
+			stack: err?.stack,
+		});
+		process.exit(1);
 	});
-
-app.listen(config.port, () => {
-	console.log(`Server running on port ${config.port}`);
-});
