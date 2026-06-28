@@ -4,7 +4,8 @@ import { setupDatabase } from "./config/setupDatabase.js";
 import database from "./services/databaseService.js";
 import logger from "./services/loggerService.js";
 
-if (config.secret === "SECRET STRING SHOULD BE SET IN ENV" || config.secret.length < 10) {
+if (config.secret === "SECRET STRING SHOULD BE SET IN ENV" ||
+	config.secret.length < 10) {
 	logger.error("Secret not set in env");
 	process.exit(1);
 }
