@@ -11,23 +11,22 @@ if (config.secret === "SECRET STRING SHOULD BE SET IN ENV") {
 
 database
 	.connect()
-	.then((r) => logger.info("Connected to database", { result: String(r) }));
-
-setupDatabase()
 	.then((r) => {
-		if (r === null) return;
-		logger.info("Database setup complete", { result: String(r) });
+		logger.info("Connected to database", { result: String(r) });
+		return setupDatabase();
+	})
+	.then((r) => {
+		if (r !== null && r !== undefined) {
+			logger.info("Database setup complete", { result: String(r) });
+		}
+		app.listen(config.port, () => {
+			logger.info(`Server running on port ${config.port}`);
+		});
 	})
 	.catch((err) => {
-		logger.error(
-			"Error setting up database — it might not be configured correctly",
-			{
-				message: err?.message,
-				stack: err?.stack,
-			},
-		);
+		logger.error("Startup failed", {
+			message: err?.message,
+			stack: err?.stack,
+		});
+		process.exit(1);
 	});
-
-app.listen(config.port, () => {
-	logger.info(`Server running on port ${config.port}`);
-});
