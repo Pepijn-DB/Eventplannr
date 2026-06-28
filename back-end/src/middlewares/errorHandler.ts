@@ -62,6 +62,7 @@ export const errorHandler = (
 
 	// biome-ignore lint/suspicious/noExplicitAny: <AppError and Error may not have message/status properties>
 	const status = (err as any).status || 500;
+	// biome-ignore lint/suspicious/noExplicitAny: <AppError and Error may not have message/status properties>
 	logger.error((err as any).message || "Internal Server Error", {
 		requestId: req.requestId,
 		status,
