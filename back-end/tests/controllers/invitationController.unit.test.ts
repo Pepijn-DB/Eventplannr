@@ -165,7 +165,7 @@ describe("getInvitation", () => {
 		expect([200, 500]).toContain(res.statusCode);
 	});
 
-	it("returns 400 when invitation not found for user_id lookup", async () => {
+	it("returns 404 when invitation not found for user_id lookup", async () => {
 		let callCount = 0;
 		mockQuery.mockImplementation(async () => {
 			callCount++;
@@ -175,7 +175,7 @@ describe("getInvitation", () => {
 		const req = makeReq({ params: { event_id: "1", invitation_id: "999" } });
 		const res = makeRes();
 		await getInvitation(req, res, noop);
-		expect(res.statusCode).toBe(400);
+		expect(res.statusCode).toBe(404);
 	});
 });
 
