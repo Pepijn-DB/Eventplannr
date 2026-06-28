@@ -132,7 +132,8 @@ CREATE TABLE `refresh_tokens` (
     `user_id` int NOT NULL,
     `token_hash` VARCHAR(255) NOT NULL,
     `expires_at` TIMESTAMP NOT NULL,
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_log` int
 );
 
 ALTER TABLE `refresh_tokens` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

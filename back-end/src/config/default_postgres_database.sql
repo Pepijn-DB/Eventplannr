@@ -135,7 +135,8 @@ CREATE TABLE refresh_tokens (
     user_id INTEGER NOT NULL,
     token_hash VARCHAR(255) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_log INTEGER
 );
 
 ALTER TABLE refresh_tokens ADD FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
