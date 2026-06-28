@@ -46,10 +46,11 @@ const options: swaggerJsdoc.Options = {
 					description: "Too many requests – rate limit exceeded",
 					content: {
 						"application/json": {
-							schema: { $ref: "#/components/schemas/Error" },
+							schema: { $ref: "#/components/schemas/RateLimitError" },
 							example: {
-								message:
-									"Too many requests from this IP, please try again later",
+								error: "Rate limit exceeded",
+								message: "Too many requests from this IP, please try again later",
+								retryAfter: 1234567890,
 							},
 						},
 					},
@@ -77,6 +78,15 @@ const options: swaggerJsdoc.Options = {
 					required: ["message"],
 					properties: {
 						message: { type: "string" },
+					},
+				},
+				RateLimitError: {
+					type: "object",
+					required: ["error", "message", "retryAfter"],
+					properties: {
+						error: { type: "string" },
+						message: { type: "string" },
+						retryAfter: { type: "integer" },
 					},
 				},
 				ValidationError: {
