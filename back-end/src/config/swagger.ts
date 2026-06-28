@@ -47,7 +47,10 @@ const options: swaggerJsdoc.Options = {
 					content: {
 						"application/json": {
 							schema: { $ref: "#/components/schemas/Error" },
-							example: { message: "Too many requests from this IP, please try again later" },
+							example: {
+								message:
+									"Too many requests from this IP, please try again later",
+							},
 						},
 					},
 				},
