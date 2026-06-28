@@ -42,6 +42,15 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 				},
+				TooManyRequests: {
+					description: "Too many requests – rate limit exceeded",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/Error" },
+							example: { message: "Too many requests from this IP, please try again later" },
+						},
+					},
+				},
 			},
 			schemas: {
 				Pagination: {
@@ -239,6 +248,7 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
+						"429": { $ref: "#/components/responses/TooManyRequests" },
 					},
 				},
 			},
