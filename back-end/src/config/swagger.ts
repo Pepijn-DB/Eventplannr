@@ -67,12 +67,7 @@ const options: swaggerJsdoc.Options = {
 						user_id: { type: "integer" },
 						role: {
 							type: "string",
-							enum: [
-								"GUEST",
-								"DATE_PICKER",
-								"LOCATION_PICKER",
-								"ORGANIZER",
-							],
+							enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"],
 						},
 					},
 				},
@@ -167,8 +162,22 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"401": { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"401": {
+							description: "Invalid credentials",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
@@ -192,13 +201,28 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/User" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/User" },
+													},
+												},
+											},
 										],
 									},
 								},
 							},
 						},
-						"401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"401": {
+							description: "Unauthorized",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				post: {
@@ -222,20 +246,62 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"201": { description: "Created user", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"409": { description: "Email already in use", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created user",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/User" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"409": {
+							description: "Email already in use",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/user/{id}": {
-				parameters: [{ in: "path", name: "id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Users"],
 					summary: "Get user by ID",
 					responses: {
-						"200": { description: "User", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "User",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/User" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -257,9 +323,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated user", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated user",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/User" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -282,9 +369,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated user", content: { "application/json": { schema: { $ref: "#/components/schemas/User" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated user",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/User" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -292,17 +400,38 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete user",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/user/{id}/invitations": {
-				parameters: [{ in: "path", name: "id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Users"],
 					summary: "Get user's event invitations",
 					parameters: [
-						{ in: "query", name: "role", schema: { type: "string", enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"] } },
+						{
+							in: "query",
+							name: "role",
+							schema: {
+								type: "string",
+								enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"],
+							},
+						},
 						{ in: "query", name: "event_id", schema: { type: "integer" } },
 						{ in: "query", name: "page", schema: { type: "integer" } },
 						{ in: "query", name: "per_page", schema: { type: "integer" } },
@@ -315,18 +444,40 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/Invitation" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/Invitation" },
+													},
+												},
+											},
 										],
 									},
 								},
 							},
 						},
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/user/{id}/permissions": {
-				parameters: [{ in: "path", name: "id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Users"],
 					summary: "Get user permissions",
@@ -335,11 +486,21 @@ const options: swaggerJsdoc.Options = {
 							description: "List of permissions",
 							content: {
 								"application/json": {
-									schema: { type: "array", items: { $ref: "#/components/schemas/UserPermission" } },
+									schema: {
+										type: "array",
+										items: { $ref: "#/components/schemas/UserPermission" },
+									},
 								},
 							},
 						},
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				post: {
@@ -353,16 +514,45 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["permission"],
 									properties: {
-										permission: { type: "string", enum: ["USER", "GLOBAL_ADMIN", "USER_ADMIN", "EVENT_ADMIN"] },
+										permission: {
+											type: "string",
+											enum: [
+												"USER",
+												"GLOBAL_ADMIN",
+												"USER_ADMIN",
+												"EVENT_ADMIN",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"201": { description: "Created permission", content: { "application/json": { schema: { $ref: "#/components/schemas/UserPermission" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "User not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created permission",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/UserPermission" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "User not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -376,16 +566,45 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["permission"],
 									properties: {
-										permission: { type: "string", enum: ["USER", "GLOBAL_ADMIN", "USER_ADMIN", "EVENT_ADMIN"] },
+										permission: {
+											type: "string",
+											enum: [
+												"USER",
+												"GLOBAL_ADMIN",
+												"USER_ADMIN",
+												"EVENT_ADMIN",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated permission", content: { "application/json": { schema: { $ref: "#/components/schemas/UserPermission" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated permission",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/UserPermission" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -399,16 +618,45 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["permission"],
 									properties: {
-										permission: { type: "string", enum: ["USER", "GLOBAL_ADMIN", "USER_ADMIN", "EVENT_ADMIN"] },
+										permission: {
+											type: "string",
+											enum: [
+												"USER",
+												"GLOBAL_ADMIN",
+												"USER_ADMIN",
+												"EVENT_ADMIN",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated permission", content: { "application/json": { schema: { $ref: "#/components/schemas/UserPermission" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated permission",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/UserPermission" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -416,7 +664,14 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete user permission",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
@@ -428,7 +683,14 @@ const options: swaggerJsdoc.Options = {
 					summary: "List events",
 					parameters: [
 						{ in: "query", name: "title", schema: { type: "string" } },
-						{ in: "query", name: "status", schema: { type: "string", enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"] } },
+						{
+							in: "query",
+							name: "status",
+							schema: {
+								type: "string",
+								enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"],
+							},
+						},
 						{ in: "query", name: "page", schema: { type: "integer" } },
 						{ in: "query", name: "per_page", schema: { type: "integer" } },
 					],
@@ -440,7 +702,15 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/Event" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/Event" },
+													},
+												},
+											},
 										],
 									},
 								},
@@ -467,19 +737,54 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"201": { description: "Created event", content: { "application/json": { schema: { $ref: "#/components/schemas/Event" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created event",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Event" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/event/{event_id}": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Events"],
 					summary: "Get event by ID",
 					responses: {
-						"200": { description: "Event", content: { "application/json": { schema: { $ref: "#/components/schemas/Event" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Event",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Event" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -494,16 +799,40 @@ const options: swaggerJsdoc.Options = {
 									properties: {
 										title: { type: "string", minLength: 1 },
 										description: { type: "string" },
-										status: { type: "string", enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"] },
+										status: {
+											type: "string",
+											enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated event", content: { "application/json": { schema: { $ref: "#/components/schemas/Event" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Event" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -519,16 +848,40 @@ const options: swaggerJsdoc.Options = {
 									properties: {
 										title: { type: "string", minLength: 1 },
 										description: { type: "string" },
-										status: { type: "string", enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"] },
+										status: {
+											type: "string",
+											enum: ["OPEN", "CLOSED", "CANCELLED", "DRAFT"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated event", content: { "application/json": { schema: { $ref: "#/components/schemas/Event" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Event" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -536,19 +889,40 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete event",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 
 			// ── Event Invitations ─────────────────────────────────────────────
 			"/event/{event_id}/invitation": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Event Invitations"],
 					summary: "List event invitations",
 					parameters: [
-						{ in: "query", name: "role", schema: { type: "string", enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"] } },
+						{
+							in: "query",
+							name: "role",
+							schema: {
+								type: "string",
+								enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"],
+							},
+						},
 						{ in: "query", name: "user_id", schema: { type: "integer" } },
 						{ in: "query", name: "page", schema: { type: "integer" } },
 						{ in: "query", name: "per_page", schema: { type: "integer" } },
@@ -561,13 +935,28 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/Invitation" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/Invitation" },
+													},
+												},
+											},
 										],
 									},
 								},
 							},
 						},
-						"404": { description: "Event not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Event not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				post: {
@@ -582,30 +971,83 @@ const options: swaggerJsdoc.Options = {
 									required: ["userId"],
 									properties: {
 										userId: { type: "integer" },
-										role: { type: "string", enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"] },
+										role: {
+											type: "string",
+											enum: [
+												"GUEST",
+												"DATE_PICKER",
+												"LOCATION_PICKER",
+												"ORGANIZER",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"201": { description: "Created invitation", content: { "application/json": { schema: { $ref: "#/components/schemas/Invitation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created invitation",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Invitation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/event/{event_id}/invitation/{invitation_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "invitation_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "invitation_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				get: {
 					tags: ["Event Invitations"],
 					summary: "Get invitation by ID",
 					responses: {
-						"200": { description: "Invitation", content: { "application/json": { schema: { $ref: "#/components/schemas/Invitation" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Invitation",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Invitation" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -619,16 +1061,45 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["role"],
 									properties: {
-										role: { type: "string", enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"] },
+										role: {
+											type: "string",
+											enum: [
+												"GUEST",
+												"DATE_PICKER",
+												"LOCATION_PICKER",
+												"ORGANIZER",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated invitation", content: { "application/json": { schema: { $ref: "#/components/schemas/Invitation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated invitation",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Invitation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -642,16 +1113,45 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["role"],
 									properties: {
-										role: { type: "string", enum: ["GUEST", "DATE_PICKER", "LOCATION_PICKER", "ORGANIZER"] },
+										role: {
+											type: "string",
+											enum: [
+												"GUEST",
+												"DATE_PICKER",
+												"LOCATION_PICKER",
+												"ORGANIZER",
+											],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated invitation", content: { "application/json": { schema: { $ref: "#/components/schemas/Invitation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated invitation",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Invitation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -659,14 +1159,28 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete invitation",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 
 			// ── Event Locations ───────────────────────────────────────────────
 			"/event/{event_id}/location": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Event Locations"],
 					summary: "List event locations",
@@ -683,7 +1197,17 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/EventLocation" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: {
+															$ref: "#/components/schemas/EventLocation",
+														},
+													},
+												},
+											},
 										],
 									},
 								},
@@ -707,23 +1231,68 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"201": { description: "Created event location", content: { "application/json": { schema: { $ref: "#/components/schemas/EventLocation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created event location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventLocation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/event/{event_id}/location/{location_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "location_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "location_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				get: {
 					tags: ["Event Locations"],
 					summary: "Get event location by ID",
 					responses: {
-						"200": { description: "Event location", content: { "application/json": { schema: { $ref: "#/components/schemas/EventLocation" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Event location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventLocation" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -742,9 +1311,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated event location", content: { "application/json": { schema: { $ref: "#/components/schemas/EventLocation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventLocation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -763,9 +1353,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated event location", content: { "application/json": { schema: { $ref: "#/components/schemas/EventLocation" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventLocation" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -773,20 +1384,42 @@ const options: swaggerJsdoc.Options = {
 					summary: "Remove location from event",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 
 			// ── Event Dates ───────────────────────────────────────────────────
 			"/event/{event_id}/date": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Event Dates"],
 					summary: "List event dates",
 					parameters: [
-						{ in: "query", name: "from", schema: { type: "string", format: "date" } },
-						{ in: "query", name: "to", schema: { type: "string", format: "date" } },
+						{
+							in: "query",
+							name: "from",
+							schema: { type: "string", format: "date" },
+						},
+						{
+							in: "query",
+							name: "to",
+							schema: { type: "string", format: "date" },
+						},
 						{ in: "query", name: "page", schema: { type: "integer" } },
 						{ in: "query", name: "per_page", schema: { type: "integer" } },
 					],
@@ -798,7 +1431,15 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/EventDate" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/EventDate" },
+													},
+												},
+											},
 										],
 									},
 								},
@@ -816,29 +1457,80 @@ const options: swaggerJsdoc.Options = {
 								schema: {
 									type: "object",
 									required: ["date"],
-									properties: { date: { type: "string", format: "date", example: "2025-12-31" } },
+									properties: {
+										date: {
+											type: "string",
+											format: "date",
+											example: "2025-12-31",
+										},
+									},
 								},
 							},
 						},
 					},
 					responses: {
-						"201": { description: "Created event date", content: { "application/json": { schema: { $ref: "#/components/schemas/EventDate" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created event date",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventDate" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/event/{event_id}/date/{date_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "date_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "date_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				get: {
 					tags: ["Event Dates"],
 					summary: "Get event date by ID",
 					responses: {
-						"200": { description: "Event date", content: { "application/json": { schema: { $ref: "#/components/schemas/EventDate" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Event date",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventDate" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -851,15 +1543,42 @@ const options: swaggerJsdoc.Options = {
 								schema: {
 									type: "object",
 									required: ["date"],
-									properties: { date: { type: "string", format: "date", example: "2025-12-31" } },
+									properties: {
+										date: {
+											type: "string",
+											format: "date",
+											example: "2025-12-31",
+										},
+									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated event date", content: { "application/json": { schema: { $ref: "#/components/schemas/EventDate" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event date",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventDate" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -872,15 +1591,42 @@ const options: swaggerJsdoc.Options = {
 								schema: {
 									type: "object",
 									required: ["date"],
-									properties: { date: { type: "string", format: "date", example: "2025-12-31" } },
+									properties: {
+										date: {
+											type: "string",
+											format: "date",
+											example: "2025-12-31",
+										},
+									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated event date", content: { "application/json": { schema: { $ref: "#/components/schemas/EventDate" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated event date",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EventDate" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -888,7 +1634,14 @@ const options: swaggerJsdoc.Options = {
 					summary: "Remove date from event",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
@@ -911,7 +1664,15 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/Location" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: { $ref: "#/components/schemas/Location" },
+													},
+												},
+											},
 										],
 									},
 								},
@@ -935,19 +1696,54 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"201": { description: "Created location", content: { "application/json": { schema: { $ref: "#/components/schemas/Location" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Location" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/location/{location_id}": {
-				parameters: [{ in: "path", name: "location_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "location_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Locations"],
 					summary: "Get location by ID",
 					responses: {
-						"200": { description: "Location", content: { "application/json": { schema: { $ref: "#/components/schemas/Location" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Location" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -966,9 +1762,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated location", content: { "application/json": { schema: { $ref: "#/components/schemas/Location" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Location" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -987,9 +1804,30 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": { description: "Updated location", content: { "application/json": { schema: { $ref: "#/components/schemas/Location" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated location",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Location" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -997,19 +1835,40 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete location",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 
 			// ── Responses – Date ──────────────────────────────────────────────
 			"/response/{event_id}/date": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Responses"],
 					summary: "List date responses for event",
 					parameters: [
-						{ in: "query", name: "state", schema: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] } },
+						{
+							in: "query",
+							name: "state",
+							schema: {
+								type: "string",
+								enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+							},
+						},
 						{ in: "query", name: "user_id", schema: { type: "integer" } },
 						{ in: "query", name: "date_id", schema: { type: "integer" } },
 						{ in: "query", name: "page", schema: { type: "integer" } },
@@ -1023,7 +1882,17 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/DateResponse" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: {
+															$ref: "#/components/schemas/DateResponse",
+														},
+													},
+												},
+											},
 										],
 									},
 								},
@@ -1034,8 +1903,18 @@ const options: swaggerJsdoc.Options = {
 			},
 			"/response/{event_id}/date/{date_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "date_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "date_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				post: {
 					tags: ["Responses"],
@@ -1048,31 +1927,84 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"201": { description: "Created date response", content: { "application/json": { schema: { $ref: "#/components/schemas/DateResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created date response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/DateResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/response/{event_id}/date/{date_id}/{user_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "date_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "user_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "date_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "user_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				get: {
 					tags: ["Responses"],
 					summary: "Get specific date response",
 					responses: {
-						"200": { description: "Date response", content: { "application/json": { schema: { $ref: "#/components/schemas/DateResponse" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Date response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/DateResponse" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -1086,16 +2018,40 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated date response", content: { "application/json": { schema: { $ref: "#/components/schemas/DateResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated date response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/DateResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -1109,16 +2065,40 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated date response", content: { "application/json": { schema: { $ref: "#/components/schemas/DateResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated date response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/DateResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -1126,19 +2106,40 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete date response",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 
 			// ── Responses – Location ──────────────────────────────────────────
 			"/response/{event_id}/location": {
-				parameters: [{ in: "path", name: "event_id", required: true, schema: { type: "integer" } }],
+				parameters: [
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+				],
 				get: {
 					tags: ["Responses"],
 					summary: "List location responses for event",
 					parameters: [
-						{ in: "query", name: "state", schema: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] } },
+						{
+							in: "query",
+							name: "state",
+							schema: {
+								type: "string",
+								enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+							},
+						},
 						{ in: "query", name: "user_id", schema: { type: "integer" } },
 						{ in: "query", name: "location_id", schema: { type: "integer" } },
 						{ in: "query", name: "page", schema: { type: "integer" } },
@@ -1152,7 +2153,17 @@ const options: swaggerJsdoc.Options = {
 									schema: {
 										allOf: [
 											{ $ref: "#/components/schemas/Pagination" },
-											{ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/LocationResponse" } } } },
+											{
+												type: "object",
+												properties: {
+													data: {
+														type: "array",
+														items: {
+															$ref: "#/components/schemas/LocationResponse",
+														},
+													},
+												},
+											},
 										],
 									},
 								},
@@ -1163,8 +2174,18 @@ const options: swaggerJsdoc.Options = {
 			},
 			"/response/{event_id}/location/{location_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "location_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "location_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				post: {
 					tags: ["Responses"],
@@ -1177,31 +2198,84 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"201": { description: "Created location response", content: { "application/json": { schema: { $ref: "#/components/schemas/LocationResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"201": {
+							description: "Created location response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/LocationResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
 			"/response/{event_id}/location/{location_id}/{user_id}": {
 				parameters: [
-					{ in: "path", name: "event_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "location_id", required: true, schema: { type: "integer" } },
-					{ in: "path", name: "user_id", required: true, schema: { type: "integer" } },
+					{
+						in: "path",
+						name: "event_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "location_id",
+						required: true,
+						schema: { type: "integer" },
+					},
+					{
+						in: "path",
+						name: "user_id",
+						required: true,
+						schema: { type: "integer" },
+					},
 				],
 				get: {
 					tags: ["Responses"],
 					summary: "Get specific location response",
 					responses: {
-						"200": { description: "Location response", content: { "application/json": { schema: { $ref: "#/components/schemas/LocationResponse" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Location response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/LocationResponse" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				patch: {
@@ -1215,16 +2289,40 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated location response", content: { "application/json": { schema: { $ref: "#/components/schemas/LocationResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated location response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/LocationResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				put: {
@@ -1238,16 +2336,40 @@ const options: swaggerJsdoc.Options = {
 									type: "object",
 									required: ["state"],
 									properties: {
-										state: { type: "string", enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"] },
+										state: {
+											type: "string",
+											enum: ["YES", "NO", "MAYBE", "QUESTION", "NO_RESPONSE"],
+										},
 									},
 								},
 							},
 						},
 					},
 					responses: {
-						"200": { description: "Updated location response", content: { "application/json": { schema: { $ref: "#/components/schemas/LocationResponse" } } } },
-						"400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"200": {
+							description: "Updated location response",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/LocationResponse" },
+								},
+							},
+						},
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 				delete: {
@@ -1255,7 +2377,14 @@ const options: swaggerJsdoc.Options = {
 					summary: "Delete location response",
 					responses: {
 						"204": { description: "Deleted" },
-						"404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"404": {
+							description: "Not found",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1286,7 +2415,10 @@ const options: swaggerJsdoc.Options = {
 															type: "object",
 															properties: {
 																id: { type: "integer" },
-																timestamp: { type: "string", format: "date-time" },
+																timestamp: {
+																	type: "string",
+																	format: "date-time",
+																},
 																level: { type: "string" },
 																message: { type: "string" },
 															},
@@ -1299,7 +2431,14 @@ const options: swaggerJsdoc.Options = {
 								},
 							},
 						},
-						"403": { description: "Forbidden", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+						"403": {
+							description: "Forbidden",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/Error" },
+								},
+							},
+						},
 					},
 				},
 			},
