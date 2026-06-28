@@ -280,7 +280,7 @@ export const getInvitation = async (
 			userId,
 		);
 		if (resultUser.rows.length === 0) {
-			return res.status(400).json({ message: "Invitation not found" });
+			return res.status(404).json({ message: "Invitation not found" });
 		}
 
 		const result = await database.query(
