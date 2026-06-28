@@ -20,7 +20,7 @@ interface DbConfig {
 const config: Config = {
 	port: Number(process.env.PORT) || 3000,
 	secret: process.env.SECRET || "SECRET STRING SHOULD BE SET IN ENV",
-	cors_url: process.env.CORS_URL || "*",
+	cors_url: process.env.CORS_URL || "localhost",
 };
 
 export const dbConfig: DbConfig = {
