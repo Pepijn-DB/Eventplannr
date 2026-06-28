@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import rateLimit from "express-rate-limit";
 import type { AuthRequest } from "../../app.js";
+import Config from "../../config/config.js";
 
 export const rateLimiter = rateLimit({
 	// 15-minute total time
@@ -10,8 +11,7 @@ export const rateLimiter = rateLimit({
 	message: {
 		error: "Too many requests from this IP address",
 		retryAfter: "15 minutes",
-		//TODO Link to docs
-		documentation: "https://api.example.com/docs/rate-limits",
+		documentation: Config.cors_url + "/docs",
 	},
 	standardHeaders: true,
 
