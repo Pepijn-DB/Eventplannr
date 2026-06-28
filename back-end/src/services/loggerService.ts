@@ -30,8 +30,7 @@ function write(level: Level, msg: string, meta?: Record<string, unknown>) {
 		const metaStr = meta ? ` ${JSON.stringify(meta)}` : "";
 		process.stdout.write(`${ts} ${prefix} ${msg}${metaStr}\n`);
 	} else {
-		const entry: Record<string, unknown> = { ts, level, msg };
-		if (meta) Object.assign(entry, meta);
+		const entry: Record<string, unknown> = { ...meta, ts, level, msg };
 		process.stdout.write(`${JSON.stringify(entry)}\n`);
 	}
 }
