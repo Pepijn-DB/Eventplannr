@@ -34,6 +34,14 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 				},
+				NotImplemented: {
+					description: "Method not implemented",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/Error" },
+						},
+					},
+				},
 			},
 			schemas: {
 				Pagination: {
@@ -44,6 +52,46 @@ const options: swaggerJsdoc.Options = {
 						per_page: { type: "integer" },
 						offset: { type: "integer" },
 					},
+				},
+				Message: {
+					type: "object",
+					required: ["message"],
+					properties: {
+						message: { type: "string" },
+					},
+				},
+				Error: {
+					type: "object",
+					required: ["message"],
+					properties: {
+						message: { type: "string" },
+					},
+				},
+				ValidationError: {
+					allOf: [
+						{ $ref: "#/components/schemas/Error" },
+						{
+							type: "object",
+							properties: {
+								errors: {
+									type: "object",
+									properties: {
+										formErrors: {
+											type: "array",
+											items: { type: "string" },
+										},
+										fieldErrors: {
+											type: "object",
+											additionalProperties: {
+												type: "array",
+												items: { type: "string" },
+											},
+										},
+									},
+								},
+							},
+						},
+					],
 				},
 				User: {
 					type: "object",
@@ -137,12 +185,6 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 				},
-				Error: {
-					type: "object",
-					properties: {
-						message: { type: "string" },
-					},
-				},
 			},
 		},
 		security: [{ bearerAuth: [] }],
@@ -184,7 +226,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -193,6 +235,7 @@ const options: swaggerJsdoc.Options = {
 							content: {
 								"application/json": {
 									schema: { $ref: "#/components/schemas/Error" },
+									example: { message: "Unauthorized" },
 								},
 							},
 						},
@@ -213,22 +256,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of users",
+							description: "List of users",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/User" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/User" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -258,10 +296,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created user",
+							description: "User created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/User" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "User created successfully" },
 								},
 							},
 						},
@@ -269,7 +308,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -301,7 +340,15 @@ const options: swaggerJsdoc.Options = {
 							description: "User",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/User" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/User" },
+											},
+										},
+									},
 								},
 							},
 						},
@@ -335,19 +382,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated user",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/User" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -382,19 +422,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated user",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/User" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -453,22 +486,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of invitations",
+							description: "List of invitations",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/Invitation" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Invitation" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -503,8 +531,15 @@ const options: swaggerJsdoc.Options = {
 							content: {
 								"application/json": {
 									schema: {
-										type: "array",
-										items: { $ref: "#/components/schemas/UserPermission" },
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/UserPermission",
+												},
+											},
+										},
 									},
 								},
 							},
@@ -547,10 +582,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created permission",
+							description: "Permission created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/UserPermission" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "User permission created successfully" },
 								},
 							},
 						},
@@ -558,7 +594,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -599,31 +635,16 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated permission",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/UserPermission" },
-								},
-							},
-						},
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 					},
 				},
 				put: {
@@ -652,47 +673,54 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated permission",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/UserPermission" },
-								},
-							},
-						},
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 					},
 				},
 				delete: {
 					tags: ["Users"],
 					summary: "Delete user permission",
-					responses: {
-						"204": { description: "Deleted" },
-						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+					requestBody: {
+						required: true,
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									required: ["permission"],
+									properties: {
+										permission: {
+											type: "string",
+											enum: [
+												"USER",
+												"GLOBAL_ADMIN",
+												"USER_ADMIN",
+												"EVENT_ADMIN",
+											],
+										},
+									},
 								},
 							},
 						},
+					},
+					responses: {
+						"204": { description: "Deleted" },
+						"400": {
+							description: "Validation error",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/ValidationError" },
+								},
+							},
+						},
+						"401": { $ref: "#/components/responses/Unauthorized" },
 					},
 				},
 			},
@@ -717,22 +745,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of events",
+							description: "List of events",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/Event" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Event" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -760,10 +783,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created event",
+							description: "Event created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Event" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Event created" },
 								},
 							},
 						},
@@ -771,7 +795,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -796,7 +820,15 @@ const options: swaggerJsdoc.Options = {
 							description: "Event",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Event" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Event" },
+											},
+										},
+									},
 								},
 							},
 						},
@@ -833,19 +865,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Event" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -883,19 +908,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Event" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -956,22 +974,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of invitations",
+							description: "List of invitations",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/Invitation" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Invitation" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -1015,10 +1028,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created invitation",
+							description: "Invitation created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Invitation" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Invitation created" },
 								},
 							},
 						},
@@ -1026,7 +1040,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1065,7 +1079,15 @@ const options: swaggerJsdoc.Options = {
 							description: "Invitation",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Invitation" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Invitation" },
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1106,19 +1128,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated invitation",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Invitation" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1159,19 +1174,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated invitation",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Invitation" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1224,24 +1232,19 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of event locations",
+							description: "List of event locations",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: {
-															$ref: "#/components/schemas/EventLocation",
-														},
-													},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/EventLocation",
 												},
 											},
-										],
+										},
 									},
 								},
 							},
@@ -1266,10 +1269,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created event location",
+							description: "Event location created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/EventLocation" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Event location created successfully" },
 								},
 							},
 						},
@@ -1277,7 +1281,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1316,7 +1320,17 @@ const options: swaggerJsdoc.Options = {
 							description: "Event location",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/EventLocation" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/EventLocation",
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1347,31 +1361,8 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event location",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/EventLocation" },
-								},
-							},
-						},
-						"400": {
-							description: "Validation error",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
 					},
 				},
 				put: {
@@ -1390,31 +1381,8 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event location",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/EventLocation" },
-								},
-							},
-						},
-						"400": {
-							description: "Validation error",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
 					},
 				},
 				delete: {
@@ -1464,22 +1432,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of event dates",
+							description: "List of event dates",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/EventDate" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/EventDate" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -1510,10 +1473,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created event date",
+							description: "Date created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/EventDate" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Date created" },
 								},
 							},
 						},
@@ -1521,7 +1485,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1560,7 +1524,15 @@ const options: swaggerJsdoc.Options = {
 							description: "Event date",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/EventDate" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/EventDate" },
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1597,31 +1569,8 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event date",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/EventDate" },
-								},
-							},
-						},
-						"400": {
-							description: "Validation error",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
 					},
 				},
 				put: {
@@ -1646,31 +1595,8 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated event date",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/EventDate" },
-								},
-							},
-						},
-						"400": {
-							description: "Validation error",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
+						"405": { $ref: "#/components/responses/NotImplemented" },
 						"401": { $ref: "#/components/responses/Unauthorized" },
-						"404": {
-							description: "Not found",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
-								},
-							},
-						},
 					},
 				},
 				delete: {
@@ -1703,22 +1629,17 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of locations",
+							description: "List of locations",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: { $ref: "#/components/schemas/Location" },
-													},
-												},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Location" },
 											},
-										],
+										},
 									},
 								},
 							},
@@ -1743,10 +1664,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created location",
+							description: "Location created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Location" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Location created successfully" },
 								},
 							},
 						},
@@ -1754,7 +1676,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1779,7 +1701,15 @@ const options: swaggerJsdoc.Options = {
 							description: "Location",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Location" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: { $ref: "#/components/schemas/Location" },
+											},
+										},
+									},
 								},
 							},
 						},
@@ -1810,19 +1740,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated location",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Location" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1853,19 +1776,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated location",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/Location" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -1927,24 +1843,19 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of date responses",
+							description: "List of date responses",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: {
-															$ref: "#/components/schemas/DateResponse",
-														},
-													},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/DateResponse",
 												},
 											},
-										],
+										},
 									},
 								},
 							},
@@ -1990,10 +1901,11 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created date response",
+							description: "Date response created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/DateResponse" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: { message: "Date response created" },
 								},
 							},
 						},
@@ -2001,7 +1913,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2046,7 +1958,17 @@ const options: swaggerJsdoc.Options = {
 							description: "Date response",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/DateResponse" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/DateResponse",
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -2082,19 +2004,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated date response",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/DateResponse" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2130,19 +2045,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated date response",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/DateResponse" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2204,24 +2112,19 @@ const options: swaggerJsdoc.Options = {
 					],
 					responses: {
 						"200": {
-							description: "Paginated list of location responses",
+							description: "List of location responses",
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: {
-															$ref: "#/components/schemas/LocationResponse",
-														},
-													},
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/LocationResponse",
 												},
 											},
-										],
+										},
 									},
 								},
 							},
@@ -2267,10 +2170,13 @@ const options: swaggerJsdoc.Options = {
 					},
 					responses: {
 						"201": {
-							description: "Created location response",
+							description: "Location response created",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/LocationResponse" },
+									schema: { $ref: "#/components/schemas/Message" },
+									example: {
+										message: "Location response created successfully",
+									},
 								},
 							},
 						},
@@ -2278,7 +2184,7 @@ const options: swaggerJsdoc.Options = {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2323,7 +2229,17 @@ const options: swaggerJsdoc.Options = {
 							description: "Location response",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/LocationResponse" },
+									schema: {
+										type: "object",
+										properties: {
+											result: {
+												type: "array",
+												items: {
+													$ref: "#/components/schemas/LocationResponse",
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -2359,19 +2275,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated location response",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/LocationResponse" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2407,19 +2316,12 @@ const options: swaggerJsdoc.Options = {
 						},
 					},
 					responses: {
-						"200": {
-							description: "Updated location response",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/LocationResponse" },
-								},
-							},
-						},
+						"204": { description: "Updated" },
 						"400": {
 							description: "Validation error",
 							content: {
 								"application/json": {
-									schema: { $ref: "#/components/schemas/Error" },
+									schema: { $ref: "#/components/schemas/ValidationError" },
 								},
 							},
 						},
@@ -2467,29 +2369,20 @@ const options: swaggerJsdoc.Options = {
 							content: {
 								"application/json": {
 									schema: {
-										allOf: [
-											{ $ref: "#/components/schemas/Pagination" },
-											{
-												type: "object",
-												properties: {
-													data: {
-														type: "array",
-														items: {
-															type: "object",
-															properties: {
-																id: { type: "integer" },
-																timestamp: {
-																	type: "string",
-																	format: "date-time",
-																},
-																level: { type: "string" },
-																message: { type: "string" },
-															},
-														},
+										type: "object",
+										properties: {
+											errors: {
+												type: "array",
+												items: {
+													type: "object",
+													properties: {
+														err: { type: "object" },
+														req: { type: "object" },
+														ts: { type: "integer" },
 													},
 												},
 											},
-										],
+										},
 									},
 								},
 							},
