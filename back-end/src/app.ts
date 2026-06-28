@@ -1,8 +1,10 @@
 // Express imports
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 
 import config from "./config/config.js";
+import swaggerSpec from "./config/swagger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import requestLogger from "./middlewares/requestLogger.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
@@ -34,6 +36,8 @@ export interface AuthRequest extends Request {
 const app = express();
 
 app.use(requestLogger);
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 
