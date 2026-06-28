@@ -1,8 +1,10 @@
 // Express imports
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 
 import config from "./config/config.js";
+import swaggerSpec from "./config/swagger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { checkToken } from "./middlewares/v1/authHandler.js";
 import paginationHandler from "./middlewares/v1/paginationHandler.js";
@@ -20,6 +22,7 @@ import userRoutes from "./routes/v1/userRoutes.js";
 
 export interface AuthRequest extends Request {
 	user?: User;
+	requestId?: string;
 	rateLimit?: { resetTime: number; remaining: number };
 	pagination?: {
 		limit?: number;
@@ -30,6 +33,8 @@ export interface AuthRequest extends Request {
 }
 
 const app = express();
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 
