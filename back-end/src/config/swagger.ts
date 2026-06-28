@@ -49,7 +49,8 @@ const options: swaggerJsdoc.Options = {
 							schema: { $ref: "#/components/schemas/RateLimitError" },
 							example: {
 								error: "Rate limit exceeded",
-								message: "Too many requests from this IP, please try again later",
+								message:
+									"Too many requests from this IP, please try again later",
 								retryAfter: 1234567890,
 							},
 						},
