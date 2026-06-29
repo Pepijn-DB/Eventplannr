@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
 import * as Bun from "bun";
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -6,37 +5,12 @@ import type { AuthRequest } from "../../app.js";
 import Config from "../../config/config.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 import type { User } from "../../models/user.js";
-import {
-	queryWithoutExecutioner,
-	transaction,
-} from "../../services/databaseService.js";
+import { queryWithoutExecutioner } from "../../services/databaseService.js";
 import { emailValidator } from "../../validators/emailValidator.js";
 import {
 	arrayValidator,
 	variableValidator,
 } from "../../validators/variableValidator.js";
-
-const REFRESH_TOKEN_TTL_DAYS = 7;
-const ACCESS_TOKEN_TTL = "15m";
-
-function hashToken(raw: string): string {
-	return createHash("sha256").update(raw).digest("hex");
-}
-
-async function generateRefreshToken(userId: number): Promise<string> {
-	const raw = randomBytes(48).toString("hex");
-	const hash = hashToken(raw);
-
-	const expiresAt = new Date();
-	expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_TTL_DAYS);
-
-	await queryWithoutExecutioner(
-		"INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
-		[userId, hash, expiresAt.toISOString().slice(0, 19).replace("T", " ")],
-	);
-
-	return raw;
-}
 
 export const getToken = async (
 	req: AuthRequest,
@@ -103,115 +77,11 @@ export const getToken = async (
 			email: user.email,
 		};
 
-		const accessToken = jwt.sign(payload, Config.secret, {
-			expiresIn: ACCESS_TOKEN_TTL,
+		const token = jwt.sign(payload, Config.secret, {
+			expiresIn: "1d",
 		});
 
-		const refreshToken = await generateRefreshToken(user.id);
-
-		return res.status(200).json({ accessToken, refreshToken });
-	} catch (err) {
-		next(err);
-	}
-};
-
-export const refreshToken = async (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
-) => {
-	try {
-		if (Config.secret === "null") {
-			next(new AppError("Server not configured", 500));
-			return;
-		}
-
-		const raw: string | undefined = req.body?.refreshToken;
-		if (!raw) {
-			return res.status(400).json({ message: "Missing refreshToken" });
-		}
-
-		const hash = hashToken(raw);
-
-		type RotationResult =
-			| { ok: true; user_id: number; username: string; email: string }
-			| { ok: false; reason: "not_found" | "expired" };
-
-		const rotationResult = await transaction<RotationResult>(
-			-1,
-			async (txQuery) => {
-				const result = await txQuery(
-					"SELECT rt.id, rt.expires_at, u.id as user_id, u.username, u.email FROM refresh_tokens rt JOIN users u ON u.id = rt.user_id WHERE rt.token_hash = ? FOR UPDATE",
-					[hash],
-				);
-
-				if (!result || result.rows.length === 0) {
-					return { ok: false, reason: "not_found" };
-				}
-
-				const row = result.rows[0];
-
-				if (new Date(row.expires_at) < new Date()) {
-					await txQuery("DELETE FROM refresh_tokens WHERE id = ?", [row.id]);
-					return { ok: false, reason: "expired" };
-				}
-
-				await txQuery("DELETE FROM refresh_tokens WHERE id = ?", [row.id]);
-
-				return {
-					ok: true,
-					user_id: row.user_id,
-					username: row.username,
-					email: row.email,
-				};
-			},
-		);
-
-		if (!rotationResult.ok) {
-			return res.status(401).json({
-				message:
-					rotationResult.reason === "expired"
-						? "Refresh token expired"
-						: "Invalid or expired refresh token",
-			});
-		}
-
-		const payload: User = {
-			id: rotationResult.user_id,
-			username: rotationResult.username,
-			email: rotationResult.email,
-		};
-
-		const accessToken = jwt.sign(payload, Config.secret, {
-			expiresIn: ACCESS_TOKEN_TTL,
-		});
-
-		const newRefreshToken = await generateRefreshToken(rotationResult.user_id);
-
-		return res.status(200).json({ accessToken, refreshToken: newRefreshToken });
-	} catch (err) {
-		next(err);
-	}
-};
-
-export const logout = async (
-	req: AuthRequest,
-	res: Response,
-	next: NextFunction,
-) => {
-	try {
-		const raw: string | undefined = req.body?.refreshToken;
-		if (!raw) {
-			return res.status(400).json({ message: "Missing refreshToken" });
-		}
-
-		const hash = hashToken(raw);
-		await queryWithoutExecutioner(
-			"DELETE FROM refresh_tokens WHERE token_hash = ?",
-			[hash],
-		);
-
-		return res.status(204).send();
+		return res.status(200).json({ token: token });
 	} catch (err) {
 		next(err);
 	}

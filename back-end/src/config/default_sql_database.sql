@@ -126,15 +126,3 @@ ALTER TABLE `date_response` ADD UNIQUE KEY `unique_date_vote` (`invitation_id`, 
 ALTER TABLE `location_response` ADD UNIQUE KEY `unique_loc_vote` (`invitation_id`, `location_id`);
 
 ALTER TABLE `user_permissions` ADD UNIQUE KEY `unique_perm` (`user_id`, `permission`);
-
-CREATE TABLE `refresh_tokens` (
-    `id` int PRIMARY KEY AUTO_INCREMENT,
-    `user_id` int NOT NULL,
-    `token_hash` VARCHAR(255) NOT NULL,
-    `expires_at` TIMESTAMP NOT NULL,
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_log` int
-);
-
-ALTER TABLE `refresh_tokens` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-ALTER TABLE `refresh_tokens` ADD UNIQUE KEY `unique_token_hash` (`token_hash`);

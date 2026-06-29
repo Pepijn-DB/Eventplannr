@@ -6,8 +6,6 @@ import type { User } from "../../models/user.js";
 
 const noAuthRequired: { [key: string]: string } = {
 	"/api/v1/auth/token": "POST",
-	"/api/v1/auth/refresh": "POST",
-	"/api/v1/auth/logout": "POST",
 	"/api/v1/user": "POST",
 };
 
