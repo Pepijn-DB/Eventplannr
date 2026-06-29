@@ -9,6 +9,7 @@ const noAuthRequired: { [key: string]: string } = {
 	"/api/v1/auth/refresh": "POST",
 	"/api/v1/auth/logout": "POST",
 	"/api/v1/user": "POST",
+	"/api/v1/health": "GET",
 };
 
 export const checkToken = (
