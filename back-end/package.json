@@ -16,7 +16,9 @@
 	},
 	"scripts": {
 		"start": "bun run serve",
-		"serve": "bun ./src/server.ts"
+		"serve": "bun ./src/server.ts",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
