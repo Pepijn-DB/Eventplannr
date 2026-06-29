@@ -31,6 +31,19 @@ export const rateLimiter = rateLimit({
 	},
 });
 
+export const healthRateLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 1,
+	standardHeaders: true,
+	legacyHeaders: false,
+	handler: (_req, res: Response) => {
+		res.status(429).json({
+			error: "Rate limit exceeded",
+			message: "Health endpoint can only be called once per minute",
+		});
+	},
+});
+
 export const authRateLimiter = rateLimit({
 	// 10-minute total time
 	windowMs: 10 * 60 * 1000,
