@@ -165,6 +165,15 @@ export async function transaction<T>(
 	});
 }
 
+export async function ping(): Promise<boolean> {
+	try {
+		const result = await db`SELECT NOW()`;
+		return result.length > 0;
+	} catch {
+		return false;
+	}
+}
+
 export async function close(): Promise<void> {
 	db.close();
 	connected = false;
@@ -311,6 +320,7 @@ export function getDb() {
 export default {
 	getDb,
 	connect,
+	ping,
 	query,
 	queryWithoutExecutioner,
 	transaction,
