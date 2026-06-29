@@ -16,8 +16,8 @@ import {
 import type { User } from "./models/user.js";
 import adminRoutes from "./routes/v1/adminRoutes.js";
 import authRoutes from "./routes/v1/authRoutes.js";
-import healthRoutes from "./routes/v1/healthRoutes.js";
 import eventRoutes from "./routes/v1/eventRoutes.js";
+import healthRoutes from "./routes/v1/healthRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
