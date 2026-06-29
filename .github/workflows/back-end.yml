@@ -35,7 +35,7 @@ jobs:
       run: bunx tsc --noEmit
 
     - name: Run tests
-      run: bun test
+      run: bun test --coverage
 
     - name: Run linter (Biome)
       run: bunx biome check .
