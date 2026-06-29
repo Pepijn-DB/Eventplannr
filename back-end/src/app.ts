@@ -17,6 +17,7 @@ import type { User } from "./models/user.js";
 import adminRoutes from "./routes/v1/adminRoutes.js";
 import authRoutes from "./routes/v1/authRoutes.js";
 import eventRoutes from "./routes/v1/eventRoutes.js";
+import healthRoutes from "./routes/v1/healthRoutes.js";
 import locationRoutes from "./routes/v1/locationRoutes.js";
 import responseRoutes from "./routes/v1/responseRoutes.js";
 import userRoutes from "./routes/v1/userRoutes.js";
@@ -61,6 +62,7 @@ app.use((req: AuthRequest, res: Response, next: NextFunction) => {
 app.use(checkToken);
 
 // Routes V1
+app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/auth", authRateLimiter, authRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/event", eventRoutes);
