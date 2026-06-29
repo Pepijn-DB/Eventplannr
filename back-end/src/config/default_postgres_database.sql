@@ -129,3 +129,14 @@ ALTER TABLE invitation ADD CONSTRAINT unique_invite UNIQUE (user_id, event_id);
 ALTER TABLE date_response ADD CONSTRAINT unique_date_vote UNIQUE (invitation_id, date_id);
 ALTER TABLE location_response ADD CONSTRAINT unique_loc_vote UNIQUE (invitation_id, location_id);
 ALTER TABLE user_permissions ADD CONSTRAINT unique_perm UNIQUE (user_id, permission);
+
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_log INTEGER
+);
+
+ALTER TABLE refresh_tokens ADD FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;

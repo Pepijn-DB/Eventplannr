@@ -24,6 +24,10 @@ export const authTokenSchema = z.object({
 	password: z.string().min(1),
 });
 
+export const authRefreshSchema = z.object({
+	refreshToken: z.string().min(1),
+});
+
 export const createUserSchema = z.object({
 	username: z.string().min(1),
 	email: z.string().email(),

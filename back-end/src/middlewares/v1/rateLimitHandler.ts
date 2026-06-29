@@ -11,7 +11,7 @@ export const rateLimiter = rateLimit({
 	message: {
 		error: "Too many requests from this IP address",
 		retryAfter: "15 minutes",
-		documentation: Config.cors_url + "/docs",
+		documentation: `${Config.cors_url}/docs`,
 	},
 	standardHeaders: true,
 
